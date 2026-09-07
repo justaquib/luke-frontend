@@ -1,0 +1,1002 @@
+<div
+  class="shell train-on"
+  [class.sidebar-collapsed]="!sidebarOpen()"
+>
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      @if (sidebarOpen()) {
+        <a class="brand" routerLink="/" title="Back to home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="22" height="22">
+              <defs>
+                <linearGradient id="tr-g" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#6366f1" />
+                  <stop offset="1" stop-color="#a855f7" />
+                </linearGradient>
+              </defs>
+              <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#tr-g)" />
+              <path
+                d="M9 12c0-1.5 1-3 3-3h8c2 0 3 1.5 3 3v6c0 1.5-1 3-3 3h-5l-3 3v-3h-0c-2 0-3-1.5-3-3z"
+                fill="#fff"
+                opacity="0.96"
+              />
+              <circle cx="13" cy="15" r="1.2" fill="#6366f1" />
+              <circle cx="17" cy="15" r="1.2" fill="#6366f1" />
+              <circle cx="21" cy="15" r="1.2" fill="#6366f1" />
+            </svg>
+          </span>
+          <span class="brand-name">{{ prefs.botName() }} · Trainer</span>
+        </a>
+      }
+    </div>
+
+    <nav class="nav-list">
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="tab() === 'inbox'"
+        (click)="setTab('inbox')"
+        [attr.aria-current]="tab() === 'inbox' ? 'page' : null"
+      >
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path
+              d="M3 6.5A2.5 2.5 0 0 1 5.5 4h13A2.5 2.5 0 0 1 21 6.5v9A2.5 2.5 0 0 1 18.5 18H8l-4 4v-4H5.5A2.5 2.5 0 0 1 3 15.5z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M7 9h10M7 12h7"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+        @if (sidebarOpen()) { <span class="nav-label">Inbox</span> }
+        @if (sidebarOpen() && pendingCount() > 0) {
+          <span class="nav-badge">{{ pendingCount() }}</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="tab() === 'faqs'"
+        (click)="setTab('faqs')"
+        [attr.aria-current]="tab() === 'faqs' ? 'page' : null"
+      >
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path
+              d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+            />
+            <path
+              d="M8 9h8M8 12h8M8 15h5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+        @if (sidebarOpen()) { <span class="nav-label">Trained</span> }
+        @if (sidebarOpen() && faqCount() > 0) {
+          <span class="nav-badge">{{ faqCount() }}</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="nav-item"
+        [class.active]="tab() === 'merge'"
+        (click)="setTab('merge')"
+        [attr.aria-current]="tab() === 'merge' ? 'page' : null"
+      >
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path
+              d="M7 7l-3 3 3 3M17 7l3 3-3 3M14 4l-4 16"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
+        @if (sidebarOpen()) { <span class="nav-label">Merge</span> }
+        @if (sidebarOpen() && intentGroups().length > 0) {
+          <span class="nav-badge">{{ intentGroups().length }}</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="nav-item nav-item-primary"
+        [class.active]="tab() === 'new'"
+        (click)="setTab('new')"
+        [attr.aria-current]="tab() === 'new' ? 'page' : null"
+      >
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path
+              d="M12 5v14M5 12h14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+        @if (sidebarOpen()) { <span class="nav-label">New Q&amp;A</span> }
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      @if (sidebarOpen()) {
+        <a class="back-link" routerLink="/chat">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+            <path
+              d="M15 18l-6-6 6-6"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          Back to chat
+        </a>
+      }
+    </div>
+  </aside>
+
+  <main class="trainer-area">
+    <header class="trainer-header">
+      <button
+        type="button"
+        class="icon-btn sidebar-toggle"
+        (click)="toggleSidebar()"
+        [attr.aria-label]="sidebarOpen() ? 'Hide sidebar' : 'Show sidebar'"
+        [attr.aria-expanded]="sidebarOpen()"
+        title="Toggle sidebar"
+      >
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path
+            d="M3 6h18M3 12h18M3 18h18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+      <div class="title-wrap">
+        <h1 class="editable-title">
+          @switch (tab()) {
+            @case ('inbox') { Inbox }
+            @case ('faqs') { Trained answers }
+            @case ('merge') { Merge intents }
+            @case ('new') { New Q&A }
+          }
+        </h1>
+        <p class="subtitle">
+          @switch (tab()) {
+            @case ('inbox') { Teach the assistant by answering pending questions. }
+            @case ('faqs') { Review, edit and approve trained answers. }
+            @case ('merge') { Group paraphrases into one canonical intent. }
+            @case ('new') { Add a brand-new Q&A pair to the knowledge base. }
+          }
+        </p>
+      </div>
+      <div class="header-actions">
+        @if (stats(); as s) {
+          <span class="badge faq" [title]="s.faqs + ' trained FAQs'">{{ s.faqs }} trained</span>
+          <span class="badge pending" [title]="s.pending + ' pending questions'">{{ s.pending }} pending</span>
+        }
+        <button
+          type="button"
+          class="icon-btn"
+          (click)="refresh()"
+          aria-label="Refresh"
+          title="Refresh"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path
+              d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5M20 12a8 8 0 0 1-14 5l-2-2M4 20v-5h5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <section class="trainer-content">
+      @switch (tab()) {
+        @case ('inbox') {
+          <div class="toolbar">
+            <button
+              type="button"
+              class="dup-toggle"
+              [class.on]="includeResolved()"
+              (click)="toggleIncludeResolved()"
+            >
+              @if (includeResolved()) { ◉ Show answered } @else { ○ Show answered }
+            </button>
+            <span class="meta">{{ pendingCount() }} pending · {{ inbox().length }} total</span>
+          </div>
+
+          @if (inbox().length === 0) {
+            <p class="empty">No pending questions. Good job — the assistant has answers for everything asked so far.</p>
+          } @else {
+            <ul class="list">
+              @for (p of inbox(); track p.id) {
+                <li class="card" [class.resolved]="p.resolved">
+                  <div class="row">
+                    <strong class="q">{{ p.question }}</strong>
+                    <span class="meta">
+                      asked {{ p.occurrences }}×
+                      @if (p.resolved) {
+                        · <span class="status-tag small approved">answered</span>
+                      }
+                    </span>
+                  </div>
+                  @if (!p.resolved) {
+                    <textarea
+                      rows="2"
+                      placeholder="Type the correct answer…"
+                      [value]="answers()[p.id] || ''"
+                      (input)="setAnswer(p.id, $any($event.target).value)"
+                    ></textarea>
+                    <div class="actions">
+                      <button
+                        type="button"
+                        class="primary"
+                        [disabled]="saving()"
+                        (click)="saveAnswer(p)"
+                      >
+                        Save & train
+                      </button>
+                      <button type="button" class="ghost" (click)="dismiss(p)">
+                        Skip
+                      </button>
+                      <button
+                        type="button"
+                        class="ghost"
+                        (click)="toggleMergeRow(p)"
+                        [disabled]="isMerging(p)"
+                      >
+                        @if (mergeRowOpen(p)) { Cancel merge } @else { Merge duplicates }
+                      </button>
+                      <button
+                        type="button"
+                        class="danger"
+                        (click)="deletePending(p)"
+                        title="Remove this question from the inbox"
+                      >
+                        Delete
+                      </button>
+                    </div>
+
+                    @if (mergeRowOpen(p)) {
+                      <div class="merge-panel">
+                        <p class="hint">
+                          Pick which similar pending questions this canonical answer should also cover.
+                          They'll be created as pending FAQs pointing at the same answer.
+                        </p>
+                        @if (mergeMatchesFor(p).length === 0) {
+                          <p class="empty">No close matches found in the inbox.</p>
+                        } @else {
+                          <ul class="merge-list">
+                            @for (mm of mergeMatchesFor(p); track mm.pending_id) {
+                              <li class="merge-row">
+                                <label>
+                                  <input
+                                    type="checkbox"
+                                    [checked]="isMergeMatchSelected(p.id, mm.pending_id)"
+                                    (change)="toggleMergeMatch(p.id, mm.pending_id)"
+                                  />
+                                  <span class="merge-q">{{ mm.question }}</span>
+                                </label>
+                                <span class="meta">asked {{ mm.occurrences }}× · dist {{ mm.distance.toFixed(2) }}</span>
+                              </li>
+                            }
+                          </ul>
+                        }
+                        <label class="merge-answer">
+                          <span>Answer for all of these</span>
+                          <textarea
+                            rows="2"
+                            [value]="mergeAnswer()[p.id] || ''"
+                            (input)="updateMergeAnswer(p.id, $any($event.target).value)"
+                            placeholder="The correct answer…"
+                          ></textarea>
+                        </label>
+                        <div class="actions">
+                          <button
+                            type="button"
+                            class="primary"
+                            [disabled]="isMerging(p)"
+                            (click)="commitMergeRow(p)"
+                          >
+                            @if (isMerging(p)) { Merging… } @else { Merge & train }
+                          </button>
+                          <button
+                            type="button"
+                            class="ghost"
+                            (click)="cancelMergeRow(p)"
+                            [disabled]="isMerging(p)"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  } @else {
+                    <div class="actions">
+                      <button
+                        type="button"
+                        class="danger"
+                        (click)="deletePending(p)"
+                        title="Remove this answered question from the inbox"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+          }
+        }
+
+        @case ('faqs') {
+          <div class="status-pills">
+            <button
+              type="button"
+              class="status-pill"
+              [class.active]="statusFilter() === 'all'"
+              (click)="setStatusFilter('all')"
+            >
+              All <span class="count">{{ statusCounts().all }}</span>
+            </button>
+            <button
+              type="button"
+              class="status-pill pending"
+              [class.active]="statusFilter() === 'pending'"
+              (click)="setStatusFilter('pending')"
+            >
+              Pending <span class="count">{{ statusCounts().pending }}</span>
+            </button>
+            <button
+              type="button"
+              class="status-pill approved"
+              [class.active]="statusFilter() === 'approved'"
+              (click)="setStatusFilter('approved')"
+            >
+              Approved <span class="count">{{ statusCounts().approved }}</span>
+            </button>
+            <button
+              type="button"
+              class="status-pill declined"
+              [class.active]="statusFilter() === 'declined'"
+              (click)="setStatusFilter('declined')"
+            >
+              Declined <span class="count">{{ statusCounts().declined }}</span>
+            </button>
+            <button
+              type="button"
+              class="status-pill duplicate"
+              [class.active]="statusFilter() === 'duplicate'"
+              (click)="setStatusFilter('duplicate')"
+            >
+              Duplicate <span class="count">{{ statusCounts().duplicate }}</span>
+            </button>
+          </div>
+
+          <div class="search-row">
+            <input
+              type="search"
+              class="search"
+              placeholder="Search questions or answers…"
+              [value]="faqSearch()"
+              (input)="faqSearch.set($any($event.target).value)"
+              aria-label="Search trained answers"
+            />
+            <button
+              type="button"
+              class="dup-toggle"
+              [class.on]="showDuplicatesOnly()"
+              (click)="toggleDuplicates()"
+            >
+              @if (showDuplicatesOnly()) { ◉ Duplicates only } @else { ○ Duplicates only }
+            </button>
+            <button
+              type="button"
+              class="ghost small"
+              (click)="clearSearch()"
+              [disabled]="!faqSearch() && !showDuplicatesOnly() && statusFilter() === 'all'"
+            >
+              Clear
+            </button>
+          </div>
+
+          @if (duplicateGroups().length > 0) {
+            <details class="duplicates">
+              <summary>
+                {{ duplicateGroups().length }} duplicate group(s) —
+                {{ duplicateGroups().length + 1 }} total FAQs
+              </summary>
+              <ul class="list">
+                @for (g of duplicateGroups(); track trackGroup($index, g)) {
+                  <li class="card dup-card">
+                    <div class="row">
+                      <div>
+                        <strong class="q">{{ g.items[0].question }}</strong>
+                        <span class="meta">appears {{ g.items.length }}×</span>
+                      </div>
+                      <button
+                        type="button"
+                        class="danger small"
+                        (click)="deleteFaqs(g.items)"
+                      >
+                        Delete all
+                      </button>
+                    </div>
+                    <ul class="dup-list">
+                      @for (f of g.items; track f.id) {
+                        <li class="dup-row">
+                          <span class="dup-id">#{{ f.id }}</span>
+                          <span class="status-tag small {{ f.status }}">{{ f.status }}</span>
+                          <span class="dup-answer">{{ f.answer }}</span>
+                          <button
+                            type="button"
+                            class="danger small"
+                            (click)="deleteFaq(f)"
+                          >
+                            Delete
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  </li>
+                }
+              </ul>
+            </details>
+          }
+
+          @if (filteredFaqs().length === 0) {
+            <p class="empty">
+              @if (faqSearch() || showDuplicatesOnly() || statusFilter() !== 'all') {
+                No trained answers match your filter.
+              } @else {
+                No trained answers yet.
+              }
+            </p>
+          } @else {
+            <p class="result-count">
+              Showing {{ filteredFaqs().length }} of {{ faqs().length }}
+            </p>
+            <ul class="list">
+              @for (f of filteredFaqs(); track trackFaq($index, f)) {
+                <li
+                  class="card faq-card"
+                  [class.intent-canonical]="isIntentCanonical(f)"
+                  [class.intent-alias]="isIntentAlias(f)"
+                >
+                  <div class="row">
+                    <div class="row-text">
+                      <strong class="q">{{ f.question }}</strong>
+                      <span class="status-tag {{ f.status }}">{{ f.status }}</span>
+                      @if (isIntentCanonical(f)) {
+                        <span
+                          class="merge-badge canonical"
+                          [title]="'This is the canonical FAQ for an intent with ' + intentVariantCount(f) + ' variants'"
+                        >
+                          ⇆ Merged · {{ intentVariantCount(f) }} variants
+                        </span>
+                      } @else if (isIntentAlias(f)) {
+                        <span
+                          class="merge-badge alias"
+                          [title]="'Alias of canonical FAQ #' + intentCanonicalId(f)"
+                        >
+                          ⇆ Alias · of #{{ intentCanonicalId(f) }}
+                        </span>
+                      }
+                    </div>
+                    <div class="row-actions">
+                      @if (f.status !== 'approved') {
+                        <button
+                          type="button"
+                          class="approve small"
+                          (click)="approve(f)"
+                          title="Send this answer to the chat"
+                        >
+                          ✓ Approve
+                        </button>
+                      }
+                      @if (f.status !== 'declined') {
+                        <button
+                          type="button"
+                          class="decline small"
+                          (click)="decline(f)"
+                          title="Hide from chat"
+                        >
+                          ✕ Decline
+                        </button>
+                      }
+                      @if (f.status !== 'duplicate') {
+                        <button
+                          type="button"
+                          class="ghost small"
+                          (click)="markDuplicate(f)"
+                          title="Mark as duplicate of another"
+                        >
+                          ⎘ Duplicate
+                        </button>
+                      }
+                      <button
+                        type="button"
+                        class="ghost small"
+                        (click)="setTab('merge'); pickFaqMergeTarget(f)"
+                        title="Merge this FAQ into another, or absorb related ones"
+                      >
+                        ⇆ Merge
+                      </button>
+                      <button
+                        type="button"
+                        class="danger small"
+                        (click)="deleteFaq(f)"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+
+                  @if (editingId() === f.id) {
+                    <textarea
+                      rows="3"
+                      class="edit-textarea"
+                      [value]="editingAnswer()"
+                      (input)="editingAnswer.set($any($event.target).value)"
+                    ></textarea>
+                    <div class="actions">
+                      <button
+                        type="button"
+                        class="primary small"
+                        [disabled]="saving()"
+                        (click)="saveEdit(f)"
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        class="ghost small"
+                        (click)="cancelEdit()"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  } @else {
+                    <p class="a">{{ f.answer }}</p>
+                    @if (isIntentAlias(f)) {
+                      <p class="alias-hint">
+                        Alias of canonical
+                        @if (faqById(intentCanonicalId(f)!); as canonical) {
+                          <strong>“{{ canonical.question }}”</strong>
+                          <span class="meta">#{{ canonical.id }}</span>
+                        } @else {
+                          <strong>#{{ intentCanonicalId(f) }}</strong>
+                        }
+                      </p>
+                    }
+                    <div class="card-footer">
+                      <button
+                        type="button"
+                        class="ghost small"
+                        (click)="startEdit(f)"
+                      >
+                        ✎ Edit
+                      </button>
+                      <span class="meta">id #{{ f.id }} · updated {{ f.updated_at | date: 'short' }}</span>
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+          }
+        }
+
+        @case ('merge') {
+          <div class="card merge-search-card">
+            <h3>Find related questions to merge</h3>
+            <p class="hint">
+              Type a question. The assistant will scan trained FAQs and the pending
+              inbox and surface anything close enough to be the same intent.
+            </p>
+            <div class="search-row">
+              <input
+                type="search"
+                class="search"
+                placeholder="e.g. how many vacation days do we get?"
+                [value]="mergeQuery()"
+                (input)="updateMergeQuery($any($event.target).value)"
+                (keydown.enter)="runIntentSuggestions()"
+                aria-label="Search for merge candidates"
+              />
+              <button
+                type="button"
+                class="primary small"
+                [disabled]="mergeLoading() || !mergeQuery().trim()"
+                (click)="runIntentSuggestions()"
+              >
+                @if (mergeLoading()) { Searching… } @else { Find matches }
+              </button>
+              @if (mergeSuggestions()) {
+                <button type="button" class="ghost small" (click)="clearMergeSuggestions()">
+                  Clear
+                </button>
+              }
+            </div>
+
+            @if (mergeSuggestions(); as s) {
+              <div class="merge-results">
+                <section>
+                  <h4>
+                    Trained matches
+                    <span class="meta">{{ s.faqs.length }}</span>
+                  </h4>
+                  @if (s.faqs.length === 0) {
+                    <p class="empty">No trained FAQ is close to this question yet.</p>
+                  } @else {
+                    <ul class="list">
+                      @for (f of s.faqs; track f.faq_id) {
+                        <li class="card match-card">
+                          <div class="row">
+                            <div class="row-text">
+                              <strong class="q">{{ f.question }}</strong>
+                              <span class="status-tag {{ f.status }}">{{ f.status }}</span>
+                              <span class="meta">dist {{ f.distance.toFixed(2) }}</span>
+                            </div>
+                            <div class="row-actions">
+                              <button
+                                type="button"
+                                class="primary small"
+                                (click)="pickFaqMergeTarget(faqById(f.faq_id)!)"
+                                [disabled]="!faqById(f.faq_id)"
+                              >
+                                Merge into this →
+                              </button>
+                            </div>
+                          </div>
+                          <p class="a">{{ f.answer }}</p>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </section>
+
+                <section>
+                  <h4>
+                    Pending matches
+                    <span class="meta">{{ s.pending.length }}</span>
+                  </h4>
+                  @if (s.pending.length === 0) {
+                    <p class="empty">No pending inbox question is close to this one.</p>
+                  } @else {
+                    <ul class="list">
+                      @for (pp of s.pending; track pp.pending_id) {
+                        <li class="card match-card">
+                          <div class="row">
+                            <div class="row-text">
+                              <strong class="q">{{ pp.question }}</strong>
+                              <span class="meta">asked {{ pp.occurrences }}× · dist {{ pp.distance.toFixed(2) }}</span>
+                            </div>
+                            <div class="row-actions">
+                              <button
+                                type="button"
+                                class="ghost small"
+                                (click)="setTab('inbox'); toggleMergeRow(pendingById(pp.pending_id)!)"
+                                [disabled]="!pendingById(pp.pending_id)"
+                              >
+                                Open in Inbox
+                              </button>
+                            </div>
+                          </div>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </section>
+              </div>
+            }
+          </div>
+
+          @if (faqMergeTarget(); as target) {
+            <div class="card merge-target-card">
+              <header class="merge-target-header">
+                <div>
+                  <strong class="q">{{ target.question }}</strong>
+                  <span class="status-tag {{ target.status }}">{{ target.status }}</span>
+                  <span class="meta">canonical id #{{ target.id }}</span>
+                </div>
+                <button type="button" class="ghost small" (click)="cancelFaqMerge()">Cancel</button>
+              </header>
+              <p class="a">{{ target.answer }}</p>
+
+              @if (faqMergePreview(); as preview) {
+                <h4>Other FAQs close enough to absorb</h4>
+                <div class="search-row">
+                  <input
+                    type="search"
+                    class="search"
+                    placeholder="Search by question or answer to add more FAQs…"
+                    [value]="faqMergeSearch()"
+                    (input)="updateFaqMergeSearch($any($event.target).value)"
+                    aria-label="Search FAQs to add to this merge"
+                  />
+                </div>
+
+                @if (preview.matches.length === 0) {
+                  <p class="empty">No other FAQ is close to this one. Use the search above to add specific ones.</p>
+                } @else {
+                  <ul class="merge-faq-list">
+                    @for (m of preview.matches; track m.faq_id) {
+                      <li class="merge-faq-row">
+                        <label>
+                          <input
+                            type="checkbox"
+                            [checked]="isFaqMergeSelected(m.faq_id)"
+                            (change)="toggleFaqMergeSelection(m.faq_id)"
+                          />
+                          <span class="merge-q">{{ m.question }}</span>
+                        </label>
+                        <span class="meta">
+                          <span class="status-tag small {{ m.status }}">{{ m.status }}</span>
+                          · dist {{ m.distance.toFixed(2) }}
+                        </span>
+                      </li>
+                    }
+                  </ul>
+                }
+
+                @if (faqMergeExtraMatches().length > 0) {
+                  <h5>Manually added</h5>
+                  <ul class="merge-faq-list">
+                    @for (m of faqMergeExtraMatches(); track m.faq_id) {
+                      <li class="merge-faq-row extra">
+                        <label>
+                          <input
+                            type="checkbox"
+                            [checked]="isFaqMergeSelected(m.faq_id)"
+                            (change)="toggleFaqMergeSelection(m.faq_id)"
+                          />
+                          <span class="merge-q">{{ m.question }}</span>
+                        </label>
+                        <span class="meta">
+                          <span class="status-tag small {{ m.status }}">{{ m.status }}</span>
+                          <button
+                            type="button"
+                            class="ghost xsmall"
+                            (click)="removeExtraMatch(m.faq_id)"
+                            aria-label="Remove from merge"
+                          >
+                            Remove
+                          </button>
+                        </span>
+                      </li>
+                    }
+                  </ul>
+                }
+
+                @if (faqMergeSearch().trim()) {
+                  <h5>Search results</h5>
+                  @if (filteredFaqMergeCandidates().length === 0) {
+                    <p class="empty">No other FAQs match your search.</p>
+                  } @else {
+                    <ul class="merge-faq-list">
+                      @for (cand of filteredFaqMergeCandidates(); track cand.id) {
+                        <li class="merge-faq-row">
+                          <span class="merge-q">{{ cand.question }}</span>
+                          <span class="meta">
+                            <span class="status-tag small {{ cand.status }}">{{ cand.status }}</span>
+                            <button
+                              type="button"
+                              class="primary xsmall"
+                              (click)="addFaqMergeCandidate(cand)"
+                            >
+                              + Add
+                            </button>
+                          </span>
+                        </li>
+                      }
+                    </ul>
+                  }
+                }
+              }
+
+              <label class="merge-answer">
+                <span>Answer (overrides canonical if changed)</span>
+                <textarea
+                  rows="3"
+                  [value]="faqMergeAnswer()"
+                  (input)="updateFaqMergeAnswer($any($event.target).value)"
+                ></textarea>
+              </label>
+              <div class="actions">
+                <button
+                  type="button"
+                  class="primary"
+                  [disabled]="faqMergeBusy()"
+                  (click)="commitFaqMerge()"
+                >
+                  @if (faqMergeBusy()) { Merging… } @else { Merge & re-train aliases }
+                </button>
+              </div>
+              <p class="hint">
+                Selected FAQs will be deleted and re-created as pending FAQs pointing
+                at the same answer, so each original phrasing remains searchable while
+                the canonical answer lives on this row.
+              </p>
+            </div>
+          }
+
+          <h3>Existing intent groups</h3>
+          <p class="hint">
+            Groups of FAQs that already share the same answer. Each group is one
+            intent that the assistant can answer in many ways.
+          </p>
+          @if (intentGroups().length === 0) {
+            <p class="empty">No merged intents yet. Use the search above to start grouping FAQs.</p>
+          } @else {
+            <ul class="list">
+              @for (g of intentGroups(); track g.answerKey) {
+                <li class="card intent-group-card">
+                  <header class="intent-group-header">
+                    <div>
+                      <strong class="q">{{ g.canonical.question }}</strong>
+                      <span class="status-tag {{ g.canonical.status }}">{{ g.canonical.status }}</span>
+                      <span class="meta">canonical #{{ g.canonical.id }} · {{ g.aliases.length + 1 }} variants</span>
+                    </div>
+                    <div class="row-actions">
+                      <button
+                        type="button"
+                        class="ghost small"
+                        (click)="pickFaqMergeTarget(g.canonical)"
+                      >
+                        Refine
+                      </button>
+                    </div>
+                  </header>
+                  <p class="a">{{ g.canonical.answer }}</p>
+                  <ul class="alias-list">
+                    @for (a of g.aliases; track a.id) {
+                      <li>
+                        <span class="alias-q">{{ a.question }}</span>
+                        <span class="status-tag small {{ a.status }}">{{ a.status }}</span>
+                        <span class="meta">#{{ a.id }}</span>
+                      </li>
+                    }
+                  </ul>
+                </li>
+              }
+            </ul>
+          }
+        }
+
+        @case ('new') {
+          <div class="card">
+            <p class="hint">
+              New answers start as <strong>pending</strong>. Switch to the <em>Trained</em>
+              tab and approve them to make them available in chat.
+            </p>
+            <label>
+              <span>Question</span>
+              <input
+                type="text"
+                [(ngModel)]="newQuestion"
+                placeholder="e.g. What are the office hours?"
+              />
+            </label>
+            <label>
+              <span>Answer</span>
+              <textarea
+                rows="4"
+                [(ngModel)]="newAnswer"
+                placeholder="The correct, complete answer…"
+              ></textarea>
+            </label>
+            <div class="actions">
+              <button
+                type="button"
+                class="ghost"
+                [disabled]="!newQuestion.trim()"
+                (click)="checkNewForMerge()"
+              >
+                Check for similar intents
+              </button>
+              <button
+                type="button"
+                class="primary"
+                [disabled]="saving()"
+                (click)="createFaq()"
+              >
+                Save (pending)
+              </button>
+            </div>
+
+            @if (newMergeSuggestions(); as ns) {
+              <div class="new-merge-preview">
+                <h4>Similar existing intents</h4>
+                <p class="hint">
+                  Pick one to fold this question into, or cancel and save it as a new FAQ.
+                </p>
+                @if (ns.faqs.length === 0 && ns.pending.length === 0) {
+                  <p class="empty">No close matches. Safe to save as a new Q&amp;A.</p>
+                } @else {
+                  <ul class="list">
+                    @for (f of ns.faqs; track f.faq_id) {
+                      <li class="card match-card">
+                        <div class="row">
+                          <div class="row-text">
+                            <strong class="q">{{ f.question }}</strong>
+                            <span class="status-tag {{ f.status }}">{{ f.status }}</span>
+                            <span class="meta">dist {{ f.distance.toFixed(2) }}</span>
+                          </div>
+                          <div class="row-actions">
+                            <button
+                              type="button"
+                              class="primary small"
+                              [disabled]="!faqById(f.faq_id) || saving()"
+                              (click)="mergeNewIntoFaq(f)"
+                            >
+                              Merge into this →
+                            </button>
+                          </div>
+                        </div>
+                        <p class="a">{{ f.answer }}</p>
+                      </li>
+                    }
+                    @for (pp of ns.pending; track pp.pending_id) {
+                      <li class="card match-card">
+                        <div class="row">
+                          <div class="row-text">
+                            <strong class="q">{{ pp.question }}</strong>
+                            <span class="meta">asked {{ pp.occurrences }}× · dist {{ pp.distance.toFixed(2) }}</span>
+                          </div>
+                          <div class="row-actions">
+                            <button
+                              type="button"
+                              class="ghost small"
+                              (click)="setTab('inbox')"
+                            >
+                              Open in Inbox
+                            </button>
+                          </div>
+                        </div>
+                      </li>
+                    }
+                  </ul>
+                }
+                <div class="actions">
+                  <button type="button" class="ghost" (click)="newMergeSuggestions.set(null)">
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+    </section>
+  </main>
+</div>

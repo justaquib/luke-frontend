@@ -1,0 +1,417 @@
+<div
+  class="shell"
+  [class.train-on]="trainMode()"
+  [class.sidebar-collapsed]="!sidebarOpen()"
+>
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      @if (sidebarOpen()) {
+        <a class="brand" routerLink="/" title="Back to home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="22" height="22">
+              <defs>
+                <linearGradient id="sb-g" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#6366f1" />
+                  <stop offset="1" stop-color="#a855f7" />
+                </linearGradient>
+              </defs>
+              <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#sb-g)" />
+              <path
+                d="M9 12c0-1.5 1-3 3-3h8c2 0 3 1.5 3 3v6c0 1.5-1 3-3 3h-5l-3 3v-3h-0c-2 0-3-1.5-3-3z"
+                fill="#fff"
+                opacity="0.96"
+              />
+              <circle cx="13" cy="15" r="1.2" fill="#6366f1" />
+              <circle cx="17" cy="15" r="1.2" fill="#6366f1" />
+              <circle cx="21" cy="15" r="1.2" fill="#6366f1" />
+            </svg>
+          </span>
+          <span class="brand-name">{{ prefs.botName() }}</span>
+        </a>
+      }
+    </div>
+
+    <button type="button" class="new-chat" (click)="newChat()">
+      <span class="plus">+</span>
+      @if (sidebarOpen()) { <span>New chat</span> }
+    </button>
+
+    @if (sidebarOpen()) {
+      <div class="session-list">
+        @for (s of sessions(); track trackSession($index, s)) {
+          <div
+            class="session-item"
+            [class.active]="s.id === activeId()"
+            (click)="selectSession(s.id)"
+          >
+            <div class="session-title">{{ s.title }}</div>
+            <button
+              type="button"
+              class="session-del"
+              (click)="deleteSession(s.id, $event)"
+              aria-label="Delete chat"
+            >
+              ×
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="sidebar-footer">
+      @if (sidebarOpen()) {
+        <div class="status">
+          <span
+            class="dot"
+            [class.online]="backendStatus() === 'online'"
+            [class.offline]="backendStatus() === 'offline'"
+          ></span>
+          @switch (backendStatus()) {
+            @case ('online') { Connected }
+            @case ('offline') { Offline }
+            @default { Connecting… }
+          }
+        </div>
+      }
+    </div>
+  </aside>
+
+  <main class="chat-area">
+    <header class="chat-header">
+      <div class="title-wrap">
+        <button
+          type="button"
+          class="icon-btn sidebar-toggle"
+          (click)="toggleSidebar()"
+          [attr.aria-label]="sidebarOpen() ? 'Hide sidebar' : 'Show sidebar'"
+          [attr.aria-expanded]="sidebarOpen()"
+          title="Toggle sidebar"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path
+              d="M3 6h18M3 12h18M3 18h18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <h1
+          class="editable-title"
+          [class.editing]="titleEditing()"
+          (click)="!titleEditing() && startEditTitle()"
+          (keydown.enter)="!titleEditing() && startEditTitle()"
+          [attr.tabindex]="titleEditing() ? -1 : 0"
+          [attr.role]="titleEditing() ? null : 'button'"
+        >
+          @if (titleEditing()) {
+            <input
+              #titleInput
+              type="text"
+              class="title-input"
+              [value]="titleDraft()"
+              (input)="titleDraft.set($any($event.target).value)"
+              (keydown)="onTitleKeydown($event)"
+              (blur)="commitTitle()"
+              maxlength="80"
+              aria-label="Chat title"
+            />
+          } @else {
+            <span class="title-text">{{ active().title }}</span>
+            <span class="title-edit-hint" aria-hidden="true">✎</span>
+          }
+        </h1>
+        <span class="mode-pill" [class.train]="trainMode()">
+          @if (trainMode()) { Train mode } @else { Regular }
+        </span>
+        @if (!sidebarOpen()) {
+          <span
+            class="status-dot"
+            [class.online]="backendStatus() === 'online'"
+            [class.offline]="backendStatus() === 'offline'"
+            [attr.title]="
+              backendStatus() === 'online'
+                ? 'Backend connected'
+                : backendStatus() === 'offline'
+                  ? 'Backend offline'
+                  : 'Connecting…'
+            "
+          ></span>
+        }
+      </div>
+      <div class="header-actions">
+        <button
+          type="button"
+          class="train-toggle"
+          [class.on]="trainMode()"
+          (click)="toggleTrain()"
+        >
+          @if (trainMode()) { ◉ Train } @else { ○ Train }
+        </button>
+        <button
+          type="button"
+          class="icon-btn"
+          (click)="toggleSettings()"
+          aria-label="Settings"
+        >
+          ⚙
+        </button>
+      </div>
+    </header>
+
+    @if (showSettings()) {
+      <div class="settings-backdrop" (click)="toggleSettings()"></div>
+      <aside class="settings-drawer" role="dialog" aria-label="Settings">
+        <header class="settings-header">
+          <h3>Settings</h3>
+          <button
+            type="button"
+            class="icon-btn"
+            (click)="toggleSettings()"
+            aria-label="Close settings"
+          >
+            ×
+          </button>
+        </header>
+
+        <section class="settings-section">
+          <h4>Connection</h4>
+          <p>Backend: <code>http://localhost:8000</code></p>
+          <p>
+            Status:
+            <span
+              class="status-dot"
+              [class.online]="backendStatus() === 'online'"
+              [class.offline]="backendStatus() === 'offline'"
+            ></span>
+            {{ backendStatus() }}
+          </p>
+        </section>
+
+        <section class="settings-section">
+          <h4>Training</h4>
+          <p class="hint">
+            Review pending questions, add new Q&amp;A pairs, and clean up
+            duplicates in the full Trainer page.
+          </p>
+          <a class="primary-link" routerLink="/trainer" (click)="toggleSettings()">
+            Open Trainer →
+          </a>
+        </section>
+
+        <section class="settings-section">
+          <h4>External sources</h4>
+          <p class="hint">
+            When enabled, the assistant will fall back to a live online source
+            for matching questions after the trained knowledge base.
+          </p>
+          <label class="toggle-row">
+            <input
+              type="checkbox"
+              [checked]="integrations.weatherEnabled()"
+              (change)="toggleWeather($any($event.target).checked)"
+            />
+            <span>
+              <strong>Weather</strong>
+              <small>Geocode a city or use your current coordinates.</small>
+            </span>
+          </label>
+          <label class="toggle-row">
+            <input
+              type="checkbox"
+              [checked]="integrations.wikiEnabled()"
+              (change)="toggleWiki($any($event.target).checked)"
+            />
+            <span>
+              <strong>Wikipedia</strong>
+              <small>Short summaries for “who is”, “what is …”.</small>
+            </span>
+          </label>
+          <div class="loc-row">
+            <button
+              type="button"
+              class="ghost small"
+              (click)="requestLocation()"
+            >
+              Use my current location
+            </button>
+            @if (locationLabel(); as label) {
+              <span class="meta">📍 {{ label }}</span>
+            }
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h4>About</h4>
+          <p class="hint">
+            Wire this drawer to a real <code>AppConfigService</code> when you need
+            user preferences.
+          </p>
+        </section>
+      </aside>
+    }
+
+    @if (trainMode()) {
+      <div class="train-banner">
+        <strong>Train mode is on.</strong>
+        Click ✏️ on any assistant message to correct the answer.
+      </div>
+    }
+
+    <div class="messages" #scrollAnchor>
+      @if (active().messages.length === 0) {
+        <div class="empty-state">
+          <h2>Start a conversation</h2>
+          <p>Ask {{ prefs.botName() }} anything — type a message below and press Enter.</p>
+        </div>
+      } @else {
+        @for (message of active().messages; track trackMessage($index, message)) {
+          <div
+            class="message-row"
+            [class.user]="message.role === 'user'"
+            [class.assistant]="message.role === 'assistant'"
+            [class.system]="message.role === 'system'"
+          >
+            <div class="bubble">
+              @if (trainMode() && editingId() === message.id) {
+                <textarea
+                  class="edit-textarea"
+                  [value]="editingText()"
+                  (input)="editingText.set($any($event.target).value)"
+                  rows="3"
+                ></textarea>
+                <div class="message-actions">
+                  <button
+                    type="button"
+                    class="primary small"
+                    (click)="saveEditMessage(message)"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    class="ghost small"
+                    (click)="cancelEditMessage()"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              } @else {
+                <p class="bubble-text">{{ message.text }}</p>
+                @if (trainMode()) {
+                  @if (message.source) {
+                    <span class="source-tag" [class]="message.source">
+                        @switch (message.source) {
+                          @case ('faq') { Trained }
+                          @case ('docs') { Documents }
+                          @case ('pending') { Awaiting }
+                          @case ('intent') { Intent match }
+                          @case ('weather') { Weather }
+                          @case ('wiki') { Wikipedia }
+                        }
+                      </span>
+                    @if (message.source === 'intent' && message.intent?.matched_question) {
+                      @let intent = message.intent!;
+                      <small class="intent-note">
+                        → matched “{{ intent.matched_question }}”
+                        @if (intent.distance != null) {
+                          ({{ intent.distance.toFixed(2) }})
+                        }
+                      </small>
+                    }
+                    @if (message.source === 'wiki' && message.app?.['url']) {
+                      <small class="intent-note">
+                        → <a [href]="message.app?.['url']" target="_blank" rel="noopener">{{ message.app?.['title'] || 'source' }}</a>
+                      </small>
+                    }
+                  }
+                  @if (message.hits && message.hits.length > 0) {
+                    <details class="sources">
+                      <summary>Sources ({{ message.hits.length }})</summary>
+                      @for (hit of message.hits; track $index) {
+                        <div class="source-item">
+                          <small
+                            >{{ hit.metadata.source }} · dist
+                            {{ hit.distance?.toFixed(3) }}</small
+                          >
+                          <p>{{ hit.text }}</p>
+                        </div>
+                      }
+                    </details>
+                  }
+                  @if (message.disabledExternalSources && message.disabledExternalSources.length > 0) {
+                    <small class="external-hint">
+                      Enable {{ message.disabledExternalSources.join(' and ') }} in Settings to get live answers.
+                    </small>
+                  }
+                  @if (message.role === 'assistant' && message.source !== 'faq' && message.source !== 'weather' && message.source !== 'wiki' && !message.disabledExternalSources?.length) {
+                    <button
+                      type="button"
+                      class="edit-msg-btn"
+                      (click)="startEditMessage(message)"
+                      title="Correct answer"
+                    >
+                      ✏️
+                    </button>
+                  }
+                }
+              }
+              <span class="bubble-time">{{ formatTime(message.timestamp) }}</span>
+            </div>
+          </div>
+        }
+      }
+
+      @if (isTyping()) {
+        <div class="message-row assistant">
+          <div class="bubble typing">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (showJumpToBottom()) {
+      <button
+        type="button"
+        class="jump-to-bottom"
+        (click)="jumpToBottom()"
+        aria-label="Scroll to bottom"
+        title="Scroll to latest message"
+      >
+        ↓ Jump to latest
+      </button>
+    }
+
+    <footer class="composer">
+      <textarea
+        class="composer-input"
+        rows="1"
+        placeholder="Message {{ prefs.botName() }}…"
+        [value]="draft()"
+        (input)="onInputChange($any($event.target).value)"
+        (keydown)="onKeydown($event)"
+        [disabled]="isTyping()"
+        aria-label="Message input"
+      ></textarea>
+      <button
+        type="button"
+        class="send-btn"
+        (click)="send()"
+        [disabled]="!draft().trim() || isTyping()"
+        aria-label="Send message"
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path
+            d="M3 11.5 21 3l-8.5 18-2-7.5L3 11.5z"
+            fill="currentColor"
+          />
+        </svg>
+      </button>
+    </footer>
+  </main>
+</div>
