@@ -1,0 +1,191 @@
+import { Injectable, signal, effect, computed, inject } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
+import { UiService } from '../shared/ui.service';
+
+export interface User {
+  id: number;
+  google_id: string | null;
+  email: string;
+  name: string;
+  picture: string | null;
+  tenant_id: number | null;
+  role: string;
+  is_systemadmin: boolean;
+  created_at: string;
+}
+
+const TOKEN_KEY = 'assistance.token.v1';
+const USER_KEY = 'assistance.user.v1';
+const ROLE_KEY = 'assistance.role.v1';
+const TENANT_KEY = 'assistance.tenant.v1';
+
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+  private readonly ui = inject(UiService);
+  private readonly base = environment.apiUrl;
+
+  private readonly _token = signal<string | null>(this.readToken());
+  readonly token = this._token.asReadonly();
+
+  private readonly _user = signal<User | null>(this.readUser());
+  readonly user = this._user.asReadonly();
+
+  readonly isLoggedIn = computed(() => !!this._token() && !!this._user());
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      effect(() => {
+        const token = this._token();
+        if (token) localStorage.setItem(TOKEN_KEY, token);
+        else localStorage.removeItem(TOKEN_KEY);
+      });
+      effect(() => {
+        const user = this._user();
+        if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
+        else localStorage.removeItem(USER_KEY);
+      });
+    }
+  }
+
+  loginWithGoogle(inviteToken?: string) {
+    if (!environment.googleClientId || environment.googleClientId === 'YOUR_GOOGLE_CLIENT_ID') {
+      this.ui.error('Google Client ID is not configured.');
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+
+    script.onload = () => {
+      if (!window.google) return;
+      window.google.accounts.id.initialize({
+        client_id: environment.googleClientId,
+        callback: (response: any) => this.handleCredentialResponse(response, inviteToken),
+        auto_select: false,
+        cancel_on_tap_outside: false,
+      });
+      window.google.accounts.id.prompt((notification: any) => {
+        if (notification.is_not_displayed() || notification.is_suppressed()) {
+          this.ui.error('Google Sign-In was blocked or not displayed.');
+        }
+      });
+    };
+
+    script.onerror = () => {
+      this.ui.error('Failed to load Google Sign-In.');
+    };
+  }
+
+  private handleCredentialResponse(response: any, inviteToken?: string) {
+    if (!response.credential) {
+      this.ui.error('No credential returned from Google.');
+      return;
+    }
+    const body: Record<string, string> = { id_token: response.credential };
+    if (inviteToken) body['invite_token'] = inviteToken;
+
+    this.http
+      .post<{ access_token: string }>(`${this.base}/auth/google`, body)
+      .subscribe({
+        next: (res) => {
+          this._token.set(res.access_token);
+          this.fetchMe();
+        },
+        error: (err: Error) => {
+          this.ui.error(err.message || 'Google sign-in failed.');
+        },
+      });
+  }
+
+  loginWithSystemAdmin(pin: string) {
+    this.http
+      .post<{ access_token: string }>(`${this.base}/auth/systemadmin`, { pin })
+      .subscribe({
+        next: (res) => {
+          this._token.set(res.access_token);
+          this.fetchMe();
+        },
+        error: (err: Error) => {
+          this.ui.error(err.message || 'System admin login failed.');
+        },
+      });
+  }
+
+  systemAdminStatus() {
+    return this.http.get<{ configured: boolean; email?: string }>(
+      `${this.base}/auth/systemadmin/status`
+    );
+  }
+
+  fetchMe() {
+    const token = this._token();
+    if (!token) return;
+    this.http
+      .get<User>(`${this.base}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .subscribe({
+        next: (user) => {
+          this._user.set(user);
+          this.ui.success('Signed in successfully.');
+          this.redirectAfterLogin();
+        },
+        error: () => this.logout(),
+      });
+  }
+
+  redirectAfterLogin() {
+    if (!this.isLoggedIn()) return;
+    const user = this._user();
+    if (!user) return;
+    if (user.is_systemadmin) {
+      this.router.navigate(['/tenants']);
+    } else if (user.role === 'trainer') {
+      this.router.navigate(['/trainer']);
+    } else {
+      this.router.navigate(['/chat']);
+    }
+  }
+
+  logout() {
+    this._token.set(null);
+    this._user.set(null);
+    try {
+      localStorage.removeItem(ROLE_KEY);
+      localStorage.removeItem(TENANT_KEY);
+    } catch {}
+    this.router.navigate(['/']);
+  }
+
+  private readToken(): string | null {
+    try {
+      if (typeof window === 'undefined') return null;
+      return localStorage.getItem(TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  }
+
+  private readUser(): User | null {
+    try {
+      if (typeof window === 'undefined') return null;
+      const raw = localStorage.getItem(USER_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+}

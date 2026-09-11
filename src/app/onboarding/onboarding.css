@@ -1,0 +1,204 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #0f172a;
+  overflow: hidden;
+}
+
+.onboarding-page {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+  background: radial-gradient(1200px 800px at 10% -10%, #eef2ff 0%, transparent 55%),
+              radial-gradient(900px 600px at 110% 20%, #f5f3ff 0%, transparent 55%),
+              radial-gradient(800px 500px at 80% 110%, #f0f9ff 0%, transparent 55%),
+              linear-gradient(180deg, #f8faff 0%, #ffffff 60%, #fafafe 100%);
+}
+
+.bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.bg-orb-1 {
+  width: 520px;
+  height: 520px;
+  background: rgba(99, 102, 241, 0.22);
+  top: -180px;
+  left: -120px;
+  animation: float 12s ease-in-out infinite;
+}
+
+.bg-orb-2 {
+  width: 420px;
+  height: 420px;
+  background: rgba(168, 85, 247, 0.18);
+  bottom: -140px;
+  right: -100px;
+  animation: float 14s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  33% {
+    transform: translate3d(40px, -30px, 0);
+  }
+  66% {
+    transform: translate3d(-20px, 20px, 0);
+  }
+}
+
+.onboarding-card {
+  position: relative;
+  width: 100%;
+  max-width: 820px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 24px;
+  padding: 2.5rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+  animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.login-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: inherit;
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -0.01em;
+}
+
+.login-brand .brand-mark {
+  display: inline-flex;
+}
+
+.login-brand .brand-name {
+  background: linear-gradient(135deg, #6366f1, #a855f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.onboarding-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.onboarding-card h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.onboarding-lead {
+  margin: 0;
+  color: #475569;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  max-width: 52ch;
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+
+.choice-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.25rem;
+  border-radius: 18px;
+  border: 1px solid #e5e7eb;
+  background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+  color: #0f172a;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.choice-card:hover {
+  transform: translateY(-2px);
+  border-color: #c7d2fe;
+  box-shadow: 0 14px 30px rgba(99, 102, 241, 0.12), 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.choice-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.choice-card h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.choice-card p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.choice-cta {
+  margin-top: 0.25rem;
+  color: #6366f1;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 720px) {
+  .choice-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .onboarding-card {
+    padding: 2rem 1.5rem;
+    border-radius: 20px;
+  }
+
+  .onboarding-card h1 {
+    font-size: 1.5rem;
+  }
+}

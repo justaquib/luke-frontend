@@ -31,6 +31,11 @@
     <div class="topbar-cta">
       <a class="link-cta" routerLink="/trainer">Trainer</a>
       <a class="primary-cta" routerLink="/chat">Try the chat →</a>
+      @if (!auth.isLoggedIn()) {
+        <a class="ghost-cta" routerLink="/login">Sign in</a>
+      } @else {
+        <button class="ghost-cta" (click)="auth.logout()">Sign out</button>
+      }
     </div>
   </header>
 

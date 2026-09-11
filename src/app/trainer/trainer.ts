@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import {
   ApiService,
   FaqItem,
@@ -14,8 +15,9 @@ import {
 } from '../core/api.service';
 import { AppPrefsService } from '../core/app-prefs.service';
 import { UiService } from '../shared/ui.service';
+import { SafeUrlPipe } from '../shared/safe-url.pipe';
 
-type Tab = 'inbox' | 'faqs' | 'merge' | 'new';
+type Tab = 'inbox' | 'faqs' | 'merge' | 'new' | 'documents';
 type StatusFilter = 'all' | 'pending' | 'approved' | 'declined' | 'duplicate';
 
 interface DuplicateGroup {
@@ -31,7 +33,7 @@ interface IntentGroup {
 
 @Component({
   selector: 'app-trainer',
-  imports: [FormsModule, DatePipe, RouterLink],
+  imports: [FormsModule, DatePipe, RouterLink, CommonModule, SafeUrlPipe],
   templateUrl: './trainer.html',
   styleUrl: './trainer.css',
 })
@@ -201,8 +203,94 @@ export class Trainer implements OnInit {
   protected readonly faqMergeSearch = signal('');
   protected readonly faqMergeExtraMatches = signal<FaqSuggestion[]>([]);
 
+  protected readonly uploading = signal(false);
+  protected readonly documents = signal<Array<{ source: string; chunks: number; created_at?: string }>>([]);
+  protected readonly deletingSource = signal<string | null>(null);
+  protected readonly viewingSource = signal<string | null>(null);
+  protected readonly viewerUrl = signal<string | null>(null);
+
+  uploadDocument(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.uploading.set(true);
+    this.api.uploadFile(file).subscribe({
+      next: (res) => {
+        this.uploading.set(false);
+        this.ui.success(`Uploaded ${res.source} with ${res.chunks} chunks.`);
+        this.refreshDocuments();
+      },
+      error: (e: Error) => {
+        this.uploading.set(false);
+        this.ui.error(e.message);
+      },
+    });
+    input.value = '';
+  }
+
+  refreshDocuments() {
+    this.api.listDocuments().subscribe({
+      next: (rows) => this.documents.set(rows),
+      error: () => this.documents.set([]),
+    });
+  }
+
+  deleteDocument(source: string) {
+    this.deletingSource.set(source);
+    this.api.deleteDocument(source).subscribe({
+      next: () => {
+        this.ui.success(`Removed ${source}.`);
+        this.refreshDocuments();
+        this.deletingSource.set(null);
+      },
+      error: (e: Error) => {
+        this.ui.error(e.message);
+        this.deletingSource.set(null);
+      },
+    });
+  }
+
+  viewDocument(source: string) {
+    this.viewingSource.set(source);
+    this.viewerUrl.set(null);
+    this.api.viewDocument(source).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        this.viewerUrl.set(url);
+      },
+      error: (e: Error) => {
+        this.ui.error(e.message);
+        this.viewingSource.set(null);
+      },
+    });
+  }
+
+  downloadDocument(source: string) {
+    this.api.downloadDocument(source).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = source;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: (e: Error) => this.ui.error(e.message),
+    });
+  }
+
+  closeViewer() {
+    const url = this.viewerUrl();
+    if (url) {
+      URL.revokeObjectURL(url);
+    }
+    this.viewerUrl.set(null);
+    this.viewingSource.set(null);
+  }
+
   ngOnInit(): void {
     this.refresh();
+    this.refreshDocuments();
   }
 
   toggleSidebar() {

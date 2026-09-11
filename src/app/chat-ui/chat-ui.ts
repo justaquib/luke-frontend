@@ -1,18 +1,10 @@
-import {
-  Component,
-  signal,
-  ElementRef,
-  viewChild,
-  AfterViewChecked,
-  inject,
-  effect,
-  computed,
-  untracked,
-} from '@angular/core';
+import { Component, signal, ElementRef, viewChild, AfterViewChecked, inject, effect, computed, untracked } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService, QueryHit } from '../core/api.service';
 import { AppPrefsService } from '../core/app-prefs.service';
+import { AuthService } from '../core/auth.service';
 import { IntegrationsService } from '../core/integrations.service';
 import { UiService } from '../shared/ui.service';
 
@@ -104,15 +96,16 @@ function saveTrainMode(chatId: string, on: boolean) {
 
 @Component({
   selector: 'app-chat-ui',
-  imports: [FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './chat-ui.html',
   styleUrl: './chat-ui.css',
 })
 export class ChatUI implements AfterViewChecked {
   private readonly api = inject(ApiService);
+  private readonly auth = inject(AuthService);
   private readonly ui = inject(UiService);
-protected readonly integrations = inject(IntegrationsService);
-protected readonly prefs = inject(AppPrefsService);
+  protected readonly integrations = inject(IntegrationsService);
+  protected readonly prefs = inject(AppPrefsService);
 
 toggleWeather(on: boolean) {
   this.integrations.setWeather(on);
@@ -147,6 +140,11 @@ async requestLocation() {
   protected readonly trainMode = signal(false);
   protected readonly showSettings = signal(false);
 
+  protected readonly isSystemAdmin = computed(() => {
+    const user = this.auth.user();
+    return !!user?.is_systemadmin;
+  });
+
   protected readonly titleEditing = signal(false);
   protected readonly titleDraft = signal('');
 
@@ -156,6 +154,8 @@ async requestLocation() {
 
   protected readonly editingId = signal<number | null>(null);
   protected readonly editingText = signal('');
+
+  protected readonly ratedMessages = signal<Record<number, boolean>>({});
 
   protected readonly active = computed<ChatSession>(() => {
     const id = this.activeId();
@@ -386,6 +386,43 @@ async requestLocation() {
   cancelEditMessage() {
     this.editingId.set(null);
     this.editingText.set('');
+  }
+
+  copyMessage(msg: ChatMessage) {
+    if (typeof navigator === 'undefined' || !navigator.clipboard) {
+      this.ui.error('Clipboard not available.');
+      return;
+    }
+    navigator.clipboard.writeText(msg.text).then(
+      () => this.ui.success('Copied to clipboard.'),
+      () => this.ui.error('Copy failed.'),
+    );
+  }
+
+  likeMessage(msg: ChatMessage) {
+    if (this.ratedMessages()[msg.id]) return;
+    this.ratedMessages.update((map) => ({ ...map, [msg.id]: true }));
+    this.sendFeedback(msg, 'like');
+  }
+
+  dislikeMessage(msg: ChatMessage) {
+    if (this.ratedMessages()[msg.id]) return;
+    this.ratedMessages.update((map) => ({ ...map, [msg.id]: true }));
+    this.sendFeedback(msg, 'dislike');
+  }
+
+  private sendFeedback(msg: ChatMessage, rating: 'like' | 'dislike') {
+    const question = this.findUserQuestion(msg) ?? '';
+    this.api.sendFeedback({
+      message_id: msg.id,
+      question,
+      answer: msg.text,
+      source: msg.source ?? 'assistant',
+      rating,
+    }).subscribe({
+      next: () => this.ui.success('Feedback recorded.'),
+      error: (err: Error) => this.ui.error(err.message || 'Feedback failed.'),
+    });
   }
 
   private findUserQuestion(msg: ChatMessage): string | null {

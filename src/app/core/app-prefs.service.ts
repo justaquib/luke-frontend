@@ -13,8 +13,10 @@ export class AppPrefsService {
   readonly botName = this.botSignal.asReadonly();
 
   constructor() {
-    effect(() => this.write(USER_KEY, this.userSignal()));
-    effect(() => this.write(BOT_KEY, this.botSignal()));
+    if (typeof window !== 'undefined') {
+      effect(() => this.write(USER_KEY, this.userSignal()));
+      effect(() => this.write(BOT_KEY, this.botSignal()));
+    }
   }
 
   setUserName(name: string) {
@@ -34,6 +36,7 @@ export class AppPrefsService {
 
   private read(key: string, fallback: string): string {
     try {
+      if (typeof window === 'undefined') return fallback;
       return localStorage.getItem(key) ?? fallback;
     } catch {
       return fallback;
@@ -42,6 +45,7 @@ export class AppPrefsService {
 
   private write(key: string, value: string) {
     try {
+      if (typeof window === 'undefined') return;
       localStorage.setItem(key, value);
     } catch {}
   }

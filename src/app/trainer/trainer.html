@@ -30,7 +30,27 @@
       }
     </div>
 
-    <nav class="nav-list">
+    <nav class="nav-list gap-2!">
+      <button
+        type="button"
+        class="nav-item nav-item-primary"
+        [class.active]="tab() === 'new'"
+        (click)="setTab('new')"
+        [attr.aria-current]="tab() === 'new' ? 'page' : null"
+      >
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path
+              d="M12 5v14M5 12h14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+          </svg>
+        </span>
+        @if (sidebarOpen()) { <span class="nav-label">New Q&amp;A</span> }
+      </button>
       <button
         type="button"
         class="nav-item"
@@ -116,25 +136,49 @@
       </button>
       <button
         type="button"
-        class="nav-item nav-item-primary"
-        [class.active]="tab() === 'new'"
-        (click)="setTab('new')"
-        [attr.aria-current]="tab() === 'new' ? 'page' : null"
+        class="nav-item"
+        [class.active]="tab() === 'documents'"
+        (click)="setTab('documents'); refreshDocuments()"
+        [attr.aria-current]="tab() === 'documents' ? 'page' : null"
       >
         <span class="nav-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="18" height="18">
             <path
-              d="M12 5v14M5 12h14"
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
               fill="none"
               stroke="currentColor"
               stroke-width="1.8"
               stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M14 2v6h6M16 13H8M16 17H8M10 9H8"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
             />
           </svg>
         </span>
-        @if (sidebarOpen()) { <span class="nav-label">New Q&amp;A</span> }
+        @if (sidebarOpen()) { <span class="nav-label">Documents</span> }
       </button>
     </nav>
+
+    <div class="upload-section">
+      <label class="upload-label">
+        <input
+          type="file"
+          accept=".csv,.xlsx,.xls,.docx,.doc,.pdf,.txt"
+          (change)="uploadDocument($event)"
+          [disabled]="uploading()"
+        />
+        <span class="upload-btn">
+          @if (uploading()) { Uploading… } @else { Upload file }
+        </span>
+        <span class="upload-hint">csv, xlsx, docx, doc, pdf, txt</span>
+      </label>
+    </div>
 
     <div class="sidebar-footer">
       @if (sidebarOpen()) {
@@ -996,7 +1040,104 @@
             }
           </div>
         }
+        @case ('documents') {
+          <div class="toolbar">
+            <label class="upload-label toolbar-upload">
+              <input
+                type="file"
+                accept=".csv,.xlsx,.xls,.docx,.doc,.pdf,.txt"
+                (change)="uploadDocument($event)"
+                [disabled]="uploading()"
+              />
+              <span class="upload-btn">
+                @if (uploading()) { Uploading… } @else { Upload file }
+              </span>
+            </label>
+            <span class="meta">csv, xlsx, docx, doc, pdf, txt</span>
+          </div>
+
+          @if (documents().length === 0) {
+            <p class="empty">No documents uploaded yet. Upload a file to let the assistant answer from it.</p>
+          } @else {
+            <div class="documents-grid">
+              @for (doc of documents(); track doc.source) {
+                <div class="doc-card">
+                  <div class="doc-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+                      <path
+                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M14 2v6h6M16 13H8M16 17H8M10 9H8"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <div class="doc-body">
+                    <div class="doc-name" title="{{ doc.source }}">{{ doc.source }}</div>
+                    <div class="doc-meta">{{ doc.chunks }} chunks</div>
+                  </div>
+                  <div class="doc-actions">
+                    <button
+                      type="button"
+                      class="ghost small"
+                      (click)="viewDocument(doc.source)"
+                      [disabled]="viewingSource() === doc.source"
+                    >
+                      View
+                    </button>
+                    <button
+                      type="button"
+                      class="ghost small"
+                      (click)="downloadDocument(doc.source)"
+                    >
+                      Download
+                    </button>
+                    <button
+                      type="button"
+                      class="danger small"
+                      (click)="deleteDocument(doc.source)"
+                      [disabled]="deletingSource() === doc.source"
+                    >
+                      @if (deletingSource() === doc.source) { Removing… } @else { Remove }
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
       }
     </section>
+
+    @if (viewerUrl(); as url) {
+      <div class="viewer-overlay" (click)="closeViewer()">
+        <div class="viewer-modal" (click)="$event.stopPropagation()">
+          <div class="viewer-header">
+            <strong>{{ viewingSource() }}</strong>
+            <div class="viewer-actions">
+              <button type="button" class="ghost small" (click)="downloadDocument(viewingSource()!)">Download</button>
+              <button type="button" class="icon-btn" (click)="closeViewer()" aria-label="Close viewer">
+                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                  <path d="M18 6L6 18M6 6l12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="viewer-body">
+            <iframe [src]="url | safeUrl" title="{{ viewingSource() }}"></iframe>
+          </div>
+        </div>
+      </div>
+    }
   </main>
 </div>

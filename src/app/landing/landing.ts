@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../core/auth.service';
 
 interface Feature {
   icon: string;
@@ -21,6 +22,7 @@ interface Step {
   styleUrl: './landing.css',
 })
 export class Landing {
+  protected readonly auth = inject(AuthService);
   protected readonly features: Feature[] = [
     {
       icon: '🧠',

@@ -53,12 +53,28 @@
             >
               ×
             </button>
-          </div>
-        }
-      </div>
+        </div>
+      }
+    </div>
     }
 
     <div class="sidebar-footer">
+      @if (isSystemAdmin()) {
+        <a class="nav-action" routerLink="/systemadmin" title="System Admin Dashboard">
+          <span class="nav-action__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path
+                d="M12 3l1.5 4.5L18 9l-4.5 1.5L15 15l-3-2.5L9 15l1.5-4.5L6 9l4.5-1.5z"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </span>
+          <span>System Admin</span>
+        </a>
+      }
       @if (sidebarOpen()) {
         <div class="status">
           <span
@@ -198,6 +214,16 @@
           </p>
           <a class="primary-link" routerLink="/trainer" (click)="toggleSettings()">
             Open Trainer →
+          </a>
+        </section>
+
+        <section class="settings-section" *ngIf="isSystemAdmin()">
+          <h4>System Admin</h4>
+          <p class="hint">
+            Manage system administration tasks and tenant management.
+          </p>
+          <a class="primary-link" routerLink="/systemadmin" (click)="toggleSettings()">
+            System Admin Dashboard →
           </a>
         </section>
 
@@ -353,13 +379,48 @@
                       (click)="startEditMessage(message)"
                       title="Correct answer"
                     >
-                      ✏️
+                      <span class="material-icons icon-xs" aria-hidden="true">edit</span>
                     </button>
                   }
                 }
               }
               <span class="bubble-time">{{ formatTime(message.timestamp) }}</span>
             </div>
+            @if (message.role === 'assistant') {
+              <div class="message-actions">
+                <button
+                  type="button"
+                  class="action-btn copy"
+                  (click)="copyMessage(message)"
+                  title="Copy"
+                  aria-label="Copy message"
+                >
+                  <span class="material-symbols-outlined icon-xs" aria-hidden="true">content_copy</span>
+                </button>
+                <button
+                  type="button"
+                  class="action-btn like"
+                  [class.rated]="ratedMessages()[message.id]"
+                  (click)="likeMessage(message)"
+                  [disabled]="ratedMessages()[message.id]"
+                  title="Good answer"
+                  aria-label="Like"
+                >
+                  <span class="material-symbols-outlined icon-xs" aria-hidden="true">thumb_up</span>
+                </button>
+                <button
+                  type="button"
+                  class="action-btn dislike"
+                  [class.rated]="ratedMessages()[message.id]"
+                  (click)="dislikeMessage(message)"
+                  [disabled]="ratedMessages()[message.id]"
+                  title="Bad answer"
+                  aria-label="Dislike"
+                >
+                  <span class="material-symbols-outlined icon-xs" aria-hidden="true">thumb_down</span>
+                </button>
+              </div>
+            }
           </div>
         }
       }
