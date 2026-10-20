@@ -1,0 +1,636 @@
+<div class="shell train-on" [class.sidebar-collapsed]="!sidebarOpen()" [class.vocab-open]="vocabOpen()">
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-header">
+      <a class="brand" routerLink="/chat" title="Go to chat">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="22" height="22">
+            <defs>
+              <linearGradient id="brain-brand-gradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#6366f1" />
+                <stop offset="1" stop-color="#a855f7" />
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#brain-brand-gradient)" />
+            <path d="M9 12c0-1.5 1-3 3-3h8c2 0 3 1.5 3 3v6c0 1.5-1 3-3 3h-5l-3 3v-3c-2 0-3-1.5-3-3z" fill="#fff" />
+            <circle cx="13" cy="15" r="1.2" fill="#6366f1" />
+            <circle cx="17" cy="15" r="1.2" fill="#6366f1" />
+            <circle cx="21" cy="15" r="1.2" fill="#6366f1" />
+          </svg>
+        </span>
+        @if (sidebarOpen()) { <span class="brand-name">{{ botName() }}</span> }
+      </a>
+    </div>
+
+    <a class="new-chat" routerLink="/chat">
+      <span class="plus" aria-hidden="true">＋</span>
+      @if (sidebarOpen()) { <span>Open chat</span> }
+    </a>
+
+    <nav class="nav-list" aria-label="Workspace">
+      <a class="nav-item" routerLink="/chat" routerLinkActive="active">
+        <span class="nav-icon" aria-hidden="true">◉</span>
+        @if (sidebarOpen()) { <span class="nav-label">Chat</span> }
+      </a>
+      <a class="nav-item" routerLink="/trainer" routerLinkActive="active">
+        <span class="nav-icon" aria-hidden="true">✎</span>
+        @if (sidebarOpen()) { <span class="nav-label">Training room</span> }
+      </a>
+      <a class="nav-item active" routerLink="/brain" aria-current="page">
+        <span class="nav-icon" aria-hidden="true">◎</span>
+        @if (sidebarOpen()) { <span class="nav-label">Assistance Brain</span> }
+      </a>
+      @if (isSystemAdmin()) {
+        <a class="nav-item" routerLink="/tenants" routerLinkActive="active">
+          <span class="nav-icon" aria-hidden="true">▦</span>
+          @if (sidebarOpen()) { <span class="nav-label">System Admin</span> }
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <button
+        type="button"
+        class="icon-btn sidebar-toggle"
+        (click)="toggleSidebar()"
+        [attr.aria-label]="sidebarOpen() ? 'Hide sidebar' : 'Show sidebar'"
+        [attr.aria-expanded]="sidebarOpen()"
+        title="Toggle sidebar"
+      >
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+  </aside>
+
+  <main class="brain-main">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow"><span class="live-dot"></span> SYSTEM PROFILE</p>
+        <h1>Assistance Brain</h1>
+        <p class="hero-description">A view of what the assistant has learned, what it remembers, and what still needs an answer.</p>
+      </div>
+      <div class="stage-readout" aria-live="polite">
+        <div class="stage-orbit" aria-hidden="true">
+          <span class="orbit-core"></span>
+          <span class="orbit-node orbit-node-one"></span>
+          <span class="orbit-node orbit-node-two"></span>
+          <span class="orbit-node orbit-node-three"></span>
+        </div>
+        <div class="stage-meta">
+          <span class="stage-caption">MODEL LEVEL</span>
+          @if (modelLevel(); as level) {
+            <strong>{{ level.title }}</strong>
+            <span>{{ level.description }}</span>
+          } @else if (loading()) {
+            <strong>Reading the model…</strong>
+          } @else {
+            <strong>Level unavailable</strong>
+          }
+        </div>
+      </div>
+    </header>
+
+    <section class="brain-hero" aria-label="Assistant brain visualisation">
+      <div class="brain-stage" [style.--brain-activity]="brainActivity()" aria-hidden="true">
+        <div class="brain-halo"></div>
+        <div class="brain-ring"></div>
+        <div class="brain-model">
+          <div class="brain-face brain-face-front">
+            <svg viewBox="0 0 200 200" focusable="false">
+              <defs>
+                <linearGradient id="brain-fill" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#818cf8" />
+                  <stop offset="0.55" stop-color="#6366f1" />
+                  <stop offset="1" stop-color="#a855f7" />
+                </linearGradient>
+                <linearGradient id="brain-fill-back" x1="1" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#4f46e5" />
+                  <stop offset="1" stop-color="#7c3aed" />
+                </linearGradient>
+                <filter id="brain-lift" x="-30%" y="-30%" width="160%" height="160%">
+                  <feDropShadow dx="0" dy="3" stdDeviation="2.4" flood-color="#1e1b4b" flood-opacity="0.55" />
+                </filter>
+                <g id="brain-shape">
+                  <g filter="url(#brain-lift)">
+                    <path
+                      d="M98 14C76 12 52 20 37 37c-15 17-20 43-13 67 3 15 10 25 21 31 9 5 15 12 27 11 11-1 20-3 25-8 2-30 2-94 1-124Z"
+                      fill="url(#brain-fill)"
+                    />
+                    <path
+                      d="M102 14c22-2 46 6 61 23 15 17 20 43 13 67-3 15-10 25-21 31-9 5-15 12-27 11-11-1-20-3-25-8-2-30-2-94-1-124Z"
+                      fill="url(#brain-fill)"
+                    />
+                    <path
+                      d="M92 140c0 16 3 27 10 36l14-2c-7-10-10-22-10-34Z"
+                      fill="#6366f1"
+                      opacity="0.9"
+                    />
+                  </g>
+                  <g fill="none" stroke="rgba(226,232,240,0.4)" stroke-width="2.4" stroke-linecap="round">
+                    <path d="M62 26c12 8 18 20 10 30" />
+                    <path d="M40 44c10 6 16 18 8 28" />
+                    <path d="M78 62c10 10 12 24 2 34" />
+                    <path d="M34 76c11 4 18 14 12 24" />
+                    <path d="M70 96c9 8 10 20 2 28" />
+                    <path d="M44 106c10 2 16 10 12 20" />
+                    <path d="M88 30c5 12 6 24 2 34" />
+                    <path d="M138 26c-12 8-18 20-10 30" />
+                    <path d="M160 44c-10 6-16 18-8 28" />
+                    <path d="M122 62c-10 10-12 24-2 34" />
+                    <path d="M166 76c-11 4-18 14-12 24" />
+                    <path d="M130 96c-9 8-10 20-2 28" />
+                    <path d="M156 106c-10 2-16 10-12 20" />
+                    <path d="M112 30c-5 12-6 24-2 34" />
+                  </g>
+                  <path d="M100 16c2 34 2 92 0 122" fill="none" stroke="rgba(15,23,42,0.55)" stroke-width="3" stroke-linecap="round" />
+                </g>
+              </defs>
+              <use href="#brain-shape" />
+            </svg>
+            @for (node of knowledgeNodes; track node.id) {
+              <span
+                class="brain-node"
+                [class.lit]="node.id <= activeNodeCount()"
+                [style.left.%]="node.x"
+                [style.top.%]="node.y"
+                [style.animation-delay.ms]="node.delay"
+              ></span>
+            }
+          </div>
+          <div class="brain-face brain-face-back">
+            <svg viewBox="0 0 200 200" focusable="false">
+              <use href="#brain-shape" transform="translate(200,0) scale(-1,1)" opacity="0.72" />
+            </svg>
+          </div>
+        </div>
+        <div class="brain-shadow"></div>
+      </div>
+
+      <div class="brain-readout">
+        @if (modelLevel(); as luna) {
+          <p class="eyebrow dark-eyrow">MODEL LEVEL</p>
+          <h2 class="luna-title">{{ luna.title }}</h2>
+          <p class="brain-lede">{{ luna.description }}</p>
+          <p class="luna-reference">{{ luna.reference }}</p>
+          <p class="luna-gap">
+            Luke is rated on the same scale as {{ luna.frontier_title }}. {{ luna.frontier_note }}
+          </p>
+          <button type="button" class="guide-button" (click)="toggleGuide()">How to reach the next level →</button>
+          <ul class="luna-capabilities">
+            @for (capability of luna.capabilities; track capability.key) {
+              <li [class.ready]="capability.ready">
+                <span class="luna-mark" aria-hidden="true">{{ capability.ready ? '✓' : '·' }}</span>
+                <strong>{{ capability.name }}</strong>
+                <small>{{ capability.detail }}</small>
+              </li>
+            }
+          </ul>
+          <div class="brain-progress" role="img" [attr.aria-label]="'Model level ' + luna.level + ' of the Luna ' + luna.frontier_level + ' standard'">
+            <span [style.width.%]="(luna.level / luna.frontier_level) * 100"></span>
+          </div>
+          <p class="brain-progress-note">Level {{ luna.level | number: '1.0-1' }} on a scale of {{ luna.max_level }}. @if (luna.next_level) { Next is {{ luna.next_level }} — it needs to {{ luna.next_requirement }}. }</p>
+        } @else {
+          <p class="eyebrow dark-eyebrow">MODEL LEVEL</p>
+          <h2>Reading the model…</h2>
+          <p class="brain-lede">The brain is working out what it can do on its own.</p>
+        }
+      </div>
+    </section>
+
+    <section class="dashboard-content" aria-label="Brain statistics">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow dark-eyebrow">LEARNING PROFILE</p>
+          <h2>Memory, in numbers</h2>
+        </div>
+        <button class="refresh-button" type="button" (click)="refresh()" [disabled]="loading()">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path d="M20 7v5h-5M4 17v-5h5m10-1a7 7 0 0 0-12-4L4 12m16 0-3 5a7 7 0 0 1-12-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          Refresh
+        </button>
+      </div>
+
+      @if (error()) {
+        <div class="error-banner" role="alert">
+          <span>Could not load Brain data: {{ error() }}</span>
+          <button type="button" (click)="refresh()">Try again</button>
+        </div>
+      }
+
+      <div class="metric-row">
+        <article class="metric metric-memory">
+          <span class="metric-label">INDEXED MEMORY</span>
+          <strong class="metric-value">{{ stats()?.chunks ?? '—' }}</strong>
+          <span class="metric-note">document chunks</span>
+          <span class="metric-mark mark-green" aria-hidden="true">▤</span>
+        </article>
+        <article class="metric metric-faq">
+          <span class="metric-label">LEARNED ANSWERS</span>
+          <strong class="metric-value">{{ stats()?.faqs ?? '—' }}</strong>
+          <span class="metric-note">trained Q&amp;A pairs</span>
+          <span class="metric-mark mark-coral" aria-hidden="true">✳</span>
+        </article>
+        <article class="metric metric-pending">
+          <span class="metric-label">UNANSWERED</span>
+          <strong class="metric-value">{{ stats()?.pending ?? '—' }}</strong>
+          <span class="metric-note">questions to review</span>
+          <span class="metric-mark mark-lime" aria-hidden="true">?</span>
+        </article>
+        <article class="metric metric-quality">
+          <span class="metric-label">MERGED INTENTS</span>
+          <strong class="metric-value">{{ mergedIntents().length }}</strong>
+          <span class="metric-note">groups of similar learned questions</span>
+          <span class="metric-mark mark-quality" aria-hidden="true">◇</span>
+        </article>
+      </div>
+
+      <section class="brain-panel-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow dark-eyebrow">THE NEURAL BRAIN</p>
+            <h2>What it has trained on</h2>
+          </div>
+          <button class="refresh-button" type="button" (click)="trainBrain()" [disabled]="brainTraining()">
+            @if (brainTraining()) { Training… } @else { Train the brain }
+          </button>
+        </div>
+        @if (brainState(); as brain) {
+          <div class="brain-stat-row">
+            <button
+              type="button"
+              class="brain-stat brain-stat-button"
+              [class.active]="vocabOpen()"
+              (click)="toggleVocabulary()"
+              [attr.aria-expanded]="vocabOpen()"
+            >
+              <span class="metric-label">WORDS IT CAN WRITE WITH</span>
+              <strong class="metric-value">{{ brain.vocabulary }}</strong>
+              <span class="metric-note">the vocabulary the answering model uses &middot; click to see the words</span>
+            </button>
+            <article class="brain-stat">
+              <span class="metric-label">EMOTIONS</span>
+              <strong class="metric-value">{{ brain.emotions.length }}</strong>
+              <span class="metric-note">{{ brain.emotion_ready ? 'learned from your material' : 'waiting for more examples' }}</span>
+            </article>
+          </div>
+          <div class="brain-ability-row">
+            <span class="brain-ability" [class.ready]="brain.trained">Writes sentences</span>
+            <span class="brain-ability" [class.ready]="brain.emotion_ready">Reads emotions</span>
+            <span class="brain-ability" [class.ready]="brain.clarify_ready">Asks back</span>
+            <span class="brain-ability" [class.ready]="brain.confidence_ready">Knows its limits</span>
+            <span class="brain-ability" [class.ready]="brain.transformer_ready">Writes in your words</span>
+          </div>
+          @if (brain.transformer; as writer) {
+            @if (writer.trained) {
+              <div class="brain-stat-row transformer-row">
+                <article class="brain-stat">
+                  <span class="metric-label">TRANSFORMER</span>
+                  <strong class="metric-value">{{ ((writer.parameters ?? 0) / 1000000) | number: '1.1-1' }}M</strong>
+                  <span class="metric-note">weights, trained from scratch on your material</span>
+                </article>
+                <article class="brain-stat">
+                  <span class="metric-label">TRAINING STEPS</span>
+                  <strong class="metric-value">{{ writer.steps ?? 0 }}</strong>
+                  <span class="metric-note">steps on {{ writer.device ?? 'cpu' }}</span>
+                </article>
+                <article class="brain-stat">
+                  <span class="metric-label">HOW WELL IT KNOWS THEM</span>
+                  <strong class="metric-value">{{ writer.loss ?? '—' }}</strong>
+                  <span class="metric-note">the loss it reached while learning</span>
+                </article>
+                <article class="brain-stat">
+                  <span class="metric-label">CORRECTIONS</span>
+                  <strong class="metric-value">{{ brain.corrections }}</strong>
+                  <span class="metric-note">{{ brain.feedback_entries }} answers reviewed</span>
+                </article>
+              </div>
+              <p class="brain-sample">It writes the answers in your own words, and proposes one for a question it was never taught. Every proposal waits for your approval.</p>
+            } @else {
+              <p class="brain-sample">The transformer that writes in your words is not trained yet. Train the brain and it learns from your lessons, your answers and your documents.</p>
+            }
+          }
+          @if (brainSentence()) {
+            <p class="brain-sample">It wrote: “{{ brainSentence() }}”</p>
+          }
+        } @else {
+          <p class="panel-empty">The brain has not been trained yet. Teach some lessons and then train it.</p>
+        }
+      </section>
+
+      <section class="ladder-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow dark-eyebrow">HOW TO ADVANCE</p>
+            <h2>Climb the ladder</h2>
+          </div>
+          <button class="refresh-button" type="button" (click)="trainBrain()" [disabled]="brainTraining()">
+            @if (brainTraining()) { Testing… } @else { Test my level }
+          </button>
+        </div>
+        <p class="ladder-intro">
+          Every rung is a test. Each one asks for what Luke has been taught in a harder way, so the way
+          to climb is to teach more of it, and to teach it in more ways. The rungs are climbed in order:
+          Luke only reaches a level when every rung below it is passed.
+        </p>
+        @if (modelLevel(); as level) {
+          <ul class="ladder-rungs">
+            @for (rung of level.rungs ?? []; track rung.rung) {
+              <li [class.passed]="rungState(rung) === 'passed'" [class.ahead]="rungState(rung) === 'ahead'">
+                <div class="ladder-rung-open" role="button" tabindex="0" (click)="openRung(rung.rung)" (keydown.enter)="openRung(rung.rung)" (keydown.space)="openRung(rung.rung)">
+                  <div class="ladder-rung-head">
+                    <strong>Luke {{ rung.rung }} · {{ rungName(rung.rung) }}</strong>
+                    <span>{{ rung.passed }} of {{ rung.probes }} passed →</span>
+                  </div>
+                  <div class="ladder-rung-bar"><span [style.width.%]="rung.rate * 100"></span></div>
+                  @if (rung.detail) { <p class="ladder-rung-detail">{{ rung.detail }}</p> }
+                  @if (rungState(rung) !== 'passed') {
+                    <p class="ladder-rung-hint">{{ rungHint(rung) }}</p>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      @if (modelLevel(); as level) {
+        <section class="ladder-section generality-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow dark-eyebrow">THE GENERALISING TEST</p>
+              <h2>Questions it was never taught</h2>
+            </div>
+            <span class="generality-score">{{ (level.generality * 100) | number: '1.0-0' }}% answered</span>
+          </div>
+          <p class="ladder-intro">
+            These questions are not in Luke's lessons. It can only answer them from what it learned by
+            itself, and a lookup in the dictionary does not count. Most AI models cannot answer them either.
+          </p>
+          <ul class="probe-list generality-list">
+            @for (probe of generalityProbes(); track probe.question) {
+              <li [class.probe-pass]="probe.answered" [class.probe-fail]="!probe.answered">
+                <span class="probe-mark" aria-hidden="true">{{ probe.answered ? '✓' : '×' }}</span>
+                <div>
+                  <strong>{{ probe.question }}</strong>
+                  <small>{{ probe.answered ? 'Answered from what it learned' : 'It does not know this yet' }}</small>
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      <section class="graph-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow dark-eyebrow">KNOWLEDGE GRAPH</p>
+            <h2>What the brain has connected</h2>
+          </div>
+          <button class="refresh-button" type="button" (click)="loadKnowledgeGraph()" [disabled]="graphLoading()">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path d="M20 7v5h-5M4 17v-5h5m10-1a7 7 0 0 0-12-4L4 12m16 0-3 5a7 7 0 0 1-12-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Refresh
+          </button>
+        </div>
+
+        @if (knowledgeGraph(); as graph) {
+          <div class="graph-toolbar">
+            <button
+              type="button"
+              class="graph-chip"
+              [class.active]="graphSubject() === ''"
+              (click)="setGraphSubject('')"
+            >
+              All subjects
+            </button>
+            @for (subject of graph.subjects.slice(0, 10); track subject) {
+              <button
+                type="button"
+                class="graph-chip"
+                [class.active]="graphSubject() === subject"
+                (click)="setGraphSubject(subject)"
+              >
+                {{ subject }}
+              </button>
+            }
+          </div>
+
+          <div class="graph-canvas">
+            <svg viewBox="0 0 940 530" role="img" aria-label="Graph of the subjects and lessons the assistant has learned">
+              @for (edge of graph.edges; track edge.source + edge.target) {
+                <line class="graph-link" [attr.x1]="graphPoint(edge.source, graph).x" [attr.y1]="graphPoint(edge.source, graph).y" [attr.x2]="graphPoint(edge.target, graph).x" [attr.y2]="graphPoint(edge.target, graph).y" />
+              }
+              @for (node of graph.nodes; track node.id) {
+                <g class="graph-node" [attr.data-type]="node.type" (click)="selectGraphNode(node)" tabindex="0" role="button" [attr.aria-label]="node.label">
+                  <circle [attr.cx]="graphPoint(node.id, graph).x" [attr.cy]="graphPoint(node.id, graph).y" [attr.r]="node.type === 'subject' ? 12 : 4" />
+                  @if (node.type === 'subject') {
+                    <text [attr.x]="graphPoint(node.id, graph).x + 18" [attr.y]="graphPoint(node.id, graph).y + 4" class="graph-subject-label">{{ node.label }}</text>
+                  }
+                </g>
+              }
+            </svg>
+            @if (selectedNode(); as picked) {
+              <div class="graph-detail">
+                <strong>{{ picked.label }}</strong>
+                <span>{{ picked.detail }}</span>
+              </div>
+            } @else {
+              <p class="graph-hint">Select a node to see what it holds. {{ graph.total }} lessons in total.</p>
+            }
+          </div>
+        } @else if (graphLoading()) {
+          <p class="panel-empty">Mapping the learned knowledge…</p>
+        }
+      </section>
+
+      <section class="maturity-section">
+        <div class="maturity-copy">
+          <p class="eyebrow dark-eyebrow">TRAINING MATURITY</p>
+          @if (modelLevel(); as level) {
+            <h2>{{ level.training_volume?.title }}</h2>
+            <p>Based on {{ knowledgeItems() | number }} indexed knowledge items.</p>
+            <p class="measure-note">A training-volume estimate, not a measure of intelligence or answer accuracy. The model level above is the one that counts.</p>
+          } @else {
+            <h2>Reading the training…</h2>
+            <p>Based on {{ knowledgeItems() | number }} indexed knowledge items.</p>
+            <p class="measure-note">A training-volume estimate, not a measure of intelligence or answer accuracy.</p>
+          }
+        </div>
+        <div class="maturity-scale">
+          <div class="scale-track" role="img" [attr.aria-label]="'Training maturity: ' + (modelLevel()?.training_volume?.title ?? 'unknown')">
+            @for (rung of ladderRungs(); track rung.level) {
+              <span class="scale-step" [class.step-reached]="rung.level <= (modelLevel()?.training_volume?.level ?? 0)" [class.step-current]="rung.level === (modelLevel()?.training_volume?.level ?? 0)"></span>
+            }
+          </div>
+          <div class="scale-labels">
+            @for (rung of ladderLabels(); track rung.level) {
+              <span [class.label-current]="rung.level === (modelLevel()?.training_volume?.level ?? 0)">{{ rung.name }}</span>
+            }
+          </div>
+          <div class="scale-footer">
+            <span>LUKE 0</span>
+            <span>{{ volumeProgress() | number: '1.0-0' }}% of the way to Luke 1</span>
+            <span>LUKE 1</span>
+          </div>
+        </div>
+      </section>
+
+      <footer class="page-footer">
+        <span>Knowledge grows with every document and approved answer.</span>
+        <a routerLink="/trainer" [queryParams]="{ tab: 'new' }">Go to training <span aria-hidden="true">→</span></a>
+      </footer>
+    </section>
+
+    @if (guideOpen()) {
+      <div class="guide-backdrop" (click)="closeGuide()"></div>
+      <aside class="guide-drawer" role="dialog" aria-modal="true" aria-label="How to reach the next level">
+        <header class="guide-header">
+          <div>
+            <span class="eyebrow dark-eyebrow">LEVEL GUIDE</span>
+            <h2>How to reach the next level</h2>
+          </div>
+          <button type="button" class="icon-btn" (click)="closeGuide()" aria-label="Close the level guide">×</button>
+        </header>
+
+        @if (selectedRung(); as rungKey) {
+          @if (modelLevel(); as level) {
+            @for (rung of level.rungs ?? []; track rung.rung) {
+              @if (rung.rung === rungKey) {
+                <section class="guide-block">
+                  <button type="button" class="guide-back" (click)="closeRung()">← All levels</button>
+                  <div class="guide-levels">
+                    <div><span>THE TEST</span><strong>Luke {{ rung.rung }} · {{ rungName(rung.rung) }}</strong></div>
+                    <div><span>RESULT</span><strong>{{ rung.passed }} of {{ rung.probes }} passed</strong></div>
+                  </div>
+                  <p class="guide-lead">{{ rung.test }}</p>
+                </section>
+
+                <section class="guide-block">
+                  <h3>What it passed</h3>
+                  @if (rung.passes?.length) {
+                    <ul class="probe-list">
+                      @for (probe of rung.passes ?? []; track probe.question) {
+                        <li class="probe-pass">
+                          <span class="probe-mark" aria-hidden="true">✓</span>
+                          <div>
+                            <strong>{{ probe.question }}</strong>
+                            <small>{{ probe.form }}</small>
+                            <span class="probe-answer">{{ probe.answered }}</span>
+                          </div>
+                        </li>
+                      }
+                    </ul>
+                  } @else {
+                    <p class="guide-lead">Nothing passed this test yet.</p>
+                  }
+                </section>
+
+                @if (rung.failures.length) {
+                  <section class="guide-block">
+                    <h3>What it still gets wrong</h3>
+                    <ul class="probe-list">
+                      @for (probe of rung.failures; track probe.question) {
+                        <li class="probe-fail">
+                          <span class="probe-mark" aria-hidden="true">×</span>
+                          <div>
+                            <strong>{{ probe.question }}</strong>
+                            <small>{{ probe.form }}</small>
+                            @if (probe.answered) { <span class="probe-answer">It answered: {{ probe.answered }}</span> }
+                            <span class="probe-answer">Expected: {{ probe.expected }}</span>
+                          </div>
+                        </li>
+                      }
+                    </ul>
+                  </section>
+                }
+              }
+            }
+          }
+        } @else if (modelLevel(); as level) {
+          <section class="guide-block">
+            <div class="guide-levels">
+              <div><span>NOW</span><strong>{{ level.title }}</strong></div>
+              <div><span>NEXT</span><strong>{{ level.next_level ?? 'The top of the scale' }}</strong></div>
+            </div>
+            <p class="guide-lead">{{ level.next_requirement }} — that is what it needs next.</p>
+          </section>
+
+          @if (level.coverage; as coverage) {
+            <section class="guide-block">
+              <h3>What it can read today</h3>
+              <div class="guide-coverage">
+                <div><span>DOCUMENTS</span><strong>{{ coverage.documents }}</strong><small>files chunked and embedded</small></div>
+                <div><span>CHUNKS</span><strong>{{ coverage.chunks }}</strong><small>passages read word by word</small></div>
+                <div><span>TRAINED ANSWERS</span><strong>{{ coverage.trained_answers }}</strong><small>question and answer pairs</small></div>
+                <div><span>LESSONS</span><strong>{{ coverage.lessons }}</strong><small>taught in the school</small></div>
+              </div>
+            </section>
+          }
+
+          <section class="guide-block">
+            <h3>What it has passed</h3>
+            <ul class="guide-rungs">
+              @for (rung of level.rungs ?? []; track rung.rung) {
+                <li [class.passed]="rung.rate >= 0.6">
+                  <div class="guide-rung-open" role="button" tabindex="0" (click)="openRung(rung.rung)" (keydown.enter)="openRung(rung.rung)" (keydown.space)="openRung(rung.rung)">
+                    <div class="guide-rung-head">
+                      <strong>Luke {{ rung.rung }} · {{ rungName(rung.rung) }}</strong>
+                      <span>{{ rung.passed }}/{{ rung.probes }} →</span>
+                    </div>
+                    <div class="guide-rung-bar"><span [style.width.%]="rung.rate * 100"></span></div>
+                    <small>{{ rung.test }}</small>
+                    @if (rung.detail) { <small class="guide-rung-detail">{{ rung.detail }}</small> }
+                  </div>
+                </li>
+              }
+            </ul>
+          </section>
+
+          <section class="guide-block">
+            <h3>What to do next</h3>
+            <ol class="guide-steps">
+              @for (step of level.next_steps ?? []; track step.action + step.title) {
+                <li>
+                  <strong>{{ step.title }}</strong>
+                  <p>{{ step.detail }}</p>
+                  @if (step.action === 'train_brain') {
+                    <button type="button" class="primary small" (click)="trainBrainFromGuide()">Train the brain</button>
+                  } @else if (step.link) {
+                    <a class="primary small" [routerLink]="step.link" (click)="closeGuide()">{{ step.link_label }}</a>
+                  }
+                </li>
+              }
+            </ol>
+          </section>
+        }
+      </aside>
+    }
+  </main>
+
+  @if (vocabOpen()) {
+    <aside class="vocab-panel" aria-label="Vocabulary">
+      <div class="vocab-panel-head">
+        <span class="metric-label">VOCABULARY</span>
+        <span class="vocab-panel-count">{{ vocabTotal() }}</span>
+      </div>
+      <p class="vocab-panel-note">Every word the answering model can write with. The list loads as you scroll.</p>
+      <div class="vocab-list" (scroll)="onVocabularyScroll($event)">
+        @for (word of vocabWords(); track $index) {
+          <span class="vocab-word">{{ word }}</span>
+        }
+        @if (vocabLoading()) {
+          <span class="vocab-status">Loading more words&hellip;</span>
+        }
+        @if (!vocabLoading() && vocabWords().length === 0) {
+          <span class="vocab-status">No words yet.</span>
+        }
+        @if (vocabFinished() && vocabWords().length > 0) {
+          <span class="vocab-status">All {{ vocabTotal() }} words</span>
+        }
+      </div>
+    </aside>
+  }
+</div>

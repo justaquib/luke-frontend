@@ -1,0 +1,463 @@
+<div class="learner-page">
+  <main class="learner-page-content">
+    <section class="language-learning-page">
+            @if (languageModelError()) {
+              <p class="intent-error" role="alert">{{ languageModelError() }}</p>
+            }
+            @if (languageModelLoading() && !languageModelState()) {
+              <p class="empty">Loading the tiny language model…</p>
+            } @else if (languageModelState(); as model) {
+              <section class="language-model-intro">
+                <div>
+                  <span class="language-eyebrow">A SMALL LEARNER · SCHOOL GRADE PATH</span>
+                  <h2>{{ model.model_name }}</h2>
+                  <p>{{ model.description }} Teach lessons by grade, then ask school-style questions and score the answers yourself. It advances only when you pass its grade test.</p>
+                </div>
+                <div class="learning-stage"><small>{{ model.current_stage_id === 'complete' ? 'All grades passed' : 'Current grade' }}</small><strong>{{ model.stage }}</strong></div>
+              </section>
+
+              <section class="language-learning-card learner-search-card" aria-labelledby="learner-search-title">
+                <div class="language-section-heading">
+                  <div><h3 id="learner-search-title">Search questions &amp; answers</h3><p>Find any taught question or approved answer across every grade, then edit the wording or remove it.</p></div>
+                  @if (learnerSearch().trim()) {
+                    <span class="grade-qa-total">{{ learnerSearchMatchCount().total }} match{{ learnerSearchMatchCount().total === 1 ? '' : 'es' }} · {{ learnerSearchMatchCount().editable }} editable</span>
+                  }
+                </div>
+                <div class="language-inline-form learner-search-form">
+                  <input [ngModel]="learnerSearch()" (ngModelChange)="setLearnerSearch($event)" name="learnerSearch" autocomplete="off" maxlength="200" placeholder="Search by question or answer, for example “circle”" aria-label="Search questions and answers" />
+                  @if (learnerSearch().trim()) { <button type="button" class="ghost" (click)="setLearnerSearch('')">Clear</button> }
+                </div>
+                @if (learnerSearch().trim()) {
+                  @if (learnerSearchResults().length) {
+                    <ol class="learner-search-results">
+                      @for (result of learnerSearchResults(); track result.key) {
+                        <li class="learner-search-row" [class.read-only]="!result.editable">
+                          <div class="learner-search-content">
+                            <span class="lesson-kind">{{ result.badge }}@if (result.grade) { · {{ languageStageTitle(result.grade) }} }</span>
+                            <span class="confidence-badge" [class.high]="result.confidence >= 0.75" [class.low]="result.confidence < 0.45" [title]="'How sure the assistant is about this answer'">Confidence {{ result.confidence * 100 | number: '1.0-0' }}%</span>
+                            @if (searchEditKey() === result.key) {
+                              <label [for]="'search-question-' + result.key">Question</label>
+                              <textarea [id]="'search-question-' + result.key" rows="2" [ngModel]="searchEditQuestion()" (ngModelChange)="searchEditQuestion.set($event)" [name]="'search-question-' + result.key" maxlength="1000" aria-label="Question"></textarea>
+                              <label [for]="'search-answer-' + result.key">Answer</label>
+                              <textarea [id]="'search-answer-' + result.key" rows="3" [ngModel]="searchEditAnswer()" (ngModelChange)="searchEditAnswer.set($event)" [name]="'search-answer-' + result.key" maxlength="1900" aria-label="Answer"></textarea>
+                              <label class="confidence-field">
+                                <span>Confidence · {{ searchEditConfidence() * 100 | number: '1.0-0' }}%</span>
+                                <input type="range" min="0" max="100" step="5" [value]="searchEditConfidence() * 100" (input)="searchEditConfidence.set(+$any($event.target).value / 100)" [attr.aria-label]="'Confidence of the answer ' + result.question" />
+                              </label>
+                              <div class="learner-search-actions">
+                                <button type="button" class="primary small" (click)="saveSearchResult(result)" [disabled]="savingSearchKey() === result.key || !searchEditQuestion().trim() || !searchEditAnswer().trim()">@if (savingSearchKey() === result.key) { Saving… } @else { Save changes }</button>
+                                <button type="button" class="ghost small" (click)="cancelEditSearchResult()">Cancel</button>
+                              </div>
+                            } @else {
+                              <strong>{{ result.question }}</strong>
+                              <p>{{ result.answer }}</p>
+                              <div class="learner-search-actions">
+                                @if (result.editable) {
+                                  <button type="button" class="ghost small" (click)="beginEditSearchResult(result)">Edit</button>
+                                  <button type="button" class="danger small" (click)="removeSearchResult(result)">Remove</button>
+                                } @else {
+                                  <span class="learner-search-hint">Starter material · read-only</span>
+                                }
+                                @if (result.showInGrade) { <button type="button" class="ghost small" (click)="focusLessonInGrade(result)">Show in grade</button> }
+                              </div>
+                            }
+                          </div>
+                        </li>
+                      }
+                    </ol>
+                  } @else {
+                    <p class="empty">No questions or answers match “{{ learnerSearch().trim() }}”.</p>
+                  }
+                }
+              </section>
+
+              <nav class="learner-tabs" role="tablist" aria-label="Learner sections">
+                <button type="button" role="tab" id="learner-tab-overview" aria-controls="learner-panel-overview" [attr.aria-selected]="learnerTab() === 'overview'" (click)="learnerTab.set('overview')"><strong>Overview & chat</strong><small>Ask the learner</small></button>
+                <button type="button" role="tab" id="learner-tab-lessons" aria-controls="learner-panel-lessons" [attr.aria-selected]="learnerTab() === 'lessons'" (click)="learnerTab.set('lessons')"><strong>Grades & lessons</strong><small>Teach new topics</small></button>
+                <button type="button" role="tab" id="learner-tab-tests" aria-controls="learner-panel-tests" [attr.aria-selected]="learnerTab() === 'tests'" (click)="learnerTab.set('tests')"><strong>Tests & progress</strong><small>Score learning</small></button>
+                <button type="button" role="tab" id="learner-tab-knowledge" aria-controls="learner-panel-knowledge" [attr.aria-selected]="learnerTab() === 'knowledge'" (click)="learnerTab.set('knowledge')"><strong>What it knows</strong><small>Review material</small></button>
+                <button type="button" role="tab" id="learner-tab-expressions" aria-controls="learner-panel-expressions" [attr.aria-selected]="learnerTab() === 'expressions'" (click)="learnerTab.set('expressions')"><strong>Feelings & expressions</strong><small>Greetings and phrases</small></button>
+              </nav>
+
+              @if (learnerTab() === 'overview') {
+              <div id="learner-panel-overview" role="tabpanel" aria-labelledby="learner-tab-overview" class="learner-tab-panel">
+              <section class="language-learning-card learner-chat-card" aria-labelledby="learner-chat-title">
+                <div class="language-section-heading">
+                  <div><h3 id="learner-chat-title">Try a question with the learner</h3><p>Trainer-approved answers are checked first, followed by the learner’s own starter material, words, sentences, and lessons. If similar Trainer questions match, choose the intended answer. Uploaded documents and web sources are not consulted.</p></div>
+                  @if (learnerChatMessages().length) { <button type="button" class="ghost small" (click)="learnerChatMessages.set([])">Clear chat</button> }
+                </div>
+                <div class="learner-chat-messages" role="log" aria-live="polite" aria-relevant="additions">
+                  @if (!learnerChatMessages().length) { <p class="learner-chat-empty">Ask something it should know, such as “What does apple mean?”, “What is a circle?”, “What day comes after Monday?”, “What time is it?”, or one of your taught lesson questions.</p> }
+                  @for (turn of learnerChatMessages(); track $index) {
+                    <div class="learner-chat-turn">
+                      <div class="learner-chat-question"><small>You asked</small><p>{{ turn.question }}</p></div>
+                      <div class="learner-chat-answer"><small>Learner · {{ learnerAnswerSourceLabel(turn.source) }}</small><p>{{ turn.answer }}</p>
+                        @if (turn.reasoning; as reasoning) {
+                          <details class="learner-reasoning">
+                            <summary>How I thought about it</summary>
+                            <ol>
+                              @for (step of reasoning.steps; track $index) {
+                                <li><strong>{{ step.label }}</strong><span>{{ step.detail }}</span></li>
+                              }
+                            </ol>
+                            <p class="learner-reasoning-confidence">Confidence {{ (reasoning.confidence * 100) | number: '1.0-0' }}%</p>
+                          </details>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @if (learnerChatBusy()) { <p class="learner-chat-thinking" role="status">The learner is checking what it has learned…</p> }
+                </div>
+                <form class="language-inline-form learner-chat-form" (ngSubmit)="askLanguageLearner()">
+                  <input [ngModel]="learnerChatDraft()" (ngModelChange)="learnerChatDraft.set($event)" name="learnerChatQuestion" maxlength="1000" autocomplete="off" placeholder="Ask the learner a question…" aria-label="Ask the learner a question" [disabled]="learnerChatBusy()" />
+                  <button type="submit" class="primary" [disabled]="learnerChatBusy() || !learnerChatDraft().trim()">Ask</button>
+                </form>
+              </section>
+
+              <section class="language-learning-card practice-card" aria-labelledby="learner-practice-title">
+                <div class="language-section-heading">
+                  <div><h3 id="learner-practice-title">Practice</h3><p>Build a sentence from words the learner knows, or ask it to do a sum, a difference, a product, a division, or a square root.</p></div>
+                </div>
+
+                <form class="practice-row" (ngSubmit)="buildSentenceFromWords()">
+                  <label>
+                    <span>Make a sentence from words</span>
+                    <input [ngModel]="sentenceWordsDraft()" (ngModelChange)="sentenceWordsDraft.set($event)" name="sentenceWords" maxlength="160" autocomplete="off" placeholder="red apple" aria-label="Words to make a sentence from" [disabled]="practiceBusy()" />
+                  </label>
+                  <button type="submit" class="primary small" [disabled]="practiceBusy() || !sentenceWordsDraft().trim()">@if (practiceBusy()) { Working… } @else { Build sentence }</button>
+                </form>
+                @if (sentenceResult()) {
+                  <p class="practice-result" role="status">{{ sentenceResult() }}</p>
+                }
+
+                <form class="practice-row" (ngSubmit)="runCalculation()">
+                  <label>
+                    <span>Do a calculation</span>
+                    <input [ngModel]="calculationDraft()" (ngModelChange)="calculationDraft.set($event)" name="calculation" maxlength="120" autocomplete="off" placeholder="what is 12 plus 8" aria-label="Calculation to do" [disabled]="practiceBusy()" />
+                  </label>
+                  <button type="submit" class="primary small" [disabled]="practiceBusy() || !calculationDraft().trim()">@if (practiceBusy()) { Working… } @else { Calculate }</button>
+                </form>
+                @if (calculationResult()) {
+                  <p class="practice-result" role="status">{{ calculationResult() }}</p>
+                }
+              </section>
+              </div>
+              }
+
+              @if (learnerTab() === 'lessons') {
+              <div id="learner-panel-lessons" role="tabpanel" aria-labelledby="learner-tab-lessons" class="learner-tab-panel">
+              <div class="curriculum-stages school-grade-list" aria-label="School grade progress">
+                @for (stage of model.stages; track stage.id; let index = $index) {
+                  <button type="button" class="curriculum-stage" [class.current]="model.current_stage_id === stage.id" [class.completed]="stage.completed" [class.selected]="languageTeachingStage() === stage.id" [disabled]="isLanguageStageLocked(stage.id, model)" (click)="selectLanguageStage(stage.id)">
+                    <span class="curriculum-stage-number">{{ stage.completed ? '✓' : index + 1 }}</span>
+                    <span><strong>{{ stage.title }}</strong><small>{{ (stage.completed ? 'Passed' : model.current_stage_id === stage.id ? 'Current grade' : 'Locked') + ' · ' + stage.pass_count + ' pass(es) · ' + stage.attempt_count + ' test(s)' }}</small></span>
+                    <span class="curriculum-stage-count">{{ stage.lesson_count }} Q&A</span>
+                  </button>
+                }
+              </div>
+
+              <section class="language-learning-card">
+                <h3>Add a lesson · {{ selectedLanguageStage()?.title ?? model.stage }}</h3>
+                <p>{{ selectedLanguageStage()?.description }} Add question and answer lessons to teach facts and concepts. Suggested subjects:</p>
+                <div class="grade-subjects">@for (subject of languageLessonSubjects(); track subject) { <button type="button" class="grade-subject-chip" (click)="lessonSubjectDraft.set(subject)">{{ subject }}</button> }</div>
+                <form (ngSubmit)="teachLanguageModel()">
+                  <label class="lesson-own-words-field"><span>Topics, separated by commas</span><input [ngModel]="lessonSubjectDraft()" (ngModelChange)="lessonSubjectDraft.set($event)" name="lessonSubject" maxlength="240" placeholder="For example: Language, Poems" /></label>
+                <small class="lesson-topic-hint">A lesson can belong to more than one topic. Write “Language, Poems” and it is filed under both.</small>
+                  <div class="lesson-entry-options" role="group" aria-label="How to enter the lesson">
+                    <button type="button" [class.selected]="lessonEntryMode() === 'own_words'" [attr.aria-pressed]="lessonEntryMode() === 'own_words'" (click)="lessonEntryMode.set('own_words')">Write one answer in my own words</button>
+                    <button type="button" [class.selected]="lessonEntryMode() === 'formatted'" [attr.aria-pressed]="lessonEntryMode() === 'formatted'" (click)="lessonEntryMode.set('formatted')">Paste Q: / A: lesson pairs</button>
+                  </div>
+                  @if (lessonEntryMode() === 'own_words') {
+                    <label class="lesson-own-words-field"><span>Question the learner should answer</span><input [ngModel]="lessonQuestionDraft()" (ngModelChange)="setLessonQuestionDraft($event)" name="lessonQuestion" maxlength="1000" placeholder="For example: What is a circle?" /></label>
+                    <label class="lesson-own-words-field"><span>Your answer in your own words</span><textarea rows="4" [ngModel]="lessonAnswerDraft()" (ngModelChange)="setLessonAnswerDraft($event)" name="lessonAnswer" maxlength="1900" placeholder="Write the explanation you want the learner to remember." aria-label="Answer in your own words"></textarea></label>
+                  } @else {
+                    <textarea rows="5" [ngModel]="languageLessonDraft()" (ngModelChange)="setLanguageLessonDraft($event)" name="languageLesson" maxlength="3000" placeholder="Q: What is a circle?&#10;A: A round shape with no corners.&#10;&#10;Q: How many sides does a triangle have?&#10;A: Three sides." aria-label="Question and answer lessons"></textarea>
+                  }
+                  @if (languageLessonWarning(); as warning) {
+                    <div class="lesson-duplicate-warning" role="alert">
+                      <div class="lesson-duplicate-heading">
+                        <strong>This lesson looks like something the learner already knows</strong>
+                        @if (warning.exact.length) {
+                          <p>{{ warning.exact.length }} question and answer pair{{ warning.exact.length === 1 ? '' : 's' }} {{ warning.exact.length === 1 ? 'is' : 'are' }} already taught, so {{ warning.exact.length === 1 ? 'it will be' : 'they will be' }} skipped instead of added twice.</p>
+                        }
+                        @if (warning.same_question.length) {
+                          <p>These questions are already taught with a different answer. Update the existing answer instead of adding another one.</p>
+                        }
+                        @if (warning.similar.length) {
+                          <p>Did you mean one of these?</p>
+                        }
+                        @if (warning.faqs.length) {
+                          <p>Trainer already answers this question.</p>
+                        }
+                        @if (warning.intents.length) {
+                          <p>A saved intent already covers this question.</p>
+                        }
+                      </div>
+
+                      @if (warning.exact.length) {
+                        <ul class="lesson-duplicate-list">
+                          @for (match of warning.exact; track match.question) {
+                            <li class="duplicate-exact"><span class="lesson-kind">Already taught</span><strong>{{ match.question }}</strong><span>{{ match.answer }}</span></li>
+                          }
+                        </ul>
+                      }
+                      @if (warning.same_question.length) {
+                        <ul class="lesson-duplicate-list">
+                          @for (match of warning.same_question; track match.question) {
+                            <li class="duplicate-same-question"><span class="lesson-kind">{{ match.kind === 'starter' ? 'Starter book' : 'Your lesson' }}</span><strong>{{ match.question }}</strong><span>{{ match.answer }}</span></li>
+                          }
+                        </ul>
+                      }
+                      @if (warning.similar.length) {
+                        <ul class="lesson-duplicate-list">
+                          @for (match of warning.similar; track match.question) {
+                            <li class="duplicate-similar"><span class="lesson-kind">{{ match.kind === 'starter' ? 'Starter book' : 'Your lesson' }} · {{ match.similarity }} match</span><strong>{{ match.question }}</strong><span>{{ match.answer }}</span></li>
+                          }
+                        </ul>
+                      }
+                      @if (warning.faqs.length) {
+                        <ul class="lesson-duplicate-list">
+                          @for (match of warning.faqs; track match.question) {
+                            <li class="duplicate-intent"><span class="lesson-kind">Trainer answer</span><strong>{{ match.question }}</strong><span>{{ match.answer }}</span></li>
+                          }
+                        </ul>
+                      }
+                      @if (warning.intents.length) {
+                        <ul class="lesson-duplicate-list">
+                          @for (match of warning.intents; track match.name) {
+                            <li class="duplicate-intent"><span class="lesson-kind">Saved intent</span><strong>{{ match.name }}</strong><span>{{ match.response_template }}</span></li>
+                          }
+                        </ul>
+                      }
+
+                      <div class="lesson-duplicate-actions">
+                        <button type="button" class="ghost small" (click)="cancelLanguageLessonWarning()">Edit my lesson</button>
+                        <button type="button" class="primary small" (click)="confirmLanguageLesson()" [disabled]="languageLessonSaving()">@if (languageLessonSaving()) { Saving… } @else { Add it anyway }</button>
+                      </div>
+                    </div>
+                  }
+                  <div class="language-form-footer"><small>Lessons stay in this tenant’s local learner file and count toward this grade. Duplicates are skipped automatically.</small><button type="submit" class="primary" [disabled]="languageLessonSaving() || languageLessonChecking() || !languageLessonCanSubmit()">@if (languageLessonSaving()) { Learning… } @else if (languageLessonChecking()) { Checking… } @else { Add lesson }</button></div>
+                </form>
+              </section>
+
+              <section class="language-learning-card dictionary-learning-card">
+                <div><h3>Use the offline dictionary for vocabulary</h3><p>The grade curriculum starts with a small set of words enriched from local WordNet definitions. Look up and teach more words here; use the lesson form above for numbers, shapes, and other subject knowledge.</p></div>
+                <form class="language-inline-form" (ngSubmit)="lookupDictionaryWord()">
+                  <input [ngModel]="dictionaryWordDraft()" (ngModelChange)="dictionaryWordDraft.set($event)" name="dictionaryWord" autocomplete="off" placeholder="For example, triangle" aria-label="Word to look up" />
+                  <button type="submit" class="ghost" [disabled]="dictionaryWordLoading() || !dictionaryWordDraft().trim()">@if (dictionaryWordLoading()) { Looking up… } @else { Look up word }</button>
+                </form>
+                @if (dictionaryWordEntry(); as entry) {
+                  <div class="dictionary-entry"><strong>{{ entry.word }}</strong><span class="lesson-kind">{{ entry.part_of_speech }}</span>
+                    <fieldset><legend>Choose the meaning to teach</legend>
+                      @for (definition of entry.definitions; track $index) {
+                        <label class="dictionary-definition"><input type="radio" [name]="'meaning-' + entry.word" [checked]="dictionaryDefinitionIndex() === $index" (change)="dictionaryDefinitionIndex.set($index)" /><span>{{ definition }}</span></label>
+                      }
+                    </fieldset>
+                    <button type="button" class="primary" (click)="teachDictionaryWord()" [disabled]="dictionaryWordSaving()">@if (dictionaryWordSaving()) { Teaching… } @else { Teach selected meaning }</button>
+                  </div>
+                }
+              </section>
+
+              <section class="language-learning-card grade-lessons-by-subject">
+                <div class="language-section-heading"><div><h3>{{ selectedLanguageStage()?.title ?? model.stage }} questions by subject</h3><p>Choose a topic to review its questions. Built-in examples are read-only; your lessons can be edited or removed.</p></div><div class="lesson-list-controls">
+                  @if (languageLessonsBySubject().length) {
+                    <label class="lesson-topic-filter"><span>Topic</span><select [ngModel]="activeLessonSubject()" [ngModelOptions]="{ standalone: true }" (ngModelChange)="setLessonSubjectFilter($event)" aria-label="Filter lessons by topic">
+                      @for (group of languageLessonsBySubject(); track group.subject) { <option [value]="group.subject">{{ group.subject }} · {{ group.lessons.length }}</option> }
+                    </select></label>
+                  }
+                  <span class="grade-qa-total">{{ visibleLessonCount() }} Q&A</span>
+                </div></div>
+                @if (languageLessonsBySubject().length) {
+                  <div class="lesson-subject-grid">
+                    @for (group of visibleLessonGroups(); track group.subject) {
+                      <section class="lesson-subject-card">
+                        <header><h4>{{ group.subject }}</h4></header>
+                        @for (lesson of group.lessons; track lesson.id ?? $index) {
+                          <article class="lesson-question-answer">
+                            <div class="lesson-question-label">
+                              <span class="lesson-kind">{{ lesson.kind === 'starter' ? 'Starter' : 'Your lesson' }}</span>
+                              @if (lesson.kind === 'trainer' && lesson.id && editingLearnerLessonId() !== lesson.id) {
+                                <div class="lesson-icon-actions">
+                                  <button type="button" class="lesson-icon-btn" (click)="beginEditLearnerLesson(lesson)" [attr.aria-label]="'Edit answer for ' + lesson.question" title="Edit answer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg></button>
+                                  <button type="button" class="lesson-icon-btn remove" (click)="learnerLessonDeletePrompt.set({ id: lesson.id, question: lesson.question })" [attr.aria-label]="'Remove lesson ' + lesson.question" title="Remove lesson"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m4 4v6m6-6v6" /></svg></button>
+                                </div>
+                              }
+                            </div>
+                            <div class="lesson-question-content">
+                              <strong>Q</strong>
+                              <span class="lesson-question-text">{{ lesson.question }}</span>
+                            </div>
+                            @if ((lesson.subjects?.length ?? 0) > 1) {
+                              <div class="lesson-topic-tags">
+                                @for (topic of lesson.subjects ?? []; track topic) {
+                                  <span class="lesson-topic-tag">{{ topic }}</span>
+                                }
+                              </div>
+                            }
+                            @if (editingLearnerLessonId() === lesson.id) {
+                              <div class="lesson-answer-edit"><label [for]="'edit-question-' + lesson.id">Question</label><textarea [id]="'edit-question-' + lesson.id" rows="2" [ngModel]="editingLearnerLessonQuestion()" (ngModelChange)="editingLearnerLessonQuestion.set($event)" [name]="'lesson-question-' + lesson.id" maxlength="1000"></textarea></div>
+                              <div class="lesson-answer-edit"><label [for]="'edit-subject-' + lesson.id">Topics, separated by commas</label><input [id]="'edit-subject-' + lesson.id" [ngModel]="editingLearnerLessonSubject()" (ngModelChange)="editingLearnerLessonSubject.set($event)" [name]="'lesson-subject-' + lesson.id" maxlength="240" placeholder="Language, Poems" /></div>
+                              <div class="lesson-answer-edit"><label [for]="'edit-answer-' + lesson.id">Answer</label><textarea [id]="'edit-answer-' + lesson.id" rows="3" [ngModel]="editingLearnerLessonAnswer()" (ngModelChange)="editingLearnerLessonAnswer.set($event)" [name]="'lesson-answer-' + lesson.id" maxlength="1900"></textarea></div>
+                              <div class="lesson-icon-actions"><button type="button" class="primary small" (click)="saveLearnerLessonAnswer(lesson.id)" [disabled]="savingLearnerLessonId() === lesson.id || !editingLearnerLessonAnswer().trim()">@if (savingLearnerLessonId() === lesson.id) { Saving… } @else { Save }</button><button type="button" class="ghost small" (click)="cancelEditLearnerLesson()">Cancel</button></div>
+                            } @else {
+                              <div class="lesson-answer-label"><strong>A</strong><span>{{ lesson.answer }}</span></div>
+                            }
+                          </article>
+                        }
+                      </section>
+                    }
+                  </div>
+                } @else {
+                  <p class="empty">No Q&A lessons are stored for this grade yet.</p>
+                }
+              </section>
+              </div>
+              }
+
+              @if (learnerTab() === 'tests') {
+              <div id="learner-panel-tests" role="tabpanel" aria-labelledby="learner-tab-tests" class="learner-tab-panel">
+              <section class="language-learning-card learner-test-card">
+                <div class="language-section-heading"><div><h3>School-style grade test</h3><p>Ask questions for {{ model.stage }}, score each answer, and decide when the learner is ready to move on.</p></div>
+                  <div class="test-start-actions">
+                    <button type="button" class="ghost" (click)="startLanguageTest('mock')" [disabled]="languageTestBusy() || !!languageTest()">Mock test</button>
+                    <button type="button" class="primary" (click)="startLanguageTest('exam')" [disabled]="languageTestBusy() || !!languageTest()">Final exam</button>
+                  </div>
+                </div>
+                <p class="test-hint">A mock test is practice and never advances the grade. The final exam advances it once the learner answers at least 80% of the questions correctly.</p>
+                @if (model.current_stage_id === 'complete' && !languageTest()) { <p class="quiz-feedback correct" role="status">The learner has passed all listed grade levels. Add a new lesson at Graduation or add more grade levels to the curriculum later.</p> }
+                @if (languageTest(); as test) {
+                  <small class="quiz-progress">{{ languageStageTitle(test.stage) }} test · {{ test.questions_asked }} asked · {{ test.answers_passed }} passed · {{ test.needs_learning }} need more learning</small>
+                  <form class="language-inline-form trainer-question-form" (ngSubmit)="askLanguageTestQuestion()">
+                    <input [ngModel]="languageTestQuestion()" (ngModelChange)="languageTestQuestion.set($event)" name="trainerQuestion" autocomplete="off" placeholder="Ask the learner a question…" aria-label="Question to ask the learner" [disabled]="test.awaiting_score || languageTestBusy()" />
+                    <button type="submit" class="primary" [disabled]="!languageTestQuestion().trim() || test.awaiting_score || languageTestBusy()">@if (languageTestBusy()) { Thinking… } @else { Ask question }</button>
+                  </form>
+                  @if (test.awaiting_score) {
+                    <div class="learner-answer" role="status">
+                      <small>Your question</small><strong>{{ test.last_question }}</strong>
+                      <small>Learner’s answer <span class="lesson-kind">{{ test.last_source_detail || (test.last_source === 'sentence_patterns' ? 'sentence patterns' : test.last_source === 'learner' ? 'learned material' : test.last_source === 'dictionary' ? 'offline dictionary' : test.last_source === 'assistant_profile' ? 'assistant profile' : 'not learned') }}</span></small>
+                      <p>{{ test.last_answer }}</p>
+                      <div class="answer-score-actions"><button type="button" class="primary" (click)="scoreLanguageTestAnswer(true)" [disabled]="languageTestBusy()">Pass this answer</button><button type="button" class="ghost" (click)="scoreLanguageTestAnswer(false)" [disabled]="languageTestBusy()">Needs more learning</button></div>
+                    </div>
+                  }
+                  @if (test.questions_asked > 0 && !test.awaiting_score) {
+                    <div class="stage-score-actions"><p>When you are satisfied with the test, decide whether this grade is ready to pass.</p><button type="button" class="primary" (click)="finishLanguageTest(true)" [disabled]="languageTestBusy()">Pass {{ languageStageTitle(test.stage) }}</button><button type="button" class="ghost" (click)="finishLanguageTest(false)" [disabled]="languageTestBusy()">Keep learning at this grade</button></div>
+                  }
+                }
+                @if (languageTestResult(); as result) {
+                  <p class="quiz-feedback" [class.correct]="result.passed" role="status">{{ result.passed ? languageStageTitle(result.stage) + ' passed.' : languageStageTitle(result.stage) + ' needs more learning.' }} You scored {{ result.answers_passed }} of {{ result.questions_asked }} answers as passed. {{ result.passed ? 'The next grade is now open.' : 'Teach or review material, then take this grade test again.' }}</p>
+                }
+                @if (model.test_history.length) { <details class="test-history"><summary>Previous grade tests · {{ model.test_history.length }}</summary><ol>@for (result of model.test_history; track $index) { <li><strong>{{ languageStageTitle(result.stage) }}</strong> · {{ result.passed ? 'Passed' : 'Needs more learning' }} · {{ result.answers_passed }}/{{ result.questions_asked }} answers passed</li> }</ol></details> }
+              </section>
+              </div>
+              }
+
+              @if (learnerTab() === 'knowledge') {
+              <div id="learner-panel-knowledge" role="tabpanel" aria-labelledby="learner-tab-knowledge" class="learner-tab-panel">
+              <section class="language-learning-card number-knowledge-card">
+                <div><span class="language-eyebrow">NURSERY · NUMBERS</span><h3>Numerals and number words</h3><p>The learner practises each number in both forms. Ask it “Spell 20” or “Write 13 in words” to get “twenty” or “thirteen”, or ask it to count a range using “Count 5-20” or “Count from five to fifteen”.</p></div>
+                <div class="number-knowledge-strip" aria-label="Starter number sequence">@for (number of ['0 · zero', '1 · one', '2 · two', '3 · three', '4 · four', '5 · five', '6 · six', '7 · seven', '8 · eight', '9 · nine', '10 · ten']; track number) { <span>{{ number }}</span> }</div>
+              </section>
+              <section class="language-learning-card learned-examples">
+                <div class="language-section-heading"><div><h3>What it has learned</h3><p>Trainer-approved answers stay synced here alongside the learner’s own lessons. Edit or remove answers from the source where they are stored.</p></div><button type="button" class="ghost small" (click)="refreshLanguageModel()" [disabled]="languageModelLoading()">Refresh</button></div>
+                <details><summary>Starter letters · {{ model.letters.length }}</summary><p class="learner-book-content">{{ model.letters.toUpperCase().split('').join(' · ') }}</p></details>
+                <details><summary>Word meanings · {{ model.word_cards.length }}</summary><ol>@for (card of model.word_cards; track card.word) { <li><strong>{{ card.word }}</strong> — {{ card.meaning }}@if (card.dictionary_meaning) { <small class="dictionary-definition-note">Offline dictionary: {{ card.dictionary_meaning }}</small> }</li> }</ol></details>
+                <details><summary>Sentence examples · {{ model.examples.length }}</summary><ol>@for (example of model.examples; track $index) { <li><span class="lesson-kind">{{ example.kind === 'foundation' ? 'Starter book' : 'Your lesson' }}</span><span>{{ example.text }}</span></li> }</ol></details>
+                @if (learnerOwnLessons().length) {
+                  <details class="learned-answers-list" open>
+                    <summary>Your lessons · {{ learnerOwnLessons().length }}</summary>
+                    <ol>
+                      @for (lesson of learnerOwnLessons(); track lesson.id ?? $index) {
+                        <li class="learned-answer-row">
+                          <div class="learned-answer-content">
+                            <span class="lesson-kind">Taught by you · {{ languageStageTitle(lesson.grade_id ?? 'nursery') }}@if (lesson.subject) { · {{ lesson.subject }} }</span>
+                            <strong>{{ lesson.question }}</strong>
+                            <p>{{ lesson.answer }}</p>
+                          </div>
+                        </li>
+                      }
+                    </ol>
+                  </details>
+                }
+                <details><summary>Starter lessons · {{ learnerStarterLessonCount() }}</summary><ol>@for (lesson of learnerStarterLessons(); track lesson.question) { <li><span class="lesson-kind">{{ languageStageTitle(lesson.grade_id ?? 'nursery') }}@if (lesson.subject) { · {{ lesson.subject }} }</span><span><strong>{{ lesson.question }}</strong> — {{ lesson.answer }}</span></li> }</ol></details>
+                @if (model.trainer_answers?.length) {
+                  <details class="learned-answers-list">
+                    <summary>Trainer-approved answers · {{ model.trainer_answers?.length }}</summary>
+                    <ol>
+                      @for (item of model.trainer_answers ?? []; track item.id) {
+                        <li class="learned-answer-row"><div class="learned-answer-content"><span class="lesson-kind">Synced from Trainer · Approved</span><span class="confidence-badge" [class.high]="(item.confidence ?? 0.5) >= 0.75" [class.low]="(item.confidence ?? 0.5) < 0.45" [title]="'How sure the assistant is about this answer'">Confidence {{ (item.confidence ?? 0.5) * 100 | number: '1.0-0' }}%</span><strong>{{ item.question }}</strong>
+                          @if (editingTrainerAnswerId() === item.id) {
+                            <textarea rows="3" [ngModel]="editingTrainerAnswerDraft()" (ngModelChange)="editingTrainerAnswerDraft.set($event)" [name]="'trainerAnswer-' + item.id" maxlength="1900" aria-label="Edit Trainer-approved answer"></textarea>
+                            <div class="learned-answer-actions"><button type="button" class="primary small" (click)="saveTrainerAnswer(item.id)" [disabled]="savingTrainerAnswerId() === item.id || !editingTrainerAnswerDraft().trim()">@if (savingTrainerAnswerId() === item.id) { Saving… } @else { Save answer }</button><button type="button" class="ghost small" (click)="cancelEditTrainerAnswer()">Cancel</button></div>
+                          } @else {
+                            <p>{{ item.answer }}</p>
+                            <div class="learned-answer-actions"><button type="button" class="ghost small" (click)="beginEditTrainerAnswer(item)">Edit answer</button><button type="button" class="danger small" (click)="trainerAnswerDeletePrompt.set({ id: item.id, question: item.question })">Remove</button></div>
+                          }
+                        </div></li>
+                      }
+                    </ol>
+                  </details>
+                }
+              </section>
+              </div>
+              }
+
+              @if (learnerTab() === 'expressions') {
+              <div id="learner-panel-expressions" role="tabpanel" aria-labelledby="learner-tab-expressions" class="learner-tab-panel">
+                <section class="language-learning-card expression-learning-card">
+                  <div class="language-section-heading"><div><span class="language-eyebrow">NURSERY · SOCIAL LANGUAGE</span><h3>Feelings, greetings & expressions</h3><p>The learner is taught useful phrases and what they mean. These are language lessons; they help it recognize and use expressions without claiming to feel emotions itself.</p></div><button type="button" class="primary" (click)="lessonSubjectDraft.set('Feelings & expressions'); learnerTab.set('lessons')">Teach another phrase</button></div>
+                  <div class="expression-example-grid">
+                    @for (lesson of model.lesson_cards; track $index) {
+                      @if (lesson.subject === 'Feelings & expressions') {
+                        <article class="expression-example"><span class="lesson-kind">{{ languageStageTitle(lesson.grade_id ?? 'nursery') }}</span><strong>{{ lesson.question }}</strong><p>{{ lesson.answer }}</p></article>
+                      }
+                    }
+                  </div>
+                </section>
+              </div>
+              }
+            }
+    </section>
+  </main>
+    @if (learnerMatchPrompt(); as prompt) {
+      <div class="learner-match-overlay" (click)="askLearnerWithoutTrainer()">
+        <section class="learner-match-modal" role="dialog" aria-modal="true" aria-labelledby="learner-match-title" (click)="$event.stopPropagation()">
+          <header class="learner-match-header">
+            <div><span class="language-eyebrow">TRAINER KNOWLEDGE</span><h2 id="learner-match-title">Which question did you mean?</h2></div>
+            <button type="button" class="icon-btn" (click)="askLearnerWithoutTrainer()" aria-label="Close similar questions">×</button>
+          </header>
+          <p class="learner-match-question">{{ prompt.question }}</p>
+          <p class="learner-match-help">I found similar approved questions in Trainer. Choose the answer that matches your meaning.</p>
+          <div class="learner-match-options">
+            @for (candidate of prompt.candidates; track candidate.faq_id) {
+              <button type="button" class="learner-match-option" (click)="chooseLearnerTrainerAnswer(candidate)">
+                <strong>{{ candidate.question }}</strong><span>{{ candidate.answer }}</span>
+              </button>
+            }
+          </div>
+          <aside class="learner-merge-tip"><strong>Why merge similar questions?</strong><p>When several questions express the same intent, Trainer can group them under one canonical answer. That keeps answers consistent and prevents duplicate knowledge.</p><button type="button" class="ghost small" (click)="reviewSimilarQuestionsInTrainer()">Review in Merge Intents</button></aside>
+          <footer class="learner-match-footer"><button type="button" class="ghost" (click)="askLearnerWithoutTrainer()">None of these · Ask learner knowledge</button></footer>
+        </section>
+      </div>
+    }
+
+    @if (learnerLessonDeletePrompt(); as lesson) {
+      <div class="learner-match-overlay" (click)="learnerLessonDeletePrompt.set(null)">
+        <section class="learner-match-modal learner-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="learner-delete-title" (click)="$event.stopPropagation()">
+          <header class="learner-match-header"><h2 id="learner-delete-title">Remove this learned lesson?</h2><button type="button" class="icon-btn" (click)="learnerLessonDeletePrompt.set(null)" aria-label="Cancel removal">×</button></header>
+          <p class="learner-match-question">{{ lesson.question }}</p>
+          <p class="learner-match-help">This removes the question and answer from this learner’s saved lessons. Built-in starter lessons and Trainer-approved answers are not changed.</p>
+          <footer class="learner-match-footer"><button type="button" class="ghost" (click)="learnerLessonDeletePrompt.set(null)" [disabled]="deletingLearnerLessonId()">Cancel</button><button type="button" class="danger" (click)="confirmRemoveLearnerLesson()" [disabled]="deletingLearnerLessonId()">@if (deletingLearnerLessonId()) { Removing… } @else { Remove lesson }</button></footer>
+        </section>
+      </div>
+    }
+    @if (trainerAnswerDeletePrompt(); as item) {
+      <div class="learner-match-overlay" (click)="trainerAnswerDeletePrompt.set(null)">
+        <section class="learner-match-modal learner-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="trainer-answer-delete-title" (click)="$event.stopPropagation()">
+          <header class="learner-match-header"><h2 id="trainer-answer-delete-title">Remove this Trainer answer?</h2><button type="button" class="icon-btn" (click)="trainerAnswerDeletePrompt.set(null)" aria-label="Cancel removal">×</button></header>
+          <p class="learner-match-question">{{ item.question }}</p>
+          <p class="learner-match-help">This permanently removes the approved answer from Trainer and the Learner’s synced knowledge.</p>
+          <footer class="learner-match-footer"><button type="button" class="ghost" (click)="trainerAnswerDeletePrompt.set(null)" [disabled]="deletingTrainerAnswerId()">Cancel</button><button type="button" class="danger" (click)="confirmRemoveTrainerAnswer()" [disabled]="deletingTrainerAnswerId()">@if (deletingTrainerAnswerId()) { Removing… } @else { Remove answer }</button></footer>
+        </section>
+      </div>
+    }
+</div>
