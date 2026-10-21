@@ -4,6 +4,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../core/auth.service';
 import { ApiService } from '../core/api.service';
 import { UiService } from '../shared/ui.service';
+import { SYSTEM_PACKAGES } from './system-overview.data';
 
 interface Tenant {
   id: number;
@@ -17,7 +18,7 @@ interface Tenant {
   standalone: true,
   imports: [CommonModule, DatePipe, RouterLink, RouterLinkActive],
   templateUrl: './tenants.html',
-  styleUrl: './tenants.css',
+  styleUrls: ['./tenants.css', './tenants-overview.css'],
 })
 export class Tenants implements OnInit {
   private readonly auth = inject(AuthService);
@@ -26,6 +27,9 @@ export class Tenants implements OnInit {
   private readonly router = inject(Router);
 
   tenants: Tenant[] = [];
+
+  /** The packages the product is built with, and what each one is for. */
+  protected readonly packages = SYSTEM_PACKAGES;
 
   protected readonly currentUrl = signal('');
 

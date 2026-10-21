@@ -1,0 +1,123 @@
+<form class="lesson-form" (ngSubmit)="submitted.emit()">
+  <label class="lesson-own-words-field">
+    <span>Topics, separated by commas</span>
+    <input
+      [ngModel]="subject()"
+      (ngModelChange)="subject.set($event)"
+      name="lessonSubject"
+      maxlength="240"
+      placeholder="For example: Language, Poems"
+    />
+  </label>
+  <small class="lesson-topic-hint"
+    >A lesson can belong to more than one topic. Write “Language, Poems” and it is filed under
+    both.</small
+  >
+  <div class="grade-subjects">
+    @for (topic of subjects(); track topic) {
+      <button type="button" class="grade-subject-chip" (click)="subject.set(topic)">
+        {{ topic }}
+      </button>
+    }
+  </div>
+  <div class="lesson-entry-options" role="group" aria-label="How to enter the lesson">
+    <button
+      type="button"
+      [class.selected]="mode() === 'own_words'"
+      [attr.aria-pressed]="mode() === 'own_words'"
+      (click)="mode.set('own_words')"
+    >
+      Write one answer in my own words
+    </button>
+    <button
+      type="button"
+      [class.selected]="mode() === 'formatted'"
+      [attr.aria-pressed]="mode() === 'formatted'"
+      (click)="mode.set('formatted')"
+    >
+      Paste Q: / A: lesson pairs
+    </button>
+    <button
+      type="button"
+      [class.selected]="mode() === 'story'"
+      [attr.aria-pressed]="mode() === 'story'"
+      (click)="mode.set('story')"
+    >
+      Add a story, lesson or topic
+    </button>
+  </div>
+  @if (mode() === 'own_words') {
+    <label class="lesson-own-words-field">
+      <span>Question the learner should answer</span>
+      <input
+        [ngModel]="question()"
+        (ngModelChange)="question.set($event)"
+        name="lessonQuestion"
+        maxlength="1000"
+        placeholder="For example: What is a circle?"
+      />
+    </label>
+    <label class="lesson-own-words-field">
+      <span>Your answer in your own words</span>
+      <textarea
+        rows="4"
+        [ngModel]="answer()"
+        (ngModelChange)="answer.set($event)"
+        name="lessonAnswer"
+        maxlength="1900"
+        placeholder="Write the explanation you want the learner to remember."
+        aria-label="Answer in your own words"
+      ></textarea>
+    </label>
+  } @else if (mode() === 'formatted') {
+    <textarea
+      rows="5"
+      [ngModel]="pairs()"
+      (ngModelChange)="pairs.set($event)"
+      name="languageLesson"
+      maxlength="3000"
+      placeholder="Q: What is a circle?&#10;A: A round shape with no corners.&#10;&#10;Q: How many sides does a triangle have?&#10;A: Three sides."
+      aria-label="Question and answer lessons"
+    ></textarea>
+  } @else {
+    <label class="lesson-own-words-field">
+      <span>What it is called</span>
+      <input
+        [ngModel]="title()"
+        (ngModelChange)="title.set($event)"
+        name="lessonTitle"
+        maxlength="200"
+        placeholder="For example: The Cat on the Mat"
+      />
+    </label>
+    <label class="lesson-own-words-field">
+      <span>The story, the lesson or the topic</span>
+      <textarea
+        rows="6"
+        [ngModel]="passage()"
+        (ngModelChange)="passage.set($event)"
+        name="lessonPassage"
+        maxlength="3000"
+        placeholder="Write the passage as it should be remembered."
+        aria-label="The story, the lesson or the topic"
+      ></textarea>
+    </label>
+    <small class="lesson-topic-hint"
+      >A passage is taught as it is written, under the name you give it. The learner answers for it
+      by that name or by its topic.</small
+    >
+  }
+  <div class="language-form-footer">
+    <small
+      >Lessons stay in this tenant’s local learner file and count toward this grade. Duplicates are
+      skipped automatically.</small
+    >
+    <button type="submit" class="primary" [disabled]="saving() || !canSubmit()">
+      @if (saving()) {
+        Learning…
+      } @else {
+        Add lesson
+      }
+    </button>
+  </div>
+</form>

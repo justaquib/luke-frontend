@@ -1,0 +1,41 @@
+<h3>Existing intent groups</h3>
+<p class="hint">
+  Groups of FAQs that already share the same answer. Each group is one intent that the assistant can
+  answer in many ways.
+</p>
+@if (store.intentGroups().length === 0) {
+  <p class="empty">No merged intents yet. Use the search above to start grouping FAQs.</p>
+} @else {
+  <ul class="list">
+    @for (group of store.intentGroups(); track group.answerKey) {
+      <li class="card intent-group-card">
+        <header class="intent-group-header">
+          <div>
+            <strong class="q">{{ group.canonical.question }}</strong>
+            <span class="status-tag {{ group.canonical.status }}">{{
+              group.canonical.status
+            }}</span>
+            <span class="meta">
+              canonical #{{ group.canonical.id }} · {{ group.aliases.length + 1 }} variants
+            </span>
+          </div>
+          <div class="row-actions">
+            <button type="button" class="ghost small" (click)="refine(group.canonical.id)">
+              Refine
+            </button>
+          </div>
+        </header>
+        <p class="a">{{ group.canonical.answer }}</p>
+        <ul class="alias-list">
+          @for (alias of group.aliases; track alias.id) {
+            <li>
+              <span class="alias-q">{{ alias.question }}</span>
+              <span class="status-tag small {{ alias.status }}">{{ alias.status }}</span>
+              <span class="meta">#{{ alias.id }}</span>
+            </li>
+          }
+        </ul>
+      </li>
+    }
+  </ul>
+}

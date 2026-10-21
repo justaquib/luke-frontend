@@ -1,0 +1,82 @@
+<div class="toolbar">
+  <label class="upload-label toolbar-upload">
+    <input
+      type="file"
+      accept=".csv,.xlsx,.xls,.docx,.doc,.pdf,.txt"
+      (change)="actions.uploadDocument($event)"
+      [disabled]="store.uploading()"
+    />
+    <span class="upload-btn">
+      @if (store.uploading()) {
+        Uploading…
+      } @else {
+        Upload file
+      }
+    </span>
+  </label>
+  <span class="meta">csv, xlsx, docx, doc, pdf, txt</span>
+</div>
+
+@if (store.documents().length === 0) {
+  <p class="empty">No documents uploaded yet. Upload a file to let the assistant answer from it.</p>
+} @else {
+  <div class="documents-grid">
+    @for (document of store.documents(); track document.source) {
+      <div class="doc-card">
+        <div class="doc-icon">
+          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M14 2v6h6M16 13H8M16 17H8M10 9H8"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+        <div class="doc-body">
+          <div class="doc-name" title="{{ document.source }}">{{ document.source }}</div>
+          <div class="doc-meta">{{ document.chunks }} chunks</div>
+        </div>
+        <div class="doc-actions">
+          <button
+            type="button"
+            class="ghost small"
+            (click)="actions.viewDocument(document.source)"
+            [disabled]="store.viewingSource() === document.source"
+          >
+            View
+          </button>
+          <button
+            type="button"
+            class="ghost small"
+            (click)="actions.downloadDocument(document.source)"
+          >
+            Download
+          </button>
+          <button
+            type="button"
+            class="danger small"
+            (click)="actions.deleteDocument(document.source)"
+            [disabled]="store.deletingSource() === document.source"
+          >
+            @if (store.deletingSource() === document.source) {
+              Removing…
+            } @else {
+              Remove
+            }
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+}

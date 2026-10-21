@@ -12,21 +12,19 @@ describe('Trainer', () => {
     }).compileComponents();
   });
 
-  it('renders the intent explorer for the intents tab', async () => {
+  it('renders the intent merge view for the merge tab', async () => {
     const fixture = TestBed.createComponent(Trainer);
     fixture.detectChanges();
     await fixture.whenStable();
 
-    fixture.componentInstance.setTab('intents');
+    fixture.componentInstance.setTab('merge');
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.intent-explorer')).toBeTruthy();
-    expect(compiled.querySelector('.intent-search input')).toBeTruthy();
-    expect(compiled.querySelector('.intent-map')).toBeTruthy();
-    expect(compiled.querySelector('.intent-answer-card')).toBeTruthy();
-    expect(compiled.querySelector('.intent-map-heading h2')?.textContent?.trim()).toBe('Intent map');
+    expect(compiled.querySelector('.merge-search-card')).toBeTruthy();
+    expect(compiled.querySelector('.merge-search-card input.search')).toBeTruthy();
+    expect(compiled.querySelector('.merge-search-card h3')?.textContent?.trim()).toBe('Find related questions to merge');
   });
 });

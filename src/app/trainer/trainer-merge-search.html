@@ -1,0 +1,109 @@
+<div class="card merge-search-card">
+  <h3>Find related questions to merge</h3>
+  <p class="hint">
+    Type a question. The assistant will scan trained FAQs and the pending inbox and surface anything
+    close enough to be the same intent.
+  </p>
+  <div class="search-row">
+    <input
+      type="search"
+      class="search"
+      placeholder="e.g. how many vacation days do we get?"
+      [value]="store.mergeQuery()"
+      (input)="merge.updateMergeQuery($any($event.target).value)"
+      (keydown.enter)="merge.runIntentSuggestions()"
+      aria-label="Search for merge candidates"
+    />
+    <button
+      type="button"
+      class="primary small"
+      [disabled]="store.mergeLoading() || !store.mergeQuery().trim()"
+      (click)="merge.runIntentSuggestions()"
+    >
+      @if (store.mergeLoading()) {
+        Searching…
+      } @else {
+        Find matches
+      }
+    </button>
+    @if (store.mergeSuggestions()) {
+      <button type="button" class="ghost small" (click)="merge.clearMergeSuggestions()">
+        Clear
+      </button>
+    }
+  </div>
+
+  @if (store.mergeSuggestions(); as suggestions) {
+    <div class="merge-results">
+      <section>
+        <h4>
+          Trained matches
+          <span class="meta">{{ suggestions.faqs.length }}</span>
+        </h4>
+        @if (suggestions.faqs.length === 0) {
+          <p class="empty">No trained FAQ is close to this question yet.</p>
+        } @else {
+          <ul class="list">
+            @for (faq of suggestions.faqs; track faq.faq_id) {
+              <li class="card match-card">
+                <div class="row">
+                  <div class="row-text">
+                    <strong class="q">{{ faq.question }}</strong>
+                    <span class="status-tag {{ faq.status }}">{{ faq.status }}</span>
+                    <span class="meta">dist {{ faq.distance.toFixed(2) }}</span>
+                  </div>
+                  <div class="row-actions">
+                    <button
+                      type="button"
+                      class="primary small"
+                      (click)="openFaq(faq)"
+                      [disabled]="!store.faqById(faq.faq_id)"
+                    >
+                      Merge into this →
+                    </button>
+                  </div>
+                </div>
+                <p class="a">{{ faq.answer }}</p>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <section>
+        <h4>
+          Pending matches
+          <span class="meta">{{ suggestions.pending.length }}</span>
+        </h4>
+        @if (suggestions.pending.length === 0) {
+          <p class="empty">No pending inbox question is close to this one.</p>
+        } @else {
+          <ul class="list">
+            @for (pending of suggestions.pending; track pending.pending_id) {
+              <li class="card match-card">
+                <div class="row">
+                  <div class="row-text">
+                    <strong class="q">{{ pending.question }}</strong>
+                    <span class="meta">
+                      asked {{ pending.occurrences }}× · dist {{ pending.distance.toFixed(2) }}
+                    </span>
+                  </div>
+                  <div class="row-actions">
+                    <button
+                      type="button"
+                      class="ghost small"
+                      (click)="openPending(pending)"
+                      [disabled]="!store.pendingById(pending.pending_id)"
+                    >
+                      Open in Inbox
+                    </button>
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    </div>
+  }
+</div>

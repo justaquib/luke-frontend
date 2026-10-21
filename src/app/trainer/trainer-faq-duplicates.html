@@ -1,0 +1,33 @@
+<details class="duplicates">
+  <summary>
+    {{ store.duplicateGroups().length }} duplicate group(s) —
+    {{ store.duplicateGroups().length + 1 }} total FAQs
+  </summary>
+  <ul class="list">
+    @for (group of store.duplicateGroups(); track group.key) {
+      <li class="card dup-card">
+        <div class="row">
+          <div>
+            <strong class="q">{{ group.items[0].question }}</strong>
+            <span class="meta">appears {{ group.items.length }}×</span>
+          </div>
+          <button type="button" class="danger small" (click)="actions.deleteFaqs(group.items)">
+            Delete all
+          </button>
+        </div>
+        <ul class="dup-list">
+          @for (faq of group.items; track faq.id) {
+            <li class="dup-row">
+              <span class="dup-id">#{{ faq.id }}</span>
+              <span class="status-tag small {{ faq.status }}">{{ faq.status }}</span>
+              <span class="dup-answer">{{ faq.answer }}</span>
+              <button type="button" class="danger small" (click)="actions.deleteFaq(faq)">
+                Delete
+              </button>
+            </li>
+          }
+        </ul>
+      </li>
+    }
+  </ul>
+</details>

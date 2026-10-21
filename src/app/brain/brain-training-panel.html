@@ -1,0 +1,60 @@
+<aside class="training-panel" aria-label="What the brain trains from">
+  <div class="training-panel-head">
+    <span class="metric-label">TRAINING SOURCES</span>
+    <button
+      type="button"
+      class="icon-btn"
+      (click)="closed.emit()"
+      aria-label="Close the training sources"
+    >
+      <span aria-hidden="true">×</span>
+    </button>
+  </div>
+  <p class="training-panel-note">
+    Everything the brain learns from, and what it does with it. The report is read from the same
+    material the training uses.
+  </p>
+  @if (loading()) {
+    <p class="training-status" role="status">Reading the material&hellip;</p>
+  }
+  @if (error(); as message) {
+    <p class="training-status" role="alert">{{ message }}</p>
+  }
+  @if (report(); as sources) {
+    <div class="training-totals">
+      <div>
+        <span>ITEMS</span><strong>{{ sources.totals.items }}</strong>
+      </div>
+      <div>
+        <span>WORDS</span><strong>{{ sources.totals.words }}</strong>
+      </div>
+      <div>
+        <span>REQUESTS</span><strong>{{ sources.totals.requests }}</strong>
+      </div>
+    </div>
+    <h3 class="training-heading">What it has trained from</h3>
+    <ul class="training-sources">
+      @for (source of sources.sources; track source.key) {
+        <li [class.empty-source]="source.items === 0">
+          <div class="training-source-head">
+            <strong>{{ source.label }}</strong>
+            <span>{{ source.items }} &middot; {{ source.words }} words</span>
+          </div>
+          <p>{{ source.detail }}</p>
+        </li>
+      }
+    </ul>
+    <h3 class="training-heading">How the training works</h3>
+    <ol class="training-steps">
+      @for (step of sources.steps; track step.title) {
+        <li>
+          <strong>{{ step.title }}</strong>
+          <span>{{ step.detail }}</span>
+        </li>
+      }
+    </ol>
+    <button type="button" class="training-refresh" (click)="load()" [disabled]="loading()">
+      {{ loading() ? 'Reading…' : 'Read it again' }}
+    </button>
+  }
+</aside>

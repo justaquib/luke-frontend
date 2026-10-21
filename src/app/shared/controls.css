@@ -1,0 +1,52 @@
+/* The buttons the dashboard views share. A view includes this file beside
+   its own styles, so a primary action looks the same everywhere it is used. */
+
+.primary {
+  background: #6366f1;
+  color: #fff;
+  border: 0;
+  padding: 0.45rem 0.9rem;
+  font-weight: 500;
+  font-size: 0.88rem;
+}
+
+.primary:hover:not(:disabled) {
+  background: #4f46e5;
+}
+
+.primary.small {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.78rem;
+}
+
+.primary.xsmall {
+  padding: 0.18rem 0.5rem;
+  font-size: 0.72rem;
+  border-radius: 6px;
+}
+
+.ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  padding: 0.4rem 0.8rem;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
+}
+
+.ghost.small {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.78rem;
+}
+
+.ghost.xsmall {
+  padding: 0.18rem 0.5rem;
+  font-size: 0.72rem;
+  border-radius: 6px;
+}

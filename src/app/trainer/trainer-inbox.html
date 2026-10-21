@@ -1,0 +1,91 @@
+<div class="toolbar">
+  <button
+    type="button"
+    class="dup-toggle"
+    [class.on]="store.includeResolved()"
+    (click)="actions.toggleIncludeResolved()"
+  >
+    @if (store.includeResolved()) {
+      ◉ Show answered
+    } @else {
+      ○ Show answered
+    }
+  </button>
+  <span class="meta">{{ store.pendingCount() }} pending · {{ store.inbox().length }} total</span>
+</div>
+
+@if (store.inbox().length === 0) {
+  <p class="empty">
+    No pending questions. Good job — the assistant has answers for everything asked so far.
+  </p>
+} @else {
+  <ul class="list">
+    @for (pending of store.inbox(); track pending.id) {
+      <li class="card" [class.resolved]="pending.resolved">
+        <div class="row">
+          <strong class="q">{{ pending.question }}</strong>
+          <span class="meta">
+            asked {{ pending.occurrences }}×
+            @if (pending.resolved) {
+              · <span class="status-tag small approved">answered</span>
+            }
+          </span>
+        </div>
+        @if (!pending.resolved) {
+          <textarea
+            rows="2"
+            placeholder="Type the correct answer…"
+            [value]="store.answers()[pending.id] || ''"
+            (input)="actions.setAnswer(pending.id, $any($event.target).value)"
+          ></textarea>
+          <div class="actions">
+            <button
+              type="button"
+              class="primary"
+              [disabled]="store.saving()"
+              (click)="actions.saveAnswer(pending)"
+            >
+              Save & train
+            </button>
+            <button type="button" class="ghost" (click)="actions.dismiss(pending)">Skip</button>
+            <button
+              type="button"
+              class="ghost"
+              (click)="actions.toggleMergeRow(pending)"
+              [disabled]="store.isMerging(pending)"
+            >
+              @if (store.mergeRowOpen(pending)) {
+                Cancel merge
+              } @else {
+                Merge duplicates
+              }
+            </button>
+            <button
+              type="button"
+              class="danger"
+              (click)="actions.deletePending(pending)"
+              title="Remove this question from the inbox"
+            >
+              Delete
+            </button>
+          </div>
+
+          @if (store.mergeRowOpen(pending)) {
+            <app-trainer-inbox-merge [pending]="pending" />
+          }
+        } @else {
+          <div class="actions">
+            <button
+              type="button"
+              class="danger"
+              (click)="actions.deletePending(pending)"
+              title="Remove this answered question from the inbox"
+            >
+              Delete
+            </button>
+          </div>
+        }
+      </li>
+    }
+  </ul>
+}

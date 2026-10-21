@@ -1,0 +1,30 @@
+<aside class="vocab-panel" aria-label="Vocabulary">
+  <div class="vocab-panel-head">
+    <span class="metric-label">VOCABULARY</span>
+    <button
+      type="button"
+      class="icon-btn"
+      (click)="closed.emit()"
+      aria-label="Close the vocabulary"
+    >
+      <span aria-hidden="true">×</span>
+    </button>
+  </div>
+  <p class="vocab-panel-note">
+    Every word the answering model can write with. The list loads as you scroll.
+  </p>
+  <div class="vocab-list" (scroll)="onScroll($event)">
+    @for (word of words(); track $index) {
+      <span class="vocab-word">{{ word }}</span>
+    }
+    @if (loading()) {
+      <span class="vocab-status">Loading more words&hellip;</span>
+    }
+    @if (!loading() && words().length === 0) {
+      <span class="vocab-status">No words yet.</span>
+    }
+    @if (finished() && words().length > 0) {
+      <span class="vocab-status">All {{ total() }} words</span>
+    }
+  </div>
+</aside>

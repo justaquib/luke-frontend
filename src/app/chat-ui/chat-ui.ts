@@ -138,7 +138,6 @@ async requestLocation() {
   protected readonly sidebarOpen = signal(true);
 
   protected readonly trainMode = signal(false);
-  protected readonly showSettings = signal(false);
 
   protected readonly isSystemAdmin = computed(() => {
     const user = this.auth.user();
@@ -449,11 +448,6 @@ async requestLocation() {
 
   toggleTrain() {
     this.trainMode.update((v) => !v);
-    if (!this.trainMode()) this.showSettings.set(false);
-  }
-
-  toggleSettings() {
-    this.showSettings.update((v) => !v);
   }
 
   onInputChange(value: string) {

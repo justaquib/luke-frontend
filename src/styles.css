@@ -83,3 +83,36 @@ body {
 .icon-xxl {
   font-size: 48px;
 }
+
+/* Shared page frame. The dashboard views use the same label, the same small
+   icon button and the same dark surfaces, so they read as one product. */
+.eyebrow {
+  margin: 0 0 14px;
+  color: #a5b4fc;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.icon-btn {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  border-color: rgba(165, 180, 252, 0.5);
+  color: #f8fafc;
+}
+
+.icon-btn:focus-visible {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 2px;
+}

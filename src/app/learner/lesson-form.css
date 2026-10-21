@@ -1,0 +1,110 @@
+.lesson-form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.lesson-form textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line, rgba(148, 163, 184, 0.25));
+  border-radius: 9px;
+  background: rgba(15, 23, 42, 0.55);
+  color: var(--text, #e2e8f0);
+  font: inherit;
+  resize: vertical;
+}
+
+.lesson-entry-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.lesson-entry-options button {
+  min-height: 38px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--line, rgba(148, 163, 184, 0.25));
+  border-radius: 8px;
+  color: var(--muted, #94a3b8);
+  background: rgba(15, 23, 42, 0.35);
+  cursor: pointer;
+}
+
+.lesson-entry-options button.selected {
+  border-color: rgba(129, 140, 248, 0.65);
+  color: #c7d2fe;
+  background: rgba(99, 102, 241, 0.14);
+}
+
+.lesson-own-words-field {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--text, #e2e8f0);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.lesson-own-words-field input,
+.lesson-own-words-field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--line, rgba(148, 163, 184, 0.25));
+  border-radius: 9px;
+  background: rgba(15, 23, 42, 0.55);
+  color: var(--text, #e2e8f0);
+  font: inherit;
+  font-weight: 400;
+}
+
+.lesson-own-words-field textarea {
+  resize: vertical;
+}
+
+.lesson-topic-hint {
+  margin: -0.25rem 0 0.1rem;
+  color: #94a3b8;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.grade-subjects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.grade-subject-chip {
+  padding: 0.35rem 0.6rem;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 999px;
+  color: #bae6fd;
+  background: rgba(14, 116, 144, 0.1);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.grade-subject-chip:hover {
+  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(14, 116, 144, 0.18);
+}
+
+.language-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.language-form-footer small {
+  color: var(--muted, #94a3b8);
+  font-size: 0.75rem;
+}
+
+@media (max-width: 700px) {
+  .language-form-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

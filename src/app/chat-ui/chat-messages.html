@@ -1,0 +1,34 @@
+<div class="messages" #scrollAnchor>
+  @if (session.active().messages.length === 0) {
+    <div class="empty-state">
+      <h2>Start a conversation</h2>
+      <p>Ask {{ prefs.botName() }} anything — type a message below and press Enter.</p>
+    </div>
+  } @else {
+    @for (message of session.active().messages; track message.id) {
+      <app-chat-message [message]="message" />
+    }
+  }
+
+  @if (service.isTyping()) {
+    <div class="message-row assistant">
+      <div class="bubble typing">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+    </div>
+  }
+</div>
+
+@if (showJumpToBottom()) {
+  <button
+    type="button"
+    class="jump-to-bottom"
+    (click)="jumpToBottom()"
+    aria-label="Scroll to bottom"
+    title="Scroll to latest message"
+  >
+    ↓ Jump to latest
+  </button>
+}

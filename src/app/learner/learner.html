@@ -1,6 +1,23 @@
-<div class="learner-page">
-  <main class="learner-page-content">
-    <section class="language-learning-page">
+<app-shell [open]="sidebarOpen()" [class.sidebar-collapsed]="!sidebarOpen()" (toggled)="toggleSidebar()">
+  <main class="learner-main">
+    <app-page-header
+      eyebrow="LANGUAGE LEARNER"
+      title="Language Learner"
+      description="Teach the learner by grade, ask it school style questions, and watch what it learns."
+    >
+      <div class="learner-readout" aria-live="polite">
+        <span class="learner-readout-caption">CURRENT GRADE</span>
+        @if (languageModelState(); as model) {
+          <strong>{{ model.stage }}</strong>
+          <span>{{ languageLessonTotal() }} lessons in this grade · {{ model.vocabulary_size }} words known</span>
+        } @else {
+          <strong>Reading the learner…</strong>
+        }
+      </div>
+    </app-page-header>
+
+    <div class="learner-page">
+      <section class="language-learning-page">
             @if (languageModelError()) {
               <p class="intent-error" role="alert">{{ languageModelError() }}</p>
             }
@@ -19,9 +36,14 @@
               <section class="language-learning-card learner-search-card" aria-labelledby="learner-search-title">
                 <div class="language-section-heading">
                   <div><h3 id="learner-search-title">Search questions &amp; answers</h3><p>Find any taught question or approved answer across every grade, then edit the wording or remove it.</p></div>
-                  @if (learnerSearch().trim()) {
-                    <span class="grade-qa-total">{{ learnerSearchMatchCount().total }} match{{ learnerSearchMatchCount().total === 1 ? '' : 'es' }} · {{ learnerSearchMatchCount().editable }} editable</span>
-                  }
+                  <div class="learner-badges">
+                    @if (learnerSearch().trim()) {
+                      <span class="grade-qa-total">{{ learnerSearchMatchCount().total }} match{{ learnerSearchMatchCount().total === 1 ? '' : 'es' }} · {{ learnerSearchMatchCount().editable }} editable</span>
+                    }
+                    <button type="button" class="grade-qa-total grade-qa-button" [class.has-duplicates]="duplicateCount() > 0" (click)="openDuplicatePanel()" [attr.aria-label]="'Review the ' + duplicateCount() + ' duplicate questions and answers'">
+                      {{ totalQuestions() }} question{{ totalQuestions() === 1 ? '' : 's' }} · {{ duplicateCount() }} duplicate{{ duplicateCount() === 1 ? '' : 's' }}
+                    </button>
+                  </div>
                 </div>
                 <div class="language-inline-form learner-search-form">
                   <input [ngModel]="learnerSearch()" (ngModelChange)="setLearnerSearch($event)" name="learnerSearch" autocomplete="off" maxlength="200" placeholder="Search by question or answer, for example “circle”" aria-label="Search questions and answers" />
@@ -34,6 +56,9 @@
                         <li class="learner-search-row" [class.read-only]="!result.editable">
                           <div class="learner-search-content">
                             <span class="lesson-kind">{{ result.badge }}@if (result.grade) { · {{ languageStageTitle(result.grade) }} }</span>
+                            @if (isDuplicate(result.lessonId)) {
+                              <span class="duplicate-badge" title="This lesson repeats another one">D</span>
+                            }
                             <span class="confidence-badge" [class.high]="result.confidence >= 0.75" [class.low]="result.confidence < 0.45" [title]="'How sure the assistant is about this answer'">Confidence {{ result.confidence * 100 | number: '1.0-0' }}%</span>
                             @if (searchEditKey() === result.key) {
                               <label [for]="'search-question-' + result.key">Question</label>
@@ -158,86 +183,21 @@
 
               <section class="language-learning-card">
                 <h3>Add a lesson · {{ selectedLanguageStage()?.title ?? model.stage }}</h3>
-                <p>{{ selectedLanguageStage()?.description }} Add question and answer lessons to teach facts and concepts. Suggested subjects:</p>
-                <div class="grade-subjects">@for (subject of languageLessonSubjects(); track subject) { <button type="button" class="grade-subject-chip" (click)="lessonSubjectDraft.set(subject)">{{ subject }}</button> }</div>
-                <form (ngSubmit)="teachLanguageModel()">
-                  <label class="lesson-own-words-field"><span>Topics, separated by commas</span><input [ngModel]="lessonSubjectDraft()" (ngModelChange)="lessonSubjectDraft.set($event)" name="lessonSubject" maxlength="240" placeholder="For example: Language, Poems" /></label>
-                <small class="lesson-topic-hint">A lesson can belong to more than one topic. Write “Language, Poems” and it is filed under both.</small>
-                  <div class="lesson-entry-options" role="group" aria-label="How to enter the lesson">
-                    <button type="button" [class.selected]="lessonEntryMode() === 'own_words'" [attr.aria-pressed]="lessonEntryMode() === 'own_words'" (click)="lessonEntryMode.set('own_words')">Write one answer in my own words</button>
-                    <button type="button" [class.selected]="lessonEntryMode() === 'formatted'" [attr.aria-pressed]="lessonEntryMode() === 'formatted'" (click)="lessonEntryMode.set('formatted')">Paste Q: / A: lesson pairs</button>
-                  </div>
-                  @if (lessonEntryMode() === 'own_words') {
-                    <label class="lesson-own-words-field"><span>Question the learner should answer</span><input [ngModel]="lessonQuestionDraft()" (ngModelChange)="setLessonQuestionDraft($event)" name="lessonQuestion" maxlength="1000" placeholder="For example: What is a circle?" /></label>
-                    <label class="lesson-own-words-field"><span>Your answer in your own words</span><textarea rows="4" [ngModel]="lessonAnswerDraft()" (ngModelChange)="setLessonAnswerDraft($event)" name="lessonAnswer" maxlength="1900" placeholder="Write the explanation you want the learner to remember." aria-label="Answer in your own words"></textarea></label>
-                  } @else {
-                    <textarea rows="5" [ngModel]="languageLessonDraft()" (ngModelChange)="setLanguageLessonDraft($event)" name="languageLesson" maxlength="3000" placeholder="Q: What is a circle?&#10;A: A round shape with no corners.&#10;&#10;Q: How many sides does a triangle have?&#10;A: Three sides." aria-label="Question and answer lessons"></textarea>
-                  }
-                  @if (languageLessonWarning(); as warning) {
-                    <div class="lesson-duplicate-warning" role="alert">
-                      <div class="lesson-duplicate-heading">
-                        <strong>This lesson looks like something the learner already knows</strong>
-                        @if (warning.exact.length) {
-                          <p>{{ warning.exact.length }} question and answer pair{{ warning.exact.length === 1 ? '' : 's' }} {{ warning.exact.length === 1 ? 'is' : 'are' }} already taught, so {{ warning.exact.length === 1 ? 'it will be' : 'they will be' }} skipped instead of added twice.</p>
-                        }
-                        @if (warning.same_question.length) {
-                          <p>These questions are already taught with a different answer. Update the existing answer instead of adding another one.</p>
-                        }
-                        @if (warning.similar.length) {
-                          <p>Did you mean one of these?</p>
-                        }
-                        @if (warning.faqs.length) {
-                          <p>Trainer already answers this question.</p>
-                        }
-                        @if (warning.intents.length) {
-                          <p>A saved intent already covers this question.</p>
-                        }
-                      </div>
-
-                      @if (warning.exact.length) {
-                        <ul class="lesson-duplicate-list">
-                          @for (match of warning.exact; track match.question) {
-                            <li class="duplicate-exact"><span class="lesson-kind">Already taught</span><strong>{{ match.question }}</strong><span>{{ match.answer }}</span></li>
-                          }
-                        </ul>
-                      }
-                      @if (warning.same_question.length) {
-                        <ul class="lesson-duplicate-list">
-                          @for (match of warning.same_question; track match.question) {
-                            <li class="duplicate-same-question"><span class="lesson-kind">{{ match.kind === 'starter' ? 'Starter book' : 'Your lesson' }}</span><strong>{{ match.question }}</strong><span>{{ match.answer }}</span></li>
-                          }
-                        </ul>
-                      }
-                      @if (warning.similar.length) {
-                        <ul class="lesson-duplicate-list">
-                          @for (match of warning.similar; track match.question) {
-                            <li class="duplicate-similar"><span class="lesson-kind">{{ match.kind === 'starter' ? 'Starter book' : 'Your lesson' }} · {{ match.similarity }} match</span><strong>{{ match.question }}</strong><span>{{ match.answer }}</span></li>
-                          }
-                        </ul>
-                      }
-                      @if (warning.faqs.length) {
-                        <ul class="lesson-duplicate-list">
-                          @for (match of warning.faqs; track match.question) {
-                            <li class="duplicate-intent"><span class="lesson-kind">Trainer answer</span><strong>{{ match.question }}</strong><span>{{ match.answer }}</span></li>
-                          }
-                        </ul>
-                      }
-                      @if (warning.intents.length) {
-                        <ul class="lesson-duplicate-list">
-                          @for (match of warning.intents; track match.name) {
-                            <li class="duplicate-intent"><span class="lesson-kind">Saved intent</span><strong>{{ match.name }}</strong><span>{{ match.response_template }}</span></li>
-                          }
-                        </ul>
-                      }
-
-                      <div class="lesson-duplicate-actions">
-                        <button type="button" class="ghost small" (click)="cancelLanguageLessonWarning()">Edit my lesson</button>
-                        <button type="button" class="primary small" (click)="confirmLanguageLesson()" [disabled]="languageLessonSaving()">@if (languageLessonSaving()) { Saving… } @else { Add it anyway }</button>
-                      </div>
-                    </div>
-                  }
-                  <div class="language-form-footer"><small>Lessons stay in this tenant’s local learner file and count toward this grade. Duplicates are skipped automatically.</small><button type="submit" class="primary" [disabled]="languageLessonSaving() || languageLessonChecking() || !languageLessonCanSubmit()">@if (languageLessonSaving()) { Learning… } @else if (languageLessonChecking()) { Checking… } @else { Add lesson }</button></div>
-                </form>
+                <p>{{ selectedLanguageStage()?.description }} Add question and answer lessons, or a story, a lesson or a topic, to teach facts and concepts. Suggested subjects:</p>
+                <app-lesson-form
+                  [(mode)]="lessonEntryMode"
+                  [(subject)]="lessonSubjectDraft"
+                  [(question)]="lessonQuestionDraft"
+                  [(answer)]="lessonAnswerDraft"
+                  [(pairs)]="languageLessonDraft"
+                  [(title)]="lessonTitleDraft"
+                  [(passage)]="lessonPassageDraft"
+                  [subjects]="languageLessonSubjects()"
+                  [saving]="languageLessonSaving()"
+                  [stageTitle]="selectedLanguageStage()?.title ?? model.stage"
+                  [description]="selectedLanguageStage()?.description ?? ''"
+                  (submitted)="teachLanguageModel()"
+                />
               </section>
 
               <section class="language-learning-card dictionary-learning-card">
@@ -276,6 +236,9 @@
                           <article class="lesson-question-answer">
                             <div class="lesson-question-label">
                               <span class="lesson-kind">{{ lesson.kind === 'starter' ? 'Starter' : 'Your lesson' }}</span>
+                              @if (isDuplicate(lesson.id)) {
+                                <span class="duplicate-badge" title="This lesson repeats another one">D</span>
+                              }
                               @if (lesson.kind === 'trainer' && lesson.id && editingLearnerLessonId() !== lesson.id) {
                                 <div class="lesson-icon-actions">
                                   <button type="button" class="lesson-icon-btn" (click)="beginEditLearnerLesson(lesson)" [attr.aria-label]="'Edit answer for ' + lesson.question" title="Edit answer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z" /></svg></button>
@@ -370,6 +333,9 @@
                         <li class="learned-answer-row">
                           <div class="learned-answer-content">
                             <span class="lesson-kind">Taught by you · {{ languageStageTitle(lesson.grade_id ?? 'nursery') }}@if (lesson.subject) { · {{ lesson.subject }} }</span>
+                            @if (isDuplicate(lesson.id)) {
+                              <span class="duplicate-badge" title="This lesson repeats another one">D</span>
+                            }
                             <strong>{{ lesson.question }}</strong>
                             <p>{{ lesson.answer }}</p>
                           </div>
@@ -417,7 +383,80 @@
               }
             }
     </section>
-  </main>
+    </div>
+
+    @if (duplicatePanelOpen()) {
+      <div class="duplicate-panel-backdrop" (click)="closeDuplicatePanel()"></div>
+      <aside class="duplicate-panel" role="dialog" aria-modal="true" aria-labelledby="duplicate-panel-title">
+        <header class="duplicate-panel-header">
+          <div>
+            <span class="language-eyebrow">DUPLICATES</span>
+            <h2 id="duplicate-panel-title">Questions and answers that repeat</h2>
+          </div>
+          <button type="button" class="icon-btn" (click)="closeDuplicatePanel()" aria-label="Close the duplicates">×</button>
+        </header>
+        <p class="duplicate-panel-help">
+          {{ duplicateGroups().length }} group{{ duplicateGroups().length === 1 ? '' : 's' }} ·
+          {{ duplicateCount() }} lesson{{ duplicateCount() === 1 ? '' : 's' }} repeat another one.
+          Accept the one to keep, remove the others, or improve the question, the answer or the topic.
+        </p>
+
+        @if (duplicateGroups().length) {
+          <div class="duplicate-panel-groups">
+            @for (group of duplicateGroups(); track group.kind + $index) {
+              <section class="duplicate-group" [attr.aria-label]="group.label">
+                <header>
+                  <div class="duplicate-group-heading">
+                    <strong>{{ group.label }}</strong>
+                    <span>{{ group.detail }}</span>
+                  </div>
+                  <button type="button" class="ghost small" (click)="acceptBothDuplicates(group)" [disabled]="busyDuplicateId() === group.key">
+                    @if (busyDuplicateId() === group.key) { Accepting… } @else { Accept both }
+                  </button>
+                </header>
+                @for (card of group.cards; track card.id) {
+                  <article class="duplicate-card" [class.is-duplicate]="isDuplicate(card.id)">
+                    <div class="duplicate-card-head">
+                      @if (isDuplicate(card.id)) {
+                        <span class="duplicate-badge" title="This lesson repeats another one">D</span>
+                      } @else {
+                        <span class="duplicate-keep-badge">Kept</span>
+                      }
+                      <span class="lesson-kind">{{ languageStageTitle(card.grade_id) }}@if (card.subject) { · {{ card.subject }} }</span>
+                    </div>
+                    <strong class="duplicate-question">{{ card.question }}</strong>
+                    <p class="duplicate-answer">{{ card.answer }}</p>
+
+                    @if (duplicateEditId() === card.id) {
+                      <label [for]="'duplicate-question-' + card.id">Question</label>
+                      <textarea [id]="'duplicate-question-' + card.id" rows="2" [ngModel]="duplicateEditQuestion()" (ngModelChange)="duplicateEditQuestion.set($event)" [name]="'duplicate-question-' + card.id" maxlength="1000" aria-label="Question"></textarea>
+                      <label [for]="'duplicate-answer-' + card.id">Answer</label>
+                      <textarea [id]="'duplicate-answer-' + card.id" rows="3" [ngModel]="duplicateEditAnswer()" (ngModelChange)="duplicateEditAnswer.set($event)" [name]="'duplicate-answer-' + card.id" maxlength="1900" aria-label="Answer"></textarea>
+                      <label [for]="'duplicate-subject-' + card.id">Topic</label>
+                      <input [id]="'duplicate-subject-' + card.id" [ngModel]="duplicateEditSubject()" (ngModelChange)="duplicateEditSubject.set($event)" [name]="'duplicate-subject-' + card.id" maxlength="240" placeholder="For example: Language, Poems" />
+                      <div class="duplicate-card-actions">
+                        <button type="button" class="primary small" (click)="saveDuplicateEdit()" [disabled]="busyDuplicateId() === card.id || !duplicateEditQuestion().trim() || !duplicateEditAnswer().trim()">@if (busyDuplicateId() === card.id) { Saving… } @else { Save the improvement }</button>
+                        <button type="button" class="ghost small" (click)="cancelDuplicateEdit()">Cancel</button>
+                      </div>
+                    } @else {
+                      <div class="duplicate-card-actions">
+                        <button type="button" class="primary small" (click)="acceptDuplicate(group, card)" [disabled]="busyDuplicateId() === card.id">Accept this one</button>
+                        <button type="button" class="ghost small" (click)="startDuplicateEdit(card)" [disabled]="busyDuplicateId() === card.id">Improve</button>
+                        <button type="button" class="ghost small" (click)="startDuplicateEdit(card)" [disabled]="busyDuplicateId() === card.id">Change the topic</button>
+                        <button type="button" class="danger small" (click)="removeDuplicate(card)" [disabled]="busyDuplicateId() === card.id">Remove</button>
+                      </div>
+                    }
+                  </article>
+                }
+              </section>
+            }
+          </div>
+        } @else {
+          <p class="empty">No lesson repeats another one. The learner is tidy.</p>
+        }
+      </aside>
+    }
+
     @if (learnerMatchPrompt(); as prompt) {
       <div class="learner-match-overlay" (click)="askLearnerWithoutTrainer()">
         <section class="learner-match-modal" role="dialog" aria-modal="true" aria-labelledby="learner-match-title" (click)="$event.stopPropagation()">
@@ -460,4 +499,5 @@
         </section>
       </div>
     }
-</div>
+  </main>
+</app-shell>

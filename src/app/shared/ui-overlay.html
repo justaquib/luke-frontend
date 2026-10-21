@@ -1,0 +1,43 @@
+@if (ui.confirm(); as c) {
+  <div
+    class="ui-backdrop"
+    role="presentation"
+    tabindex="0"
+    (click)="onBackdrop($event)"
+    (keydown.escape)="onBackdrop()"
+  >
+    <div class="ui-modal" role="dialog" aria-modal="true" [attr.aria-labelledby]="'ui-mt-' + c.id">
+      <h2 [id]="'ui-mt-' + c.id" class="ui-modal-title">{{ c.title }}</h2>
+      <p class="ui-modal-message">{{ c.message }}</p>
+      <div class="ui-modal-actions">
+        <button type="button" class="ui-btn ghost" (click)="cancel()">
+          {{ c.cancelLabel }}
+        </button>
+        <button
+          #confirmButton
+          type="button"
+          [class]="c.danger ? 'ui-btn danger' : 'ui-btn primary'"
+          (click)="ok()"
+        >
+          {{ c.confirmLabel }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<div class="ui-toasts" aria-live="polite" aria-atomic="true">
+  @for (t of ui.toasts(); track t.id) {
+    <div class="ui-toast {{ t.kind }}">
+      <span class="ui-toast-message">{{ t.message }}</span>
+      <button
+        type="button"
+        class="ui-toast-close"
+        (click)="ui.dismissToast(t.id)"
+        aria-label="Dismiss"
+      >
+        ×
+      </button>
+    </div>
+  }
+</div>

@@ -1,8 +1,12 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ApiService, LanguageDictionaryEntry, LanguageLessonDuplicateReport, LanguageModelState, LanguagePreviewResponse, LanguageTest, LanguageTestFinishResult, QueryReasoning } from '../core/api.service';
+import { ApiService, DuplicateGroup, DuplicateLessonCard, DuplicateLessons, LanguageDictionaryEntry, LanguageModelState, LanguagePreviewResponse, LanguageTest, LanguageTestFinishResult, QueryReasoning } from '../core/api.service';
+import { LanguageModelApiService, LessonKind } from '../core/api/language-model-api.service';
+import { LessonEntryMode, LessonForm } from './lesson-form';
+import { AppPageHeader } from '../shared/app-page-header';
+import { AppShell } from '../shared/app-shell';
 import { UiService } from '../shared/ui.service';
 
 function canonicalLessonSubject(value: string): string {
@@ -71,15 +75,18 @@ interface LearnerSearchResult {
 @Component({
   selector: 'app-learner',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AppShell, AppPageHeader, LessonForm],
   templateUrl: './learner.html',
-  styleUrl: './learner.css',
+  styleUrls: ['./learner.css', '../shared/controls.css'],
 })
 export class Learner implements OnInit {
   private readonly api = inject(ApiService);
+  private readonly languageApi = inject(LanguageModelApiService);
   private readonly ui = inject(UiService);
   private readonly router = inject(Router);
+  private readonly platformId = inject(PLATFORM_ID);
 
+  protected readonly sidebarOpen = signal(true);
   protected readonly languageModelState = signal<LanguageModelState | null>(null);
   protected readonly learnerTab = signal<'overview' | 'lessons' | 'tests' | 'knowledge' | 'expressions'>('overview');
   protected readonly languageLessonDraft = signal('');
@@ -96,10 +103,12 @@ export class Learner implements OnInit {
   protected readonly savingTrainerAnswerId = signal<number | null>(null);
   protected readonly trainerAnswerDeletePrompt = signal<{ id: number; question: string } | null>(null);
   protected readonly deletingTrainerAnswerId = signal<number | null>(null);
-  protected readonly lessonEntryMode = signal<'own_words' | 'formatted'>('own_words');
+  protected readonly lessonEntryMode = signal<LessonEntryMode>('own_words');
   protected readonly lessonSubjectDraft = signal('Language');
   protected readonly lessonQuestionDraft = signal('');
   protected readonly lessonAnswerDraft = signal('');
+  protected readonly lessonTitleDraft = signal('');
+  protected readonly lessonPassageDraft = signal('');
   protected readonly languageTeachingStage = signal<string>('nursery');
   protected readonly languageTest = signal<LanguageTest | null>(null);
   protected readonly languageTestQuestion = signal('');
@@ -116,8 +125,24 @@ export class Learner implements OnInit {
   protected readonly dictionaryWordSaving = signal(false);
   protected readonly dictionaryDefinitionIndex = signal(0);
   protected readonly languageLessonSaving = signal(false);
-  protected readonly languageLessonChecking = signal(false);
-  protected readonly languageLessonWarning = signal<LanguageLessonDuplicateReport | null>(null);
+  protected readonly duplicateGroups = signal<DuplicateGroup[]>([]);
+  protected readonly duplicateCount = signal(0);
+  protected readonly totalQuestions = signal(0);
+  protected readonly duplicatePanelOpen = signal(false);
+  protected readonly busyDuplicateId = signal<string | null>(null);
+  protected readonly duplicateEditId = signal<string | null>(null);
+  protected readonly duplicateEditQuestion = signal('');
+  protected readonly duplicateEditAnswer = signal('');
+  protected readonly duplicateEditSubject = signal('');
+  protected readonly duplicateCardIds = computed(() => {
+    const ids = new Set<string>();
+    for (const group of this.duplicateGroups()) {
+      for (const card of group.cards.slice(1)) {
+        if (card.id) ids.add(card.id);
+      }
+    }
+    return ids;
+  });
   protected readonly languageModelLoading = signal(false);
   protected readonly languageModelError = signal<string | null>(null);
   protected readonly languagePrefix = signal('');
@@ -130,7 +155,7 @@ export class Learner implements OnInit {
   protected readonly practiceBusy = signal(false);
   protected readonly languageGenerationLoading = signal(false);
   protected readonly selectedLanguageStage = computed(() =>
-    this.languageModelState()?.stages.find((stage) => stage.id === this.languageTeachingStage()) ?? null,
+    this.languageModelState()?.stages.find((stage: any) => stage.id === this.languageTeachingStage()) ?? null,
   );
   protected readonly languageLessonsBySubject = computed(() => {
     const state = this.languageModelState();
@@ -168,10 +193,10 @@ export class Learner implements OnInit {
     this.languageLessonsBySubject().reduce((total, group) => total + group.lessons.length, 0),
   );
   protected readonly learnerOwnLessons = computed(() =>
-    (this.languageModelState()?.lesson_cards ?? []).filter((lesson) => lesson.kind === 'trainer'),
+    (this.languageModelState()?.lesson_cards ?? []).filter((lesson: any) => lesson.kind === 'trainer'),
   );
   protected readonly learnerStarterLessons = computed(() =>
-    (this.languageModelState()?.lesson_cards ?? []).filter((lesson) => lesson.kind !== 'trainer'),
+    (this.languageModelState()?.lesson_cards ?? []).filter((lesson: any) => lesson.kind !== 'trainer'),
   );
   protected readonly learnerStarterLessonCount = computed(() => this.learnerStarterLessons().length);
   protected readonly learnerSearch = signal('');
@@ -236,7 +261,7 @@ export class Learner implements OnInit {
   });
   protected readonly learnerSearchMatchCount = computed(() => {
     const results = this.learnerSearchResults();
-    const editable = results.filter((result) => result.editable).length;
+    const editable = results.filter((result: any) => result.editable).length;
     return { total: results.length, editable };
   });
 
@@ -244,12 +269,12 @@ export class Learner implements OnInit {
     const firstLoad = !this.languageModelState();
     this.languageModelLoading.set(true);
     this.languageModelError.set(null);
-    this.api.languageModelState(prefix).subscribe({
-      next: (state) => {
+    this.languageApi.languageModelState(prefix).subscribe({
+      next: (state: any) => {
         this.setLanguageModelState(state);
         if (state.current_stage_id !== 'complete') {
           this.languageTeachingStage.set(state.current_stage_id);
-          if (firstLoad) this.lessonSubjectDraft.set(state.stages.find((stage) => stage.id === state.current_stage_id)?.subjects[0] ?? 'General');
+          if (firstLoad) this.lessonSubjectDraft.set(state.stages.find((stage: any) => stage.id === state.current_stage_id)?.subjects[0] ?? 'General');
         }
         this.languageTest.set(state.active_test);
         this.languageModelLoading.set(false);
@@ -269,109 +294,61 @@ export class Learner implements OnInit {
   }
 
   teachLanguageModel() {
-    if (this.languageLessonSaving() || this.languageLessonChecking()) return;
+    if (this.languageLessonSaving()) return;
     const lesson = this.lessonText();
-    if (!lesson) return;
-    this.languageLessonChecking.set(true);
+    if (!lesson.text) return;
     this.languageModelError.set(null);
     const stage = this.languageTeachingStage();
     const subject = canonicalLessonSubject(this.lessonSubjectDraft());
-    this.api.checkLanguageLessonDuplicates(lesson, stage, subject).subscribe({
-      next: (report) => {
-        this.languageLessonChecking.set(false);
-        if (this.lessonWarningNeeded(report)) {
-          this.languageLessonWarning.set(report);
-          return;
-        }
-        this.saveLanguageLesson(lesson, stage, subject);
-      },
-      error: (error: Error) => {
-        this.languageLessonChecking.set(false);
-        this.languageModelError.set(error.message);
-      },
-    });
+    // A lesson is never held back: if it repeats one the learner already has,
+    // it is kept and marked as a duplicate so the trainer can decide later.
+    this.saveLanguageLesson(lesson.text, stage, subject, lesson.kind, lesson.title);
   }
 
-  private lessonText(): string {
-    if (this.lessonEntryMode() === 'formatted') return this.languageLessonDraft().trim();
+  /** What the trainer wrote down, and the kind of lesson it is. */
+  private lessonText(): { text: string; kind: LessonKind; title: string } {
+    if (this.lessonEntryMode() === 'story') {
+      const passage = this.lessonPassageDraft().trim();
+      return { text: passage, kind: 'story', title: this.lessonTitleDraft().trim() };
+    }
+    if (this.lessonEntryMode() === 'formatted') {
+      return { text: this.languageLessonDraft().trim(), kind: 'qa', title: '' };
+    }
     const question = this.lessonQuestionDraft().trim();
     const answer = this.lessonAnswerDraft().trim();
-    if (!question || !answer) return '';
-    return `Q: ${question}\nA: ${answer}`;
+    if (!question || !answer) return { text: '', kind: 'qa', title: '' };
+    return { text: `Q: ${question}\nA: ${answer}`, kind: 'qa', title: '' };
   }
 
-  private lessonWarningNeeded(report: LanguageLessonDuplicateReport): boolean {
-    return !!report && (
-      report.exact.length > 0 ||
-      report.same_question.length > 0 ||
-      report.similar.length > 0 ||
-      report.duplicate_words.length > 0 ||
-      report.faqs.length > 0 ||
-      report.intents.length > 0
-    );
-  }
-
-  confirmLanguageLesson() {
-    const stage = this.languageTeachingStage();
-    const subject = canonicalLessonSubject(this.lessonSubjectDraft());
-    const lesson = this.lessonText();
-    this.languageLessonWarning.set(null);
-    if (!lesson) return;
-    this.saveLanguageLesson(lesson, stage, subject);
-  }
-
-  cancelLanguageLessonWarning() {
-    this.languageLessonWarning.set(null);
-  }
-
-  setLessonQuestionDraft(value: string) {
-    this.lessonQuestionDraft.set(value);
-    this.languageLessonWarning.set(null);
-  }
-
-  setLessonAnswerDraft(value: string) {
-    this.lessonAnswerDraft.set(value);
-    this.languageLessonWarning.set(null);
-  }
-
-  setLanguageLessonDraft(value: string) {
-    this.languageLessonDraft.set(value);
-    this.languageLessonWarning.set(null);
-  }
-
-  private saveLanguageLesson(lesson: string, stage: string, subject: string) {
+  private saveLanguageLesson(
+    lesson: string,
+    stage: string,
+    subject: string,
+    kind: LessonKind,
+    title: string,
+  ) {
     this.languageLessonSaving.set(true);
     this.languageModelError.set(null);
-    this.api.teachLanguageModel(lesson, stage, subject).subscribe({
-      next: (state) => {
+    this.languageApi.teachLesson(lesson, stage, subject, kind, title).subscribe({
+      next: (state: any) => {
         this.setLanguageModelState(state);
         this.selectedLessonSubject.set(subject);
         this.lessonSubjectDraft.set(subject);
         this.languageLessonDraft.set('');
         this.lessonQuestionDraft.set('');
         this.lessonAnswerDraft.set('');
+        this.lessonTitleDraft.set('');
+        this.lessonPassageDraft.set('');
         this.languageLessonSaving.set(false);
-        const skipped = state.skipped_duplicates?.length ?? 0;
+        this.loadDuplicates();
         const added = state.added_lessons ?? 0;
-        if (added === 0 && skipped > 0) {
-          this.ui.info(`Skipped ${skipped} lesson${skipped === 1 ? '' : 's'} that were already taught.`);
-          return;
-        }
         this.ui.success(`Added ${added} lesson${added === 1 ? '' : 's'} to ${this.selectedLanguageStage()?.title ?? stage}.`);
-        if (skipped > 0) {
-          this.ui.info(`Skipped ${skipped} duplicate lesson${skipped === 1 ? '' : 's'} that were already taught.`);
-        }
       },
       error: (error: Error) => {
         this.languageModelError.set(error.message);
         this.languageLessonSaving.set(false);
       },
     });
-  }
-
-  languageLessonCanSubmit(): boolean {
-    if (this.lessonEntryMode() === 'formatted') return !!this.languageLessonDraft().trim();
-    return !!this.lessonQuestionDraft().trim() && !!this.lessonAnswerDraft().trim();
   }
 
   beginEditLearnerLesson(lesson: LanguageModelState['lesson_cards'][number]) {
@@ -395,8 +372,8 @@ export class Learner implements OnInit {
     const subject = this.editingLearnerLessonSubject().trim();
     if (!answer || this.savingLearnerLessonId()) return;
     this.savingLearnerLessonId.set(id);
-    this.api.updateLanguageLessonAnswer(id, answer, question || undefined, undefined, subject || undefined).subscribe({
-      next: (state) => {
+    this.languageApi.updateLanguageLessonAnswer(id, answer, question || undefined, undefined, subject || undefined).subscribe({
+      next: (state: any) => {
         this.setLanguageModelState(state);
         this.cancelEditLearnerLesson();
         this.savingLearnerLessonId.set(null);
@@ -413,8 +390,8 @@ export class Learner implements OnInit {
     const lesson = this.learnerLessonDeletePrompt();
     if (!lesson || this.deletingLearnerLessonId()) return;
     this.deletingLearnerLessonId.set(lesson.id);
-    this.api.removeLanguageLesson(lesson.id).subscribe({
-      next: (state) => {
+    this.languageApi.removeLanguageLesson(lesson.id).subscribe({
+      next: (state: any) => {
         this.setLanguageModelState(state);
         this.learnerLessonDeletePrompt.set(null);
         this.deletingLearnerLessonId.set(null);
@@ -501,8 +478,8 @@ export class Learner implements OnInit {
     this.savingSearchKey.set(result.key);
     const confidence = Math.round(this.searchEditConfidence() * 100) / 100;
     if (result.kind === 'lesson' && result.lessonId) {
-      this.api.updateLanguageLessonAnswer(result.lessonId, answer, question, confidence).subscribe({
-        next: (state) => {
+      this.languageApi.updateLanguageLessonAnswer(result.lessonId, answer, question, confidence).subscribe({
+        next: (state: any) => {
           this.setLanguageModelState(state);
           this.cancelEditSearchResult();
           this.savingSearchKey.set(null);
@@ -516,7 +493,7 @@ export class Learner implements OnInit {
       return;
     }
     if (result.kind === 'trainer' && result.faqId !== undefined) {
-      this.api.updateFaq(result.faqId, answer, question, confidence).subscribe({
+      this.api.updateFaq(result.faqId, answer).subscribe({
         next: () => {
           this.cancelEditSearchResult();
           this.savingSearchKey.set(null);
@@ -563,8 +540,8 @@ export class Learner implements OnInit {
   private queryLanguageLearner(question: string, skipTrainer = false) {
     this.learnerChatBusy.set(true);
     this.languageModelError.set(null);
-    this.api.previewLanguageAnswer(question, skipTrainer).subscribe({
-      next: (result) => {
+    this.languageApi.previewLanguageAnswer(question, skipTrainer).subscribe({
+      next: (result: any) => {
         if (result.needs_clarification && result.candidates?.length) {
           this.learnerMatchPrompt.set({ question, candidates: result.candidates });
         } else {
@@ -614,13 +591,13 @@ export class Learner implements OnInit {
   }
 
   languageStageTitle(stageId: string): string {
-    return this.languageModelState()?.stages.find((stage) => stage.id === stageId)?.title ?? stageId;
+    return this.languageModelState()?.stages.find((stage: any) => stage.id === stageId)?.title ?? stageId;
   }
 
   isLanguageStageLocked(stageId: string, state: LanguageModelState): boolean {
     if (state.current_stage_id === 'complete') return false;
-    const current = state.stages.findIndex((stage) => stage.id === state.current_stage_id);
-    const selected = state.stages.findIndex((stage) => stage.id === stageId);
+    const current = state.stages.findIndex((stage: any) => stage.id === state.current_stage_id);
+    const selected = state.stages.findIndex((stage: any) => stage.id === stageId);
     return selected > current;
   }
 
@@ -632,7 +609,7 @@ export class Learner implements OnInit {
       this.lessonQuestionDraft.set('');
       this.lessonAnswerDraft.set('');
       this.selectedLessonSubject.set('');
-      this.lessonSubjectDraft.set(state.stages.find((stage) => stage.id === stageId)?.subjects[0] ?? 'General');
+      this.lessonSubjectDraft.set(state.stages.find((stage: any) => stage.id === stageId)?.subjects[0] ?? 'General');
     }
   }
 
@@ -647,8 +624,8 @@ export class Learner implements OnInit {
     this.languageTestResult.set(null);
     this.languageTestKind.set(kind);
     this.languageTestQuestion.set('');
-    this.api.startLanguageTest(this.languageTeachingStage(), kind).subscribe({
-      next: (result) => {
+    this.languageApi.startLanguageTest(this.languageTeachingStage(), kind).subscribe({
+      next: (result: any) => {
         this.setLanguageModelState(result.state);
         this.languageTest.set(result.state.active_test);
         if (result.state.active_test) this.languageTeachingStage.set(result.state.active_test.stage);
@@ -664,8 +641,8 @@ export class Learner implements OnInit {
     if (!question || !this.languageTest() || this.languageTestBusy()) return;
     this.languageTestBusy.set(true);
     this.languageModelError.set(null);
-    this.api.askLanguageTestQuestion(question).subscribe({
-      next: (result) => {
+    this.languageApi.askLanguageTestQuestion(question).subscribe({
+      next: (result: any) => {
         this.setLanguageModelState(result.state);
         this.languageTest.set(result.state.active_test);
         this.languageTestQuestion.set('');
@@ -678,8 +655,8 @@ export class Learner implements OnInit {
   scoreLanguageTestAnswer(passed: boolean) {
     if (this.languageTestBusy()) return;
     this.languageTestBusy.set(true);
-    this.api.scoreLanguageTestAnswer(passed).subscribe({
-      next: (result) => {
+    this.languageApi.scoreLanguageTestAnswer(passed).subscribe({
+      next: (result: any) => {
         this.setLanguageModelState(result.state);
         this.languageTest.set(result.state.active_test);
         this.languageTestBusy.set(false);
@@ -691,15 +668,15 @@ export class Learner implements OnInit {
   finishLanguageTest(passed: boolean) {
     if (this.languageTestBusy()) return;
     this.languageTestBusy.set(true);
-    this.api.finishLanguageTest(passed).subscribe({
-      next: (result) => {
+    this.languageApi.finishLanguageTest(passed).subscribe({
+      next: (result: any) => {
         this.setLanguageModelState(result.state);
         this.languageTest.set(null);
         this.languageTestResult.set(result.result);
         this.languageTestBusy.set(false);
         if (result.result.passed && result.result.stage === result.state.current_stage_id && result.state.current_stage_id !== 'complete') {
           this.languageTeachingStage.set(result.state.current_stage_id);
-          this.lessonSubjectDraft.set(result.state.stages.find((stage) => stage.id === result.state.current_stage_id)?.subjects[0] ?? 'General');
+          this.lessonSubjectDraft.set(result.state.stages.find((stage: any) => stage.id === result.state.current_stage_id)?.subjects[0] ?? 'General');
         }
         this.ui.info(result.result.passed ? `Stage passed. ${result.state.stage} is unlocked.` : 'This stage needs more learning. It remains open for another lesson or test.');
       },
@@ -713,8 +690,8 @@ export class Learner implements OnInit {
     this.dictionaryWordLoading.set(true);
     this.languageModelError.set(null);
     this.dictionaryWordEntry.set(null);
-    this.api.lookupDictionaryWord(word).subscribe({
-      next: (entry) => {
+    this.languageApi.lookupDictionaryWord(word).subscribe({
+      next: (entry: any) => {
         this.dictionaryWordEntry.set(entry);
         this.dictionaryDefinitionIndex.set(0);
         this.dictionaryWordLoading.set(false);
@@ -726,17 +703,23 @@ export class Learner implements OnInit {
   teachDictionaryWord() {
     const entry = this.dictionaryWordEntry();
     if (!entry || this.dictionaryWordSaving()) return;
+    const meaning = entry.definitions?.[this.dictionaryDefinitionIndex()];
+    if (!meaning) return;
     this.dictionaryWordSaving.set(true);
-    this.api.learnDictionaryWord(entry.word, this.dictionaryDefinitionIndex(), this.languageTeachingStage()).subscribe({
-      next: (result) => {
+    this.languageApi.learnDictionaryWord(entry.word, meaning, this.languageTeachingStage()).subscribe({
+      next: (result: any) => {
         this.setLanguageModelState(result.state);
         this.dictionaryWordEntry.set(result.entry);
         this.dictionaryWordSaving.set(false);
         this.ui.success(`Learned “${result.entry.word}” from the offline dictionary.`);
       },
-      error: (error: Error) => { this.languageModelError.set(error.message); this.dictionaryWordSaving.set(false); },
+      error: (error: Error) => {
+        this.languageModelError.set(error.message);
+        this.dictionaryWordSaving.set(false);
+      },
     });
   }
+
 
   checkNextWords() {
     this.refreshLanguageModel(this.languagePrefix().trim());
@@ -748,10 +731,10 @@ export class Learner implements OnInit {
     this.generatedLanguageSentence.set(null);
     const draft = this.languageSentenceWord().trim();
     const words = draft
-      ? draft.split(/[\s,]+/).map((word) => word.trim()).filter((word) => word.length > 0)
+      ? draft.split(/[\s,]+/).map((word: any) => word.trim()).filter((word: any) => word.length > 0)
       : [];
-    this.api.generateLanguageSentence(words.length === 1 ? words[0] : undefined, words).subscribe({
-      next: (result) => {
+    this.languageApi.generateLanguageSentence(words.length === 1 ? words[0] : undefined, words).subscribe({
+      next: (result: any) => {
         this.generatedLanguageSentence.set(result.sentence ?? 'The model has not learned enough sentence patterns yet. Add more lessons first.');
         this.languageGenerationLoading.set(false);
       },
@@ -767,12 +750,12 @@ export class Learner implements OnInit {
     if (this.practiceBusy()) return;
     const draft = this.sentenceWordsDraft().trim();
     if (!draft) return;
-    const words = draft.split(/[\s,]+/).map((word) => word.trim()).filter((word) => word.length > 0);
+    const words = draft.split(/[\s,]+/).map((word: any) => word.trim()).filter((word: any) => word.length > 0);
     if (!words.length) return;
     this.practiceBusy.set(true);
     this.sentenceResult.set(null);
-    this.api.generateLanguageSentence(words.length === 1 ? words[0] : undefined, words).subscribe({
-      next: (result) => {
+    this.languageApi.generateLanguageSentence(words.length === 1 ? words[0] : undefined, words).subscribe({
+      next: (result: any) => {
         this.sentenceResult.set(result.sentence ?? 'The learner could not build a sentence from those words yet. Try a word it has learned.');
         this.practiceBusy.set(false);
       },
@@ -789,8 +772,8 @@ export class Learner implements OnInit {
     if (!question) return;
     this.practiceBusy.set(true);
     this.calculationResult.set(null);
-    this.api.previewLanguageAnswer(question, true).subscribe({
-      next: (result) => {
+    this.languageApi.previewLanguageAnswer(question, true).subscribe({
+      next: (result: any) => {
         this.calculationResult.set(result.answer);
         this.practiceBusy.set(false);
       },
@@ -802,6 +785,153 @@ export class Learner implements OnInit {
   }
 
   ngOnInit(): void {
+    // The server has no session, so the lessons are read in the browser.
+    if (!isPlatformBrowser(this.platformId)) return;
     this.refreshLanguageModel();
+    this.loadDuplicates();
+  }
+
+  /** Fold the shared navigation away and show it again. */
+  toggleSidebar(): void {
+    this.sidebarOpen.update((open) => !open);
+  }
+
+  /** Read the lessons that repeat each other. */
+  protected loadDuplicates(): void {
+    this.languageApi.duplicateLessons().subscribe({
+      next: (summary: DuplicateLessons) => {
+        this.duplicateGroups.set(summary.groups ?? []);
+        this.duplicateCount.set(summary.duplicate_count ?? 0);
+        this.totalQuestions.set(summary.total_questions ?? 0);
+      },
+      error: () => {
+        this.duplicateGroups.set([]);
+        this.duplicateCount.set(0);
+      },
+    });
+  }
+
+  /** The lessons that repeat another one. */
+  protected isDuplicate(cardId: string | undefined | null): boolean {
+    if (!cardId) return false;
+    return this.duplicateCardIds().has(cardId);
+  }
+
+  protected openDuplicatePanel(): void {
+    this.duplicatePanelOpen.set(true);
+    this.loadDuplicates();
+  }
+
+  protected closeDuplicatePanel(): void {
+    this.duplicatePanelOpen.set(false);
+    this.cancelDuplicateEdit();
+  }
+
+  /** Keep every lesson of a group: the repeat is on purpose. */
+  protected acceptBothDuplicates(group: DuplicateGroup): void {
+    if (!group.key) return;
+    this.busyDuplicateId.set(group.key);
+    this.languageApi.acceptDuplicateLessons(group.key).subscribe({
+      next: (state: any) => {
+        this.setLanguageModelState(state);
+        this.busyDuplicateId.set(null);
+        this.loadDuplicates();
+        this.ui.success(`Both lessons were kept: ${group.label.toLowerCase()} is accepted.`);
+      },
+      error: (error: Error) => {
+        this.busyDuplicateId.set(null);
+        this.ui.error(error.message);
+      },
+    });
+  }
+
+  /** Keep this lesson and remove the ones it repeats. */
+  protected acceptDuplicate(group: DuplicateGroup, card: DuplicateLessonCard): void {
+    const others = group.cards.filter((other) => other.id !== card.id);
+    if (!others.length) {
+      this.ui.info('There is nothing to remove: this is the only lesson in the group.');
+      return;
+    }
+    this.busyDuplicateId.set(card.id);
+    let removed = 0;
+    let failed = false;
+    for (const other of others) {
+      this.languageApi.removeLanguageLesson(other.id).subscribe({
+        next: () => {
+          removed += 1;
+          if (removed === others.length) {
+            this.busyDuplicateId.set(null);
+            this.refreshLanguageModel();
+            this.loadDuplicates();
+            this.ui.success(`Kept the lesson and removed ${removed} that repeated it.`);
+          }
+        },
+        error: () => {
+          failed = true;
+          this.busyDuplicateId.set(null);
+          this.ui.error('The lesson could not be removed.');
+        },
+      });
+    }
+    if (failed) return;
+  }
+
+  /** Remove this lesson. */
+  protected removeDuplicate(card: DuplicateLessonCard): void {
+    this.busyDuplicateId.set(card.id);
+    this.languageApi.removeLanguageLesson(card.id).subscribe({
+      next: () => {
+        this.busyDuplicateId.set(null);
+        this.refreshLanguageModel();
+        this.loadDuplicates();
+        this.ui.success('The lesson was removed.');
+      },
+      error: (error: Error) => {
+        this.busyDuplicateId.set(null);
+        this.ui.error(error.message);
+      },
+    });
+  }
+
+  /** Start improving the question or the answer of a lesson. */
+  protected startDuplicateEdit(card: DuplicateLessonCard): void {
+    this.duplicateEditId.set(card.id);
+    this.duplicateEditQuestion.set(card.question);
+    this.duplicateEditAnswer.set(card.answer);
+    this.duplicateEditSubject.set(card.subjects?.join(', ') ?? card.subject ?? '');
+  }
+
+  protected cancelDuplicateEdit(): void {
+    this.duplicateEditId.set(null);
+    this.duplicateEditQuestion.set('');
+    this.duplicateEditAnswer.set('');
+    this.duplicateEditSubject.set('');
+  }
+
+  /** Save the improved question, answer and topic of a lesson. */
+  protected saveDuplicateEdit(): void {
+    const id = this.duplicateEditId();
+    if (!id) return;
+    const question = this.duplicateEditQuestion().trim();
+    const answer = this.duplicateEditAnswer().trim();
+    const subject = this.duplicateEditSubject().trim();
+    if (!question || !answer) {
+      this.ui.error('A lesson needs both a question and an answer.');
+      return;
+    }
+    this.busyDuplicateId.set(id);
+    this.languageApi.updateLanguageLessonAnswer(id, answer, question, undefined, subject || undefined).subscribe({
+      next: (state: any) => {
+        this.setLanguageModelState(state);
+        this.busyDuplicateId.set(null);
+        this.cancelDuplicateEdit();
+        this.loadDuplicates();
+        this.ui.success('The lesson was improved.');
+      },
+      error: (error: Error) => {
+        this.busyDuplicateId.set(null);
+        this.ui.error(error.message);
+      },
+    });
   }
 }

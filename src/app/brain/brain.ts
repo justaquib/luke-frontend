@@ -1,9 +1,14 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { ApiService, FaqItem, KnowledgeGraph, LanguageBrainState, LanguageModelState, ModelLevel, ModelLevelRung, PendingItem, StatsResponse } from '../core/api.service';
-import { AppPrefsService } from '../core/app-prefs.service';
-import { AuthService } from '../core/auth.service';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { ApiService, FaqItem, KnowledgeGraph, LanguageBrainState, LanguageModelState, ModelLevel, ModelLevelRung, StatsResponse } from '../core/api.service';
+import { LanguageModelApiService } from '../core/api/language-model-api.service';
+import { AppPageHeader } from '../shared/app-page-header';
+import { UiService } from '../shared/ui.service';
+import { AppShell } from '../shared/app-shell';
+import { BrainTrainingPanel } from './brain-training-panel';
+import { BrainVocabularyPanel } from './brain-vocabulary-panel';
+import { KNOWLEDGE_NODES } from './brain.nodes';
 
 interface BrainStage {
   name: string;
@@ -16,13 +21,6 @@ interface MergedIntentGroup {
   variants: FaqItem[];
 }
 
-interface BrainNode {
-  id: number;
-  x: number;
-  y: number;
-  delay: number;
-}
-
 function float(value: number | string): number {
   const parsed = typeof value === 'number' ? value : parseFloat(value);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -30,21 +28,19 @@ function float(value: number | string): number {
 
 @Component({
   selector: 'app-brain',
-  imports: [CommonModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterLink, AppShell, AppPageHeader, BrainTrainingPanel, BrainVocabularyPanel],
   templateUrl: './brain.html',
   styleUrl: './brain.css',
 })
 export class Brain implements OnInit {
   private readonly api = inject(ApiService);
-  private readonly prefs = inject(AppPrefsService);
-  private readonly auth = inject(AuthService);
+  private readonly languageApi = inject(LanguageModelApiService);
+  private readonly ui = inject(UiService);
+  private readonly platformId = inject(PLATFORM_ID);
 
-  protected readonly botName = this.prefs.botName;
-  protected readonly isSystemAdmin = computed(() => this.auth.user()?.is_systemadmin ?? false);
   protected readonly sidebarOpen = signal(true);
   protected readonly stats = signal<StatsResponse | null>(null);
   protected readonly trainedQuestions = signal<FaqItem[]>([]);
-  protected readonly pendingQuestions = signal<PendingItem[]>([]);
   protected readonly mergedIntents = signal<MergedIntentGroup[]>([]);
   protected readonly learnerState = signal<LanguageModelState | null>(null);
   protected readonly knowledgeGraph = signal<KnowledgeGraph | null>(null);
@@ -55,13 +51,13 @@ export class Brain implements OnInit {
   protected readonly selectedRung = signal<string | null>(null);
   protected readonly modelLevel = computed<ModelLevel | null>(() => this.brainState()?.model_level ?? null);
   protected readonly ladderRungs = computed(() =>
-    (this.modelLevel()?.levels ?? []).filter((entry) => entry.level <= 1),
+    (this.modelLevel()?.levels ?? []).filter((entry: any) => entry.level <= 1),
   );
   protected readonly ladderLabels = computed(() =>
-    this.ladderRungs().filter((entry) => Math.round(entry.level * 10) % 2 === 0),
+    this.ladderRungs().filter((entry: any) => Math.round(entry.level * 10) % 2 === 0),
   );
   protected rungName(rung: string): string {
-    const entry = this.modelLevel()?.levels?.find((item) => item.level.toFixed(1) === rung);
+    const entry = this.modelLevel()?.levels?.find((item: any) => item.level.toFixed(1) === rung);
     return entry?.name ?? 'Seed';
   }
 
@@ -83,12 +79,16 @@ export class Brain implements OnInit {
   }
 
   protected readonly generalityProbes = computed(() => this.modelLevel()?.generality_probes ?? []);
+  protected readonly instructionProbes = computed(() => this.modelLevel()?.instruction_probes ?? []);
+  protected readonly instructionScore = computed(() => this.modelLevel()?.instruction_following ?? 0);
+  protected readonly instructionTotal = computed(() => this.modelLevel()?.instruction_total ?? 0);
 
   protected readonly volumeProgress = computed(() => {
     const volume = this.modelLevel()?.training_volume?.level ?? 0;
     return Math.min(100, (volume / 1) * 100);
   });
   protected readonly brainTraining = signal(false);
+  protected readonly brainTesting = signal(false);
   protected readonly brainSentence = signal<string | null>(null);
   protected readonly selectedNode = signal<{ label: string; detail: string } | null>(null);
   protected readonly loading = signal(false);
@@ -100,48 +100,7 @@ export class Brain implements OnInit {
     { name: 'Skilled', minimum: 100, description: 'A substantial indexed knowledge base' },
     { name: 'Experienced', minimum: 500, description: 'A broad library of learned material' },
   ];
-  protected readonly knowledgeNodes: BrainNode[] = [
-    { id: 1, x: 26, y: 15, delay: 0 },
-    { id: 2, x: 38, y: 13, delay: 180 },
-    { id: 3, x: 47, y: 20, delay: 420 },
-    { id: 4, x: 19, y: 27, delay: 260 },
-    { id: 5, x: 30, y: 31, delay: 640 },
-    { id: 6, x: 42, y: 33, delay: 120 },
-    { id: 7, x: 14, y: 41, delay: 520 },
-    { id: 8, x: 24, y: 44, delay: 340 },
-    { id: 9, x: 35, y: 45, delay: 80 },
-    { id: 10, x: 44, y: 42, delay: 720 },
-    { id: 11, x: 13, y: 53, delay: 200 },
-    { id: 12, x: 23, y: 58, delay: 460 },
-    { id: 13, x: 33, y: 56, delay: 60 },
-    { id: 14, x: 42, y: 54, delay: 620 },
-    { id: 15, x: 17, y: 67, delay: 380 },
-    { id: 16, x: 27, y: 71, delay: 140 },
-    { id: 17, x: 38, y: 68, delay: 560 },
-    { id: 18, x: 22, y: 80, delay: 240 },
-    { id: 19, x: 32, y: 82, delay: 680 },
-    { id: 20, x: 41, y: 78, delay: 320 },
-    { id: 21, x: 74, y: 15, delay: 120 },
-    { id: 22, x: 62, y: 13, delay: 300 },
-    { id: 23, x: 53, y: 20, delay: 500 },
-    { id: 24, x: 81, y: 27, delay: 200 },
-    { id: 25, x: 70, y: 31, delay: 580 },
-    { id: 26, x: 58, y: 33, delay: 100 },
-    { id: 27, x: 86, y: 41, delay: 460 },
-    { id: 28, x: 76, y: 44, delay: 280 },
-    { id: 29, x: 65, y: 45, delay: 60 },
-    { id: 30, x: 56, y: 42, delay: 660 },
-    { id: 31, x: 87, y: 53, delay: 160 },
-    { id: 32, x: 77, y: 58, delay: 420 },
-    { id: 33, x: 67, y: 56, delay: 40 },
-    { id: 34, x: 58, y: 54, delay: 600 },
-    { id: 35, x: 83, y: 67, delay: 340 },
-    { id: 36, x: 73, y: 71, delay: 120 },
-    { id: 37, x: 62, y: 68, delay: 520 },
-    { id: 38, x: 78, y: 80, delay: 220 },
-    { id: 39, x: 68, y: 82, delay: 640 },
-    { id: 40, x: 59, y: 78, delay: 300 },
-  ];
+  protected readonly knowledgeNodes = KNOWLEDGE_NODES;
 
   protected readonly knowledgeItems = computed(() => {
     const current = this.stats();
@@ -162,12 +121,11 @@ export class Brain implements OnInit {
   protected readonly stageProgress = computed(() => (this.stageIndex() / (this.stages.length - 1)) * 100);
 
   protected readonly approvedQuestions = computed(() =>
-    this.trainedQuestions().filter((faq) => faq.status === 'approved').slice(0, 5),
+    this.trainedQuestions().filter((faq: any) => faq.status === 'approved').slice(0, 5),
   );
   protected readonly approvedQuestionCount = computed(
-    () => this.trainedQuestions().filter((faq) => faq.status === 'approved').length,
+    () => this.trainedQuestions().filter((faq: any) => faq.status === 'approved').length,
   );
-  protected readonly pendingPreview = computed(() => this.pendingQuestions().slice(0, 5));
   protected readonly mergedPreview = computed(() => this.mergedIntents().slice(0, 5));
 
   protected readonly activeNodeCount = computed(() => {
@@ -190,14 +148,13 @@ export class Brain implements OnInit {
   });
   protected readonly learnerVocabulary = computed(() => this.learnerState()?.vocabulary_size ?? 0);
 
-  /** The words it knows, loaded a hundred at a time as the list is scrolled. */
-  protected readonly vocabWords = signal<string[]>([]);
-  protected readonly vocabTotal = signal(0);
-  protected readonly vocabLoading = signal(false);
-  protected readonly vocabFinished = signal(false);
+  /** The side panel that is open: the vocabulary, or the training sources. */
   protected readonly vocabOpen = signal(false);
+  protected readonly sourcesOpen = signal(false);
 
   ngOnInit(): void {
+    // The server has no session, so the numbers are read in the browser.
+    if (!isPlatformBrowser(this.platformId)) return;
     this.refresh();
     this.loadLearnerState();
     this.loadKnowledgeGraph();
@@ -207,34 +164,23 @@ export class Brain implements OnInit {
   /** Show the words the answering model can write with, in the side panel. */
   protected toggleVocabulary(): void {
     this.vocabOpen.update((open) => !open);
-    if (this.vocabOpen() && this.vocabWords().length === 0) {
-      this.loadVocabularyPage();
-    }
+    if (this.vocabOpen()) this.sourcesOpen.set(false);
   }
 
-  /** Bring the next hundred words. */
-  protected loadVocabularyPage(): void {
-    if (this.vocabLoading() || this.vocabFinished()) return;
-    this.vocabLoading.set(true);
-    const offset = this.vocabWords().length;
-    this.api.languageModelWords(offset, 100).subscribe({
-      next: (page) => {
-        const seen = new Set(this.vocabWords());
-        const fresh = page.words.filter((word) => !seen.has(word));
-        this.vocabWords.update((words) => [...words, ...fresh]);
-        this.vocabTotal.set(page.total);
-        this.vocabFinished.set(!page.has_more);
-        this.vocabLoading.set(false);
-      },
-      error: () => this.vocabLoading.set(false),
-    });
+  /** Show what the brain has trained from, and how the training works. */
+  protected toggleSources(): void {
+    this.sourcesOpen.update((open) => !open);
+    if (this.sourcesOpen()) this.vocabOpen.set(false);
   }
 
-  /** When the list is scrolled to its end, the next hundred words arrive. */
-  protected onVocabularyScroll(event: Event): void {
-    const element = event.target as HTMLElement;
-    const nearEnd = element.scrollHeight - element.scrollTop - element.clientHeight < 160;
-    if (nearEnd) this.loadVocabularyPage();
+  /** Close the training sources. */
+  protected closeSources(): void {
+    this.sourcesOpen.set(false);
+  }
+
+  /** Close the vocabulary. */
+  protected closeVocabulary(): void {
+    this.vocabOpen.set(false);
   }
 
   protected toggleGuide(): void {
@@ -261,8 +207,8 @@ export class Brain implements OnInit {
   }
 
   protected loadBrainState(): void {
-    this.api.languageModelBrain().subscribe({
-      next: (state) => this.brainState.set(state),
+    this.languageApi.languageModelBrain().subscribe({
+      next: (state: any) => this.brainState.set(state),
       error: () => this.brainState.set(null),
     });
   }
@@ -271,38 +217,76 @@ export class Brain implements OnInit {
     if (this.brainTraining()) return;
     this.brainTraining.set(true);
     this.brainSentence.set(null);
-    this.api.trainLanguageModelBrain().subscribe({
-      next: (result) => {
+    const before = this.brainState()?.vocabulary ?? 0;
+    this.languageApi.trainLanguageModelBrain().subscribe({
+      next: (result: any) => {
         this.brainState.set(result.state);
         this.brainSentence.set(result.sentence ?? null);
         // The training goes on in the background, so the page waits for it and
         // shows what it has learned when it is done.
         if (result.training) {
-          this.waitForTraining();
+          this.waitForTraining(0, before);
           return;
         }
         this.brainTraining.set(false);
+        this.reportTraining(result.state, before);
       },
-      error: () => this.brainTraining.set(false),
+      error: (err: Error) => {
+        this.brainTraining.set(false);
+        this.ui.error(err.message);
+      },
     });
   }
 
+  /** Run the level tests again, without training anything. */
+  protected testLevel(): void {
+    if (this.brainTesting()) return;
+    this.brainTesting.set(true);
+    this.languageApi.testLanguageModelLevel().subscribe({
+      next: (result: any) => {
+        this.brainState.set(result.state);
+        this.brainTesting.set(false);
+        this.ui.success(`Level test done: ${result.passed} of ${result.total} rungs passed.`);
+      },
+      error: (err: Error) => {
+        this.brainTesting.set(false);
+        this.ui.error(err.message);
+      },
+    });
+  }
+
+  /** Say what the training changed, so the button is not a mystery. */
+  private reportTraining(state: any, before = 0): void {
+    const writer = state?.transformer;
+    if (!writer?.trained) {
+      this.ui.info('The brain trained, but it has no writer yet.');
+      return;
+    }
+    const vocabulary = writer.vocabulary ?? 0;
+    const change = vocabulary - before;
+    const moved = change === 0 ? 'the same words' : `${change > 0 ? '+' : ''}${change} words`;
+    this.ui.success(
+      `The brain is trained: ${vocabulary} words (${moved}), ${writer.steps ?? 0} steps, loss ${Number(writer.loss ?? 0).toFixed(3)}.`,
+    );
+  }
+
   /** Wait for the training in the background and show the result. */
-  private waitForTraining(attempt = 0): void {
+  private waitForTraining(attempt = 0, before = 0): void {
     if (attempt > 120) {
       this.brainTraining.set(false);
       this.loadBrainState();
       return;
     }
     setTimeout(() => {
-      this.api.languageModelBrain().subscribe({
-        next: (state) => {
+      this.languageApi.languageModelBrain().subscribe({
+        next: (state: any) => {
           this.brainState.set(state);
           if (state.training) {
-            this.waitForTraining(attempt + 1);
+            this.waitForTraining(attempt + 1, before);
             return;
           }
           this.brainTraining.set(false);
+          this.reportTraining(state, before);
         },
         error: () => this.brainTraining.set(false),
       });
@@ -310,16 +294,16 @@ export class Brain implements OnInit {
   }
 
   protected loadLearnerState(): void {
-    this.api.languageModelState().subscribe({
-      next: (state) => this.learnerState.set(state),
+    this.languageApi.languageModelState().subscribe({
+      next: (state: any) => this.learnerState.set(state),
       error: () => this.learnerState.set(null),
     });
   }
 
   protected loadKnowledgeGraph(): void {
     this.graphLoading.set(true);
-    this.api.languageModelGraph(this.graphSubject(), 90).subscribe({
-      next: (graph) => {
+    this.languageApi.languageModelGraph(this.graphSubject(), 90).subscribe({
+      next: (graph: any) => {
         this.knowledgeGraph.set(graph);
         this.graphLoading.set(false);
       },
@@ -346,15 +330,15 @@ export class Brain implements OnInit {
 
   /** Subjects on the left, the lessons they hold on the right in four columns. */
   protected graphPoint(id: string, graph: KnowledgeGraph): { x: number; y: number } {
-    const subjects = graph.nodes.filter((node) => node.type === 'subject');
-    const lessons = graph.nodes.filter((node) => node.type !== 'subject');
-    const subject = subjects.find((node) => node.id === id);
+    const subjects = graph.nodes.filter((node: any) => node.type === 'subject');
+    const lessons = graph.nodes.filter((node: any) => node.type !== 'subject');
+    const subject = subjects.find((node: any) => node.id === id);
     if (subject) {
       const index = subjects.indexOf(subject);
       const step = 470 / Math.max(subjects.length - 1, 1);
       return { x: 130, y: 30 + index * step };
     }
-    const index = lessons.findIndex((node) => node.id === id);
+    const index = lessons.findIndex((node: any) => node.id === id);
     if (index < 0) return { x: 0, y: 0 };
     const perColumn = Math.ceil(lessons.length / 4);
     const column = Math.floor(index / perColumn);
@@ -371,10 +355,6 @@ export class Brain implements OnInit {
         this.trainedQuestions.set(faqs);
         this.mergedIntents.set(this.groupMergedIntents(faqs));
       },
-      error: (err: Error) => this.error.set(err.message),
-    });
-    this.api.listInbox().subscribe({
-      next: (questions) => this.pendingQuestions.set(questions.filter((item) => !item.resolved)),
       error: (err: Error) => this.error.set(err.message),
     });
     this.api.stats().subscribe({
@@ -406,8 +386,8 @@ export class Brain implements OnInit {
       .filter((items) => items.length > 1)
       .map((items) => {
         items.sort((a, b) => a.id - b.id);
-        const canonical = items.find((item) => item.status === 'approved') ?? items[0];
-        return { canonical, variants: items.filter((item) => item.id !== canonical.id) };
+        const canonical = items.find((item: any) => item.status === 'approved') ?? items[0];
+        return { canonical, variants: items.filter((item: any) => item.id !== canonical.id) };
       })
       .sort((a, b) => b.variants.length - a.variants.length);
   }

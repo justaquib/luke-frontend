@@ -1,0 +1,32 @@
+:host {
+  position: fixed;
+  top: 0.7rem;
+  left: 0.7rem;
+  z-index: 100;
+  display: block;
+}
+.back-to-chat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.7rem 0.4rem 0.55rem;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #4b5563;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(6px);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+.back-to-chat:hover {
+  background: #eef2ff;
+  color: #4f46e5;
+  border-color: #c7d2fe;
+}

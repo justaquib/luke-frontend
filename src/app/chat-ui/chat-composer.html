@@ -1,0 +1,23 @@
+<footer class="composer">
+  <textarea
+    class="composer-input"
+    rows="1"
+    placeholder="Message {{ prefs.botName() }}…"
+    [value]="draft()"
+    (input)="onInput($any($event.target).value)"
+    (keydown)="onKeydown($event)"
+    [disabled]="service.isTyping()"
+    aria-label="Message input"
+  ></textarea>
+  <button
+    type="button"
+    class="send-btn"
+    (click)="send()"
+    [disabled]="!draft().trim() || service.isTyping()"
+    aria-label="Send message"
+  >
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <path d="M3 11.5 21 3l-8.5 18-2-7.5L3 11.5z" fill="currentColor" />
+    </svg>
+  </button>
+</footer>

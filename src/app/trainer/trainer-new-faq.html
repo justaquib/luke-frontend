@@ -1,0 +1,92 @@
+<div class="card">
+  <p class="hint">
+    New answers start as <strong>pending</strong>. Switch to the <em>Trained</em> tab and approve
+    them to make them available in chat.
+  </p>
+  <label>
+    <span>Question</span>
+    <input
+      type="text"
+      [ngModel]="store.newQuestion()"
+      (ngModelChange)="actions.setQuestion($event)"
+      placeholder="e.g. What are the office hours?"
+    />
+  </label>
+  <label>
+    <span>Answer</span>
+    <textarea
+      rows="4"
+      [ngModel]="store.newAnswer()"
+      (ngModelChange)="actions.setAnswer($event)"
+      placeholder="The correct, complete answer…"
+    ></textarea>
+  </label>
+  <div class="actions">
+    <button
+      type="button"
+      class="ghost"
+      [disabled]="!store.newQuestion().trim()"
+      (click)="actions.checkNewForMerge()"
+    >
+      Check for similar intents
+    </button>
+    <button type="button" class="primary" [disabled]="store.saving()" (click)="actions.createFaq()">
+      Save (pending)
+    </button>
+  </div>
+
+  @if (store.newMergeSuggestions(); as suggestions) {
+    <div class="new-merge-preview">
+      <h4>Similar existing intents</h4>
+      <p class="hint">Pick one to fold this question into, or cancel and save it as a new FAQ.</p>
+      @if (suggestions.faqs.length === 0 && suggestions.pending.length === 0) {
+        <p class="empty">No close matches. Safe to save as a new Q&amp;A.</p>
+      } @else {
+        <ul class="list">
+          @for (faq of suggestions.faqs; track faq.faq_id) {
+            <li class="card match-card">
+              <div class="row">
+                <div class="row-text">
+                  <strong class="q">{{ faq.question }}</strong>
+                  <span class="status-tag {{ faq.status }}">{{ faq.status }}</span>
+                  <span class="meta">dist {{ faq.distance.toFixed(2) }}</span>
+                </div>
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="primary small"
+                    [disabled]="!canMerge(faq) || store.saving()"
+                    (click)="actions.mergeNewIntoFaq(faq)"
+                  >
+                    Merge into this →
+                  </button>
+                </div>
+              </div>
+              <p class="a">{{ faq.answer }}</p>
+            </li>
+          }
+          @for (pending of suggestions.pending; track pending.pending_id) {
+            <li class="card match-card">
+              <div class="row">
+                <div class="row-text">
+                  <strong class="q">{{ pending.question }}</strong>
+                  <span class="meta">
+                    asked {{ pending.occurrences }}× · dist {{ pending.distance.toFixed(2) }}
+                  </span>
+                </div>
+                <div class="row-actions">
+                  <button type="button" class="ghost small" (click)="openInbox()">
+                    Open in Inbox
+                  </button>
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+      <div class="actions">
+        <button type="button" class="ghost" (click)="actions.dismissSuggestions()">Dismiss</button>
+      </div>
+    </div>
+  }
+</div>

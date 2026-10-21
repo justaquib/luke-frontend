@@ -1,0 +1,68 @@
+<div
+  class="message-row"
+  [class.user]="message().role === 'user'"
+  [class.assistant]="message().role === 'assistant'"
+  [class.system]="message().role === 'system'"
+>
+  <div class="bubble">
+    @if (session.trainMode() && service.editingId() === message().id) {
+      <textarea
+        class="edit-textarea"
+        [value]="service.editingText()"
+        (input)="service.editingText.set($any($event.target).value)"
+        rows="3"
+        aria-label="Correct answer"
+      ></textarea>
+      <div class="message-actions">
+        <button type="button" class="primary small" (click)="service.saveEditMessage(message())">
+          Save
+        </button>
+        <button type="button" class="ghost small" (click)="service.cancelEditMessage()">
+          Cancel
+        </button>
+      </div>
+    } @else {
+      <p class="msg-text">{{ message().text }}</p>
+      <div class="msg-meta">
+        <small>{{ formatTime(message().timestamp) }}</small>
+        @if (session.trainMode()) {
+          <app-chat-message-meta [message]="message()" />
+        }
+      </div>
+
+      @if (message().role === 'assistant') {
+        <div class="message-actions">
+          <button
+            type="button"
+            class="action-btn"
+            (click)="service.copyMessage(message())"
+            title="Copy"
+            aria-label="Copy answer"
+          >
+            <span class="material-icons icon-xs" aria-hidden="true">content_copy</span>
+          </button>
+          @if (canRate()) {
+            <button
+              type="button"
+              class="action-btn like"
+              (click)="service.likeMessage(message())"
+              title="Good answer"
+              aria-label="Like"
+            >
+              <span class="material-symbols-outlined icon-xs" aria-hidden="true">thumb_up</span>
+            </button>
+            <button
+              type="button"
+              class="action-btn dislike"
+              (click)="service.dislikeMessage(message())"
+              title="Bad answer"
+              aria-label="Dislike"
+            >
+              <span class="material-symbols-outlined icon-xs" aria-hidden="true">thumb_down</span>
+            </button>
+          }
+        </div>
+      }
+    }
+  </div>
+</div>

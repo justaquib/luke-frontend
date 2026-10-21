@@ -1,0 +1,77 @@
+<header class="trainer-header">
+  <button
+    type="button"
+    class="icon-btn sidebar-toggle"
+    (click)="toggleSidebar()"
+    [attr.aria-label]="sidebarOpen() ? 'Hide sidebar' : 'Show sidebar'"
+    [attr.aria-expanded]="sidebarOpen()"
+    title="Toggle sidebar"
+  >
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <path
+        d="M3 6h18M3 12h18M3 18h18"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </button>
+  <div class="title-wrap">
+    <h1 class="editable-title">
+      @switch (store.tab()) {
+        @case ('inbox') {
+          Inbox
+        }
+        @case ('faqs') {
+          Trained answers
+        }
+        @case ('merge') {
+          Merge intents
+        }
+        @case ('new') {
+          New Q&A
+        }
+      }
+    </h1>
+    <p class="subtitle">
+      @switch (store.tab()) {
+        @case ('inbox') {
+          Teach the assistant by answering pending questions.
+        }
+        @case ('faqs') {
+          Review, edit and approve trained answers.
+        }
+        @case ('merge') {
+          Group paraphrases into one canonical intent.
+        }
+        @case ('new') {
+          Add a brand-new Q&A pair to the knowledge base.
+        }
+      }
+    </p>
+  </div>
+  <div class="header-actions">
+    @if (store.stats(); as stats) {
+      <span class="badge faq" [title]="stats.faqs + ' trained FAQs'">
+        {{ stats.faqs }} trained
+      </span>
+      <span class="badge pending" [title]="stats.pending + ' pending questions'">
+        {{ stats.pending }} pending
+      </span>
+    }
+    <button type="button" class="icon-btn" (click)="refresh()" aria-label="Refresh" title="Refresh">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <path
+          d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5M20 12a8 8 0 0 1-14 5l-2-2M4 20v-5h5"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+  </div>
+</header>

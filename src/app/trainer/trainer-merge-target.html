@@ -1,0 +1,44 @@
+@if (store.faqMergeTarget(); as target) {
+  <div class="card merge-target-card">
+    <header class="merge-target-header">
+      <div>
+        <strong class="q">{{ target.question }}</strong>
+        <span class="status-tag {{ target.status }}">{{ target.status }}</span>
+        <span class="meta">canonical id #{{ target.id }}</span>
+      </div>
+      <button type="button" class="ghost small" (click)="merge.cancelFaqMerge()">Cancel</button>
+    </header>
+    <p class="a">{{ target.answer }}</p>
+
+    @if (store.faqMergePreview(); as preview) {
+      <app-trainer-merge-candidates [target]="target" [preview]="preview" />
+    }
+
+    <label class="merge-answer">
+      <span>Answer (overrides canonical if changed)</span>
+      <textarea
+        rows="3"
+        [value]="store.faqMergeAnswer()"
+        (input)="merge.updateFaqMergeAnswer($any($event.target).value)"
+      ></textarea>
+    </label>
+    <div class="actions">
+      <button
+        type="button"
+        class="primary"
+        [disabled]="store.faqMergeBusy()"
+        (click)="merge.commitFaqMerge()"
+      >
+        @if (store.faqMergeBusy()) {
+          Merging…
+        } @else {
+          Merge & re-train aliases
+        }
+      </button>
+    </div>
+    <p class="hint">
+      Selected FAQs will be deleted and re-created as pending FAQs pointing at the same answer, so
+      each original phrasing remains searchable while the canonical answer lives on this row.
+    </p>
+  </div>
+}

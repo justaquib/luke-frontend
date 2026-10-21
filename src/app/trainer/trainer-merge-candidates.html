@@ -1,0 +1,88 @@
+<h4>Other FAQs close enough to absorb</h4>
+<div class="search-row">
+  <input
+    type="search"
+    class="search"
+    placeholder="Search by question or answer to add more FAQs…"
+    [value]="store.faqMergeSearch()"
+    (input)="merge.updateFaqMergeSearch($any($event.target).value)"
+    aria-label="Search FAQs to add to this merge"
+  />
+</div>
+
+@if (preview().matches.length === 0) {
+  <p class="empty">No other FAQ is close to this one. Use the search above to add specific ones.</p>
+} @else {
+  <ul class="merge-faq-list">
+    @for (match of preview().matches; track match.faq_id) {
+      <li class="merge-faq-row">
+        <label>
+          <input
+            type="checkbox"
+            [checked]="store.isFaqMergeSelected(match.faq_id)"
+            (change)="merge.toggleFaqMergeSelection(match.faq_id)"
+          />
+          <span class="merge-q">{{ match.question }}</span>
+        </label>
+        <span class="meta">
+          <span class="status-tag small {{ match.status }}">{{ match.status }}</span>
+          · dist {{ match.distance.toFixed(2) }}
+        </span>
+      </li>
+    }
+  </ul>
+}
+
+@if (store.faqMergeExtraMatches().length > 0) {
+  <h5>Manually added</h5>
+  <ul class="merge-faq-list">
+    @for (match of store.faqMergeExtraMatches(); track match.faq_id) {
+      <li class="merge-faq-row extra">
+        <label>
+          <input
+            type="checkbox"
+            [checked]="store.isFaqMergeSelected(match.faq_id)"
+            (change)="merge.toggleFaqMergeSelection(match.faq_id)"
+          />
+          <span class="merge-q">{{ match.question }}</span>
+        </label>
+        <span class="meta">
+          <span class="status-tag small {{ match.status }}">{{ match.status }}</span>
+          <button
+            type="button"
+            class="ghost xsmall"
+            (click)="merge.removeExtraMatch(match.faq_id)"
+            aria-label="Remove from merge"
+          >
+            Remove
+          </button>
+        </span>
+      </li>
+    }
+  </ul>
+}
+
+@if (store.faqMergeSearch().trim()) {
+  <h5>Search results</h5>
+  @if (merge.filteredFaqMergeCandidates().length === 0) {
+    <p class="empty">No other FAQs match your search.</p>
+  } @else {
+    <ul class="merge-faq-list">
+      @for (candidate of merge.filteredFaqMergeCandidates(); track candidate.id) {
+        <li class="merge-faq-row">
+          <span class="merge-q">{{ candidate.question }}</span>
+          <span class="meta">
+            <span class="status-tag small {{ candidate.status }}">{{ candidate.status }}</span>
+            <button
+              type="button"
+              class="primary xsmall"
+              (click)="merge.addFaqMergeCandidate(candidate)"
+            >
+              + Add
+            </button>
+          </span>
+        </li>
+      }
+    </ul>
+  }
+}

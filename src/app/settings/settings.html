@@ -1,0 +1,284 @@
+<div class="shell train-on">
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-header">
+      <a class="brand" routerLink="/chat" title="Go to chat">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="22" height="22">
+            <defs>
+              <linearGradient id="settings-brand-gradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#6366f1" />
+                <stop offset="1" stop-color="#a855f7" />
+              </linearGradient>
+            </defs>
+            <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#settings-brand-gradient)" />
+            <path d="M9 12c0-1.5 1-3 3-3h8c2 0 3 1.5 3 3v6c0 1.5-1 3-3 3h-5l-3 3v-3c-2 0-3-1.5-3-3z" fill="#fff" />
+            <circle cx="13" cy="15" r="1.2" fill="#6366f1" />
+            <circle cx="17" cy="15" r="1.2" fill="#6366f1" />
+            <circle cx="21" cy="15" r="1.2" fill="#6366f1" />
+          </svg>
+        </span>
+        <span class="brand-name">{{ botName() }}</span>
+      </a>
+    </div>
+
+    <nav class="nav-list" aria-label="Workspace">
+      <a class="nav-item" routerLink="/chat" routerLinkActive="active" ariaCurrentWhenActive="page">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path d="M3 6.5A2.5 2.5 0 0 1 5.5 4h13A2.5 2.5 0 0 1 21 6.5v9A2.5 2.5 0 0 1 18.5 18H8l-4 4v-4H5.5A2.5 2.5 0 0 1 3 15.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span class="nav-label">Chat</span>
+      </a>
+      <a class="nav-item" routerLink="/trainer" routerLinkActive="active" ariaCurrentWhenActive="page">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span class="nav-label">Training room</span>
+      </a>
+      <a class="nav-item" routerLink="/learner" routerLinkActive="active" ariaCurrentWhenActive="page">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span class="nav-label">Language Learner</span>
+      </a>
+      <a class="nav-item" routerLink="/brain" routerLinkActive="active" ariaCurrentWhenActive="page">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path d="M9 3a3 3 0 0 0-3 3v1a3 3 0 0 0-3 3 3 3 0 0 0 3 3v1a3 3 0 0 0 3 3M15 3a3 3 0 0 1 3 3v1a3 3 0 0 1 3 3 3 3 0 0 1-3 3v1a3 3 0 0 1-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span class="nav-label">Assistance Brain</span>
+      </a>
+      <a class="nav-item active" routerLink="/settings" aria-current="page">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <span class="nav-label">Settings</span>
+      </a>
+      @if (isSystemAdmin()) {
+        <a class="nav-item" routerLink="/tenants" routerLinkActive="active" ariaCurrentWhenActive="page">
+          <span class="nav-icon" aria-hidden="true">▦</span>
+          <span class="nav-label">System Admin</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <span class="status">
+        <span class="dot" [class.online]="backendStatus() === 'online'" [class.offline]="backendStatus() === 'offline'"></span>
+        {{ backendStatus() === 'online' ? 'Connected' : backendStatus() === 'offline' ? 'Offline' : 'Connecting…' }}
+      </span>
+    </div>
+  </aside>
+
+  <main class="settings-main">
+    <header class="page-header">
+      <div>
+        <p class="eyebrow"><span class="live-dot"></span> SETTINGS</p>
+        <h1>Settings</h1>
+        <p class="hero-description">
+          The connection to the backend, the places to teach, the live sources, and
+          everything the store holds.
+        </p>
+      </div>
+      <div class="page-readout">
+        <div class="readout-meta">
+          <span class="readout-caption">MODEL</span>
+          @if (store(); as summary) {
+            <strong>{{ summary.model.title }}</strong>
+            <span>{{ parameters(summary.model.parameters) }} weights · {{ summary.model.vocabulary }} words</span>
+          } @else {
+            <strong>Reading the model…</strong>
+          }
+        </div>
+      </div>
+    </header>
+
+    <div class="settings-page">
+      <section class="settings-card" aria-labelledby="settings-store-title">
+        <div class="card-heading">
+          <div>
+            <h2 id="settings-store-title">The store</h2>
+            <p>What the assistant has learned: the files it read, the answers it holds, and how much room they take.</p>
+          </div>
+          <button type="button" class="ghost small" (click)="refresh()" [disabled]="loading()">
+            @if (loading()) { Reading… } @else { Refresh }
+          </button>
+        </div>
+
+        @if (error(); as message) {
+          <p class="intent-error" role="alert">{{ message }}</p>
+        }
+
+        @if (store(); as summary) {
+          <div class="store-metrics">
+            <article class="store-metric">
+              <span class="metric-label">FILES</span>
+              <strong class="metric-value">{{ summary.totals.files }}</strong>
+              <span class="metric-note">documents ingested</span>
+            </article>
+            <article class="store-metric">
+              <span class="metric-label">CHUNKS</span>
+              <strong class="metric-value">{{ summary.totals.chunks }}</strong>
+              <span class="metric-note">passages read word by word</span>
+            </article>
+            <article class="store-metric">
+              <span class="metric-label">ANSWERS</span>
+              <strong class="metric-value">{{ summary.totals.answers }}</strong>
+              <span class="metric-note">approved answers</span>
+            </article>
+            <article class="store-metric">
+              <span class="metric-label">LESSONS</span>
+              <strong class="metric-value">{{ summary.totals.lessons }}</strong>
+              <span class="metric-note">questions and answers taught</span>
+            </article>
+            <article class="store-metric">
+              <span class="metric-label">PENDING</span>
+              <strong class="metric-value">{{ summary.totals.pending }}</strong>
+              <span class="metric-note">questions waiting for a trainer</span>
+            </article>
+            <article class="store-metric">
+              <span class="metric-label">VOCABULARY</span>
+              <strong class="metric-value">{{ summary.totals.vocabulary }}</strong>
+              <span class="metric-note">words the model can write with</span>
+            </article>
+          </div>
+
+          <div class="store-model">
+            <div>
+              <span class="metric-label">MODEL SIZE</span>
+              <strong>{{ parameters(summary.model.parameters) }}</strong>
+              <small>weights · {{ summary.model.name }}</small>
+            </div>
+            <div>
+              <span class="metric-label">ON DISK</span>
+              <strong>{{ bytes(summary.disk.learner_bytes) }}</strong>
+              <small>the learner's own file</small>
+            </div>
+            <div>
+              <span class="metric-label">VECTOR STORE</span>
+              <strong>{{ bytes(summary.disk.vector_store_bytes) }}</strong>
+              <small>the indexed passages</small>
+            </div>
+            <div>
+              <span class="metric-label">UPLOADS</span>
+              <strong>{{ bytes(summary.disk.uploads_bytes) }}</strong>
+              <small>the files that were given</small>
+            </div>
+            <div>
+              <span class="metric-label">CORPUS</span>
+              <strong>{{ summary.model.corpus_sentences }}</strong>
+              <small>sentences the model learns from</small>
+            </div>
+            <div>
+              <span class="metric-label">TRAINING</span>
+              <strong>{{ summary.model.steps }}</strong>
+              <small>steps · loss {{ summary.model.loss ?? '—' }}</small>
+            </div>
+          </div>
+
+          @if (summary.documents.length) {
+            <div class="store-files">
+              <h3>Files</h3>
+              <ul>
+                @for (document of summary.documents; track document.source) {
+                  <li>
+                    <span class="file-name">{{ document.source }}</span>
+                    <span class="file-meta">{{ document.chunks }} chunks</span>
+                  </li>
+                }
+              </ul>
+            </div>
+          } @else {
+            <p class="empty">No files have been ingested yet.</p>
+          }
+        } @else if (!loading()) {
+          <p class="empty">The store could not be read.</p>
+        }
+      </section>
+
+      <section class="settings-card" aria-labelledby="settings-connection-title">
+        <div class="card-heading">
+          <div>
+            <h2 id="settings-connection-title">Connection</h2>
+            <p>The backend that answers the questions and holds the knowledge.</p>
+          </div>
+        </div>
+        <p>Backend: <code>{{ backendUrl }}</code></p>
+        <p>
+          Status:
+          <span class="status-dot" [class.online]="backendStatus() === 'online'" [class.offline]="backendStatus() === 'offline'"></span>
+          {{ backendStatus() === 'online' ? 'Connected' : backendStatus() === 'offline' ? 'Offline' : 'Connecting…' }}
+        </p>
+      </section>
+
+      <section class="settings-card" aria-labelledby="settings-training-title">
+        <div class="card-heading">
+          <div>
+            <h2 id="settings-training-title">Training</h2>
+            <p>Review pending questions, add new Q&amp;A pairs, and clean up duplicates in the full Trainer page.</p>
+          </div>
+        </div>
+        <a class="primary-link" routerLink="/trainer">Open Trainer →</a>
+      </section>
+
+      <section class="settings-card" aria-labelledby="settings-learner-title">
+        <div class="card-heading">
+          <div>
+            <h2 id="settings-learner-title">Language Learner</h2>
+            <p>Practice and learn languages with the assistant.</p>
+          </div>
+        </div>
+        <a class="primary-link" routerLink="/learner">Open Learner →</a>
+      </section>
+
+      <section class="settings-card" aria-labelledby="settings-sources-title">
+        <div class="card-heading">
+          <div>
+            <h2 id="settings-sources-title">External sources</h2>
+            <p>When enabled, the assistant falls back to a live online source for matching questions after the trained knowledge base.</p>
+          </div>
+        </div>
+        <label class="toggle-row">
+          <input type="checkbox" [checked]="integrations.weatherEnabled()" (change)="toggleWeather($any($event.target).checked)" />
+          <span>
+            <strong>Weather</strong>
+            <small>Geocode a city or use your current coordinates.</small>
+          </span>
+        </label>
+        <label class="toggle-row">
+          <input type="checkbox" [checked]="integrations.wikiEnabled()" (change)="toggleWiki($any($event.target).checked)" />
+          <span>
+            <strong>Wikipedia</strong>
+            <small>Short summaries for “who is”, “what is …”.</small>
+          </span>
+        </label>
+        <div class="loc-row">
+          <button type="button" class="ghost small" (click)="requestLocation()">Use my current location</button>
+          @if (locationLabel(); as label) {
+            <span class="meta">📍 {{ label }}</span>
+          }
+        </div>
+      </section>
+
+      @if (isSystemAdmin()) {
+        <section class="settings-card" aria-labelledby="settings-admin-title">
+          <div class="card-heading">
+            <div>
+              <h2 id="settings-admin-title">System Admin</h2>
+              <p>Manage system administration tasks and tenant management.</p>
+            </div>
+          </div>
+          <a class="primary-link" routerLink="/tenants">System Admin Dashboard →</a>
+        </section>
+      }
+    </div>
+  </main>
+</div>

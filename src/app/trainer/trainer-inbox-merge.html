@@ -1,0 +1,58 @@
+<div class="merge-panel">
+  <p class="hint">
+    Pick which similar pending questions this canonical answer should also cover. They'll be created
+    as pending FAQs pointing at the same answer.
+  </p>
+  @if (store.mergeMatchesFor(pending()).length === 0) {
+    <p class="empty">No close matches found in the inbox.</p>
+  } @else {
+    <ul class="merge-list">
+      @for (match of store.mergeMatchesFor(pending()); track match.pending_id) {
+        <li class="merge-row">
+          <label>
+            <input
+              type="checkbox"
+              [checked]="store.isMergeMatchSelected(pending().id, match.pending_id)"
+              (change)="actions.toggleMergeMatch(pending().id, match.pending_id)"
+            />
+            <span class="merge-q">{{ match.question }}</span>
+          </label>
+          <span class="meta">
+            asked {{ match.occurrences }}× · dist {{ match.distance.toFixed(2) }}
+          </span>
+        </li>
+      }
+    </ul>
+  }
+  <label class="merge-answer">
+    <span>Answer for all of these</span>
+    <textarea
+      rows="2"
+      [value]="store.mergeAnswer()[pending().id] || ''"
+      (input)="actions.updateMergeAnswer(pending().id, $any($event.target).value)"
+      placeholder="The correct answer…"
+    ></textarea>
+  </label>
+  <div class="actions">
+    <button
+      type="button"
+      class="primary"
+      [disabled]="store.isMerging(pending())"
+      (click)="actions.commitMergeRow(pending())"
+    >
+      @if (store.isMerging(pending())) {
+        Merging…
+      } @else {
+        Merge & train
+      }
+    </button>
+    <button
+      type="button"
+      class="ghost"
+      (click)="actions.cancelMergeRow(pending())"
+      [disabled]="store.isMerging(pending())"
+    >
+      Cancel
+    </button>
+  </div>
+</div>

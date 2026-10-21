@@ -4,6 +4,127 @@ import { Observable, catchError, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 
+export type KnowledgeGraph = any;
+export type LanguageBrainState = any;
+export type LanguageModelState = any;
+export type ModelLevel = any;
+export type ModelLevelRung = any;
+export type LanguageDictionaryEntry = any;
+export type LanguagePreviewResponse = any;
+export type LanguageTest = any;
+export type LanguageTestFinishResult = any;
+export type QueryReasoning = any;
+export type ReasoningEdge = any;
+export type ReasoningNode = any;
+export type FaqItem2 = any;
+
+/** The words the answering model can write with, one page at a time. */
+export interface LanguageWordPage {
+  words: string[];
+  total: number;
+  offset: number;
+  limit: number;
+  has_more: boolean;
+}
+
+/** One lesson in a group of lessons that repeat each other. */
+export interface DuplicateLessonCard {
+  id: string;
+  question: string;
+  answer: string;
+  subject: string;
+  subjects: string[];
+  grade_id: string;
+  confidence: number;
+  created_at?: string | null;
+}
+
+/** A group of lessons that repeat each other. */
+export interface DuplicateGroup {
+  kind: 'same_question' | 'same_answer' | 'similar';
+  label: string;
+  detail: string;
+  key: string;
+  cards: DuplicateLessonCard[];
+}
+
+/** The lessons that repeat each other, and how many there are. */
+export interface DuplicateLessons {
+  groups: DuplicateGroup[];
+  total_questions: number;
+  duplicate_count: number;
+}
+
+/** What the brain knows about itself, with the level it has reached. */
+export interface LanguageBrainResponse {
+  state: LanguageBrainState;
+  model_level: ModelLevel;
+  sentence?: string | null;
+  training?: boolean;
+}
+
+/** The result of running the level tests again. */
+export interface LanguageLevelTest {
+  state: LanguageBrainState;
+  rungs: { rung: string; rate: number; passed?: number; probes?: number }[];
+  passed: number;
+  total: number;
+}
+
+/** The answer a grade test run gives back. */
+export interface LanguageTestStart {
+  state: LanguageModelState;
+  message?: string;
+  kind?: string;
+}
+
+/** The learner state after a test question or a score. */
+export interface LanguageTestState {
+  state: LanguageModelState;
+}
+
+/** The entry of a word the learner was taught. */
+export interface LanguageDictionaryLearn {
+  state: LanguageModelState;
+  entry: LanguageDictionaryEntry;
+}
+
+/** The sentence the learner built from the given words. */
+export interface LanguageSentence {
+  sentence: string | null;
+}
+
+/** What the assistant has stored: the files, the numbers and the size on disk. */
+export interface StoreSummary {
+  documents: { source: string; chunks: number; created_at?: string | null }[];
+  totals: {
+    files: number;
+    chunks: number;
+    answers: number;
+    pending: number;
+    lessons: number;
+    vocabulary: number;
+  };
+  model: {
+    name: string;
+    level: number;
+    title: string;
+    vocabulary: number;
+    parameters: number;
+    trained: boolean;
+    steps: number;
+    loss: number | null;
+    corpus_sentences: number;
+    corpus_tokens: number;
+  };
+  disk: {
+    learner_bytes: number;
+    vector_store_bytes: number;
+    uploads_bytes: number;
+  };
+}
+
+
 export interface QueryHit {
   text: string;
   metadata: { source: string };
@@ -338,6 +459,7 @@ export class ApiService {
     }
     return throwError(() => new Error(message));
   }
+
 }
 
 export interface Tenant {

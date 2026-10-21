@@ -1,95 +1,34 @@
-<div class="shell train-on" [class.sidebar-collapsed]="!sidebarOpen()" [class.vocab-open]="vocabOpen()">
-  <aside class="sidebar" aria-label="Main navigation">
-    <div class="sidebar-header">
-      <a class="brand" routerLink="/chat" title="Go to chat">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" width="22" height="22">
-            <defs>
-              <linearGradient id="brain-brand-gradient" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#6366f1" />
-                <stop offset="1" stop-color="#a855f7" />
-              </linearGradient>
-            </defs>
-            <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#brain-brand-gradient)" />
-            <path d="M9 12c0-1.5 1-3 3-3h8c2 0 3 1.5 3 3v6c0 1.5-1 3-3 3h-5l-3 3v-3c-2 0-3-1.5-3-3z" fill="#fff" />
-            <circle cx="13" cy="15" r="1.2" fill="#6366f1" />
-            <circle cx="17" cy="15" r="1.2" fill="#6366f1" />
-            <circle cx="21" cy="15" r="1.2" fill="#6366f1" />
-          </svg>
-        </span>
-        @if (sidebarOpen()) { <span class="brand-name">{{ botName() }}</span> }
-      </a>
-    </div>
-
-    <a class="new-chat" routerLink="/chat">
-      <span class="plus" aria-hidden="true">＋</span>
-      @if (sidebarOpen()) { <span>Open chat</span> }
-    </a>
-
-    <nav class="nav-list" aria-label="Workspace">
-      <a class="nav-item" routerLink="/chat" routerLinkActive="active">
-        <span class="nav-icon" aria-hidden="true">◉</span>
-        @if (sidebarOpen()) { <span class="nav-label">Chat</span> }
-      </a>
-      <a class="nav-item" routerLink="/trainer" routerLinkActive="active">
-        <span class="nav-icon" aria-hidden="true">✎</span>
-        @if (sidebarOpen()) { <span class="nav-label">Training room</span> }
-      </a>
-      <a class="nav-item active" routerLink="/brain" aria-current="page">
-        <span class="nav-icon" aria-hidden="true">◎</span>
-        @if (sidebarOpen()) { <span class="nav-label">Assistance Brain</span> }
-      </a>
-      @if (isSystemAdmin()) {
-        <a class="nav-item" routerLink="/tenants" routerLinkActive="active">
-          <span class="nav-icon" aria-hidden="true">▦</span>
-          @if (sidebarOpen()) { <span class="nav-label">System Admin</span> }
-        </a>
-      }
-    </nav>
-
-    <div class="sidebar-footer">
-      <button
-        type="button"
-        class="icon-btn sidebar-toggle"
-        (click)="toggleSidebar()"
-        [attr.aria-label]="sidebarOpen() ? 'Hide sidebar' : 'Show sidebar'"
-        [attr.aria-expanded]="sidebarOpen()"
-        title="Toggle sidebar"
-      >
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-          <path d="M3 6h18M3 12h18M3 18h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-        </svg>
-      </button>
-    </div>
-  </aside>
-
+<app-shell
+  [open]="sidebarOpen()"
+  [aside]="vocabOpen() || sourcesOpen()"
+  [class.sidebar-collapsed]="!sidebarOpen()"
+  [class.aside-open]="vocabOpen() || sourcesOpen()"
+  (toggled)="toggleSidebar()"
+>
   <main class="brain-main">
-    <header class="page-header">
-      <div>
-        <p class="eyebrow"><span class="live-dot"></span> SYSTEM PROFILE</p>
-        <h1>Assistance Brain</h1>
-        <p class="hero-description">A view of what the assistant has learned, what it remembers, and what still needs an answer.</p>
+    <app-page-header
+      eyebrow="SYSTEM PROFILE"
+      title="Assistance Brain"
+      description="A view of what the assistant has learned, what it remembers, and what still needs an answer."
+    >
+      <div class="stage-orbit" aria-hidden="true">
+        <span class="orbit-core"></span>
+        <span class="orbit-node orbit-node-one"></span>
+        <span class="orbit-node orbit-node-two"></span>
+        <span class="orbit-node orbit-node-three"></span>
       </div>
-      <div class="stage-readout" aria-live="polite">
-        <div class="stage-orbit" aria-hidden="true">
-          <span class="orbit-core"></span>
-          <span class="orbit-node orbit-node-one"></span>
-          <span class="orbit-node orbit-node-two"></span>
-          <span class="orbit-node orbit-node-three"></span>
-        </div>
-        <div class="stage-meta">
-          <span class="stage-caption">MODEL LEVEL</span>
-          @if (modelLevel(); as level) {
-            <strong>{{ level.title }}</strong>
-            <span>{{ level.description }}</span>
-          } @else if (loading()) {
-            <strong>Reading the model…</strong>
-          } @else {
-            <strong>Level unavailable</strong>
-          }
-        </div>
+      <div class="stage-meta" aria-live="polite">
+        <span class="stage-caption">MODEL LEVEL</span>
+        @if (modelLevel(); as level) {
+          <strong>{{ level.title }}</strong>
+          <span>{{ level.description }}</span>
+        } @else if (loading()) {
+          <strong>Reading the model…</strong>
+        } @else {
+          <strong>Level unavailable</strong>
+        }
       </div>
-    </header>
+    </app-page-header>
 
     <section class="brain-hero" aria-label="Assistant brain visualisation">
       <div class="brain-stage" [style.--brain-activity]="brainActivity()" aria-hidden="true">
@@ -252,9 +191,21 @@
             <p class="eyebrow dark-eyebrow">THE NEURAL BRAIN</p>
             <h2>What it has trained on</h2>
           </div>
-          <button class="refresh-button" type="button" (click)="trainBrain()" [disabled]="brainTraining()">
-            @if (brainTraining()) { Training… } @else { Train the brain }
-          </button>
+          <div class="heading-actions">
+            <button
+              type="button"
+              class="icon-btn info-button"
+              (click)="toggleSources()"
+              [attr.aria-expanded]="sourcesOpen()"
+              aria-label="Show what the brain trains from"
+              title="What it trains from"
+            >
+              <span aria-hidden="true">i</span>
+            </button>
+            <button class="refresh-button" type="button" (click)="trainBrain()" [disabled]="brainTraining() || brainTesting()">
+              @if (brainTraining()) { Training… } @else { Train the brain }
+            </button>
+          </div>
         </div>
         @if (brainState(); as brain) {
           <div class="brain-stat-row">
@@ -325,8 +276,8 @@
             <p class="eyebrow dark-eyebrow">HOW TO ADVANCE</p>
             <h2>Climb the ladder</h2>
           </div>
-          <button class="refresh-button" type="button" (click)="trainBrain()" [disabled]="brainTraining()">
-            @if (brainTraining()) { Testing… } @else { Test my level }
+          <button class="refresh-button" type="button" (click)="testLevel()" [disabled]="brainTesting() || brainTraining()">
+            @if (brainTesting()) { Testing… } @else { Test my level }
           </button>
         </div>
         <p class="ladder-intro">
@@ -375,6 +326,34 @@
                 <div>
                   <strong>{{ probe.question }}</strong>
                   <small>{{ probe.answered ? 'Answered from what it learned' : 'It does not know this yet' }}</small>
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      @if (instructionTotal() > 0) {
+        <section class="ladder-section generality-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow dark-eyebrow">THE INSTRUCTION TEST</p>
+              <h2>Requests it was never worded for</h2>
+            </div>
+            <span class="generality-score">{{ (instructionScore() * 100) | number: '1.0-0' }}% answered</span>
+          </div>
+          <p class="ladder-intro">
+            The material is in Luke's lessons, but these requests are worded in ways it was never
+            taught. It answers them by writing from what you taught, and it says so when it does
+            not know the subject.
+          </p>
+          <ul class="probe-list generality-list">
+            @for (probe of instructionProbes(); track probe.question) {
+              <li [class.probe-pass]="probe.correct" [class.probe-fail]="!probe.correct">
+                <span class="probe-mark" aria-hidden="true">{{ probe.correct ? '✓' : '×' }}</span>
+                <div>
+                  <strong>{{ probe.question }}</strong>
+                  <small>{{ probe.correct ? 'Answered from what it learned' : 'It did not get it right' }}</small>
                 </div>
               </li>
             }
@@ -611,26 +590,9 @@
   </main>
 
   @if (vocabOpen()) {
-    <aside class="vocab-panel" aria-label="Vocabulary">
-      <div class="vocab-panel-head">
-        <span class="metric-label">VOCABULARY</span>
-        <span class="vocab-panel-count">{{ vocabTotal() }}</span>
-      </div>
-      <p class="vocab-panel-note">Every word the answering model can write with. The list loads as you scroll.</p>
-      <div class="vocab-list" (scroll)="onVocabularyScroll($event)">
-        @for (word of vocabWords(); track $index) {
-          <span class="vocab-word">{{ word }}</span>
-        }
-        @if (vocabLoading()) {
-          <span class="vocab-status">Loading more words&hellip;</span>
-        }
-        @if (!vocabLoading() && vocabWords().length === 0) {
-          <span class="vocab-status">No words yet.</span>
-        }
-        @if (vocabFinished() && vocabWords().length > 0) {
-          <span class="vocab-status">All {{ vocabTotal() }} words</span>
-        }
-      </div>
-    </aside>
+    <app-brain-vocabulary-panel (closed)="closeVocabulary()" />
   }
-</div>
+  @if (sourcesOpen()) {
+    <app-brain-training-panel (closed)="closeSources()" />
+  }
+</app-shell>

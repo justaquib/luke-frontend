@@ -1,0 +1,40 @@
+<section class="features" id="features">
+  <h2>Everything you need, nothing you don't</h2>
+  <p class="section-lead">
+    Built so you can ship in an afternoon, not run a side-quest in vector databases.
+  </p>
+  <div class="feature-grid">
+    @for (f of features; track f.title) {
+      <article class="feature-card">
+        <div class="feature-icon" aria-hidden="true">{{ f.icon }}</div>
+        <h3>{{ f.title }}</h3>
+        <p>{{ f.body }}</p>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="how" id="how">
+  <h2>From blank database to helpful bot in three steps</h2>
+  <div class="step-grid">
+    @for (s of steps; track s.num) {
+      <article class="step-card">
+        <span class="step-num">{{ s.num }}</span>
+        <h3>{{ s.title }}</h3>
+        <p>{{ s.body }}</p>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="stack" id="stack">
+  <h2>Built on the shoulders of great open source</h2>
+  <ul class="stack-list">
+    @for (t of techStack; track t) {
+      <li>{{ t }}</li>
+    }
+  </ul>
+  <p class="section-lead">
+    No vendor lock-in. No SaaS bills. Your data, your hardware, your rules.
+  </p>
+</section>

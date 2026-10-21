@@ -1,0 +1,70 @@
+<div class="status-pills">
+  @for (filter of filters; track filter) {
+    <button
+      type="button"
+      class="status-pill {{ filter }}"
+      [class.active]="store.statusFilter() === filter"
+      (click)="store.setStatusFilter(filter)"
+    >
+      {{ filter | titlecase }} <span class="count">{{ store.statusCounts()[filter] }}</span>
+    </button>
+  }
+</div>
+
+<div class="search-row">
+  <input
+    type="search"
+    class="search"
+    placeholder="Search questions or answers…"
+    [value]="store.faqSearch()"
+    (input)="actions.updateSearch($any($event.target).value)"
+    aria-label="Search trained answers"
+  />
+  <button
+    type="button"
+    class="dup-toggle"
+    [class.on]="store.showDuplicatesOnly()"
+    (click)="actions.toggleDuplicates()"
+  >
+    @if (store.showDuplicatesOnly()) {
+      ◉ Duplicates only
+    } @else {
+      ○ Duplicates only
+    }
+  </button>
+  <button
+    type="button"
+    class="ghost small"
+    (click)="actions.clearSearch()"
+    [disabled]="!store.faqSearch() && !store.showDuplicatesOnly() && store.statusFilter() === 'all'"
+  >
+    Clear
+  </button>
+</div>
+
+@if (store.duplicateGroups().length > 0) {
+  <app-trainer-faq-duplicates />
+}
+
+@if (store.filteredFaqs().length === 0) {
+  <p class="empty">
+    @if (store.faqSearch() || store.showDuplicatesOnly() || store.statusFilter() !== 'all') {
+      No trained answers match your filter.
+    } @else {
+      No trained answers yet.
+    }
+  </p>
+} @else {
+  <p class="result-count">Showing {{ store.filteredFaqs().length }} of {{ store.faqs().length }}</p>
+  <ul class="list">
+    @for (faq of store.filteredFaqs(); track faq.id) {
+      <li
+        class="card faq-card"
+        [class.intent-canonical]="store.isIntentCanonical(faq)"
+        [class.intent-alias]="store.isIntentAlias(faq)"
+      >
+        <app-trainer-faq-card [faq]="faq" />
+      </li>
+    }
+  </ul>
+}
