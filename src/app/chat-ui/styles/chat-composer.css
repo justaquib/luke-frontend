@@ -1,0 +1,59 @@
+/* The box at the bottom where the message is written and sent. */
+:host {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.composer {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.8rem 1.25rem;
+  border-top: 1px solid #e5e7eb;
+  background: #ffffff;
+  flex: 0 0 auto;
+  align-items: flex-end;
+}
+
+:host(.train-on) .composer {
+  background: #1e293b;
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.composer-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  line-height: 1.4;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  resize: none;
+  overflow-y: auto;
+  max-height: 200px;
+  background: white;
+  color: #111827;
+}
+
+:host(.train-on) .composer-input {
+  background: #0f172a;
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.send-btn {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 10px;
+  border: 0;
+  background: #4f46e5;
+  color: white;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

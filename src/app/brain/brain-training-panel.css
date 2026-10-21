@@ -37,6 +37,48 @@
   font-size: 0.75rem;
 }
 
+.training-live {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.15rem 0.45rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(129, 140, 248, 0.45);
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.12);
+}
+
+.training-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #818cf8;
+  box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.18);
+  animation: training-pulse 1.6s ease-in-out infinite;
+}
+
+.training-live strong {
+  color: #c7d2fe;
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.training-live-numbers {
+  grid-column: 2;
+  color: #94a3b8;
+  font-size: 0.7rem;
+}
+
+@keyframes training-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
 .training-totals {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

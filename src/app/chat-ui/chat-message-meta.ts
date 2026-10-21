@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { ChatService } from './chat.service';
+import { ChatSessionService } from './chat-session.service';
 import type { ChatMessage, ChatSource } from './chat.types';
 
 const SOURCE_LABELS: Record<ChatSource, string> = {
@@ -15,17 +16,15 @@ const SOURCE_LABELS: Record<ChatSource, string> = {
   selector: 'app-chat-message-meta',
   standalone: true,
   templateUrl: './chat-message-meta.html',
-  styleUrls: [
-    './styles/chat-1.css',
-    './styles/chat-2.css',
-    './styles/chat-3.css',
-    './styles/chat-4.css',
-    './styles/chat-5.css',
-  ],
+  styleUrl: './styles/chat-message-meta.css',
+  host: {
+    '[class.train-on]': 'session.trainMode()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatMessageMeta {
   protected readonly service = inject(ChatService);
+  protected readonly session = inject(ChatSessionService);
   readonly message = input.required<ChatMessage>();
 
   protected sourceLabel(): string | null {

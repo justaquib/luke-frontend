@@ -55,6 +55,29 @@ export interface TrainingSources {
 /** The kinds of lesson the learner can be taught. */
 export type LessonKind = 'qa' | 'story';
 
+/** What the brain knows about itself, as the training panel reads it. */
+export interface BrainTrainingState {
+  vocabulary?: number;
+  training?: boolean;
+  transformer?: {
+    trained?: boolean;
+    steps?: number;
+    loss?: number | null;
+    vocabulary?: number;
+    device?: string;
+  };
+}
+
+/** The answer the assistant is taught when it answered wrongly. */
+export interface BrainCorrection {
+  faq_id: number;
+  question: string;
+  answer: string;
+  learned: boolean;
+  answer_now: string;
+  corrections: number;
+}
+
 /**
  * The calls of the language learner and the assistance brain. They live in
  * their own service so the learner pages do not grow with every new route.
@@ -99,6 +122,19 @@ export class LanguageModelApiService extends BaseApiService {
     return this.http.get<TrainingSources>(`${this.base}/language-model/brain/sources`, {
       headers: this.authHeaders(),
     });
+  }
+
+  /** Teach the assistant the right answer to a question it answered wrongly. */
+  correctAnswer(
+    question: string,
+    wrongAnswer: string,
+    correction: string,
+  ): Observable<BrainCorrection> {
+    return this.http.post<BrainCorrection>(
+      `${this.base}/language-model/brain/correction`,
+      { question, answer: wrongAnswer, correction },
+      { headers: this.authHeaders() },
+    );
   }
 
   trainLanguageModelBrain(): Observable<LanguageBrainResponse> {

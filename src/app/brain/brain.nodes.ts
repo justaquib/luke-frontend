@@ -1,3 +1,19 @@
+/** One stage of the brain: how much it knows. */
+export interface BrainStage {
+  name: string;
+  minimum: number;
+  description: string;
+}
+
+/** The stages the brain page shows, from the least knowledge to the most. */
+export const BRAIN_STAGES: BrainStage[] = [
+  { name: 'Newborn', minimum: 0, description: 'No indexed knowledge yet' },
+  { name: 'Learning', minimum: 1, description: 'The first knowledge is taking shape' },
+  { name: 'Capable', minimum: 25, description: 'A growing base of learned material' },
+  { name: 'Skilled', minimum: 100, description: 'A substantial indexed knowledge base' },
+  { name: 'Experienced', minimum: 500, description: 'A broad library of learned material' },
+];
+
 /** One point of the drawn brain on the page. */
 export interface BrainNode {
   id: number;
@@ -52,3 +68,43 @@ export const KNOWLEDGE_NODES: BrainNode[] = [
   { id: 39, x: 68, y: 82, delay: 640 },
   { id: 40, x: 59, y: 78, delay: 300 },
 ];
+
+/** One node of the knowledge graph: a subject, or a lesson of one. */
+export interface GraphNode {
+  id: string;
+  type: string;
+  label?: string;
+  count?: number;
+  grade?: string;
+}
+
+/** Where a node of the knowledge graph is drawn. */
+export interface GraphPoint {
+  x: number;
+  y: number;
+}
+
+/**
+ * The place of a node of the knowledge graph.
+ *
+ * The subjects stand in a column on the left, and the lessons of every
+ * subject stand in four columns on the right.
+ */
+export function graphPoint(id: string, graph: { nodes: GraphNode[] }): GraphPoint {
+  const nodes = graph?.nodes ?? [];
+  const subjects = nodes.filter((node) => node.type === 'subject');
+  const lessons = nodes.filter((node) => node.type !== 'subject');
+  const subject = subjects.find((node) => node.id === id);
+  if (subject) {
+    const index = subjects.indexOf(subject);
+    const step = 470 / Math.max(subjects.length - 1, 1);
+    return { x: 130, y: 30 + index * step };
+  }
+  const index = lessons.findIndex((node) => node.id === id);
+  if (index < 0) return { x: 0, y: 0 };
+  const perColumn = Math.ceil(lessons.length / 4);
+  const column = Math.floor(index / perColumn);
+  const row = index % perColumn;
+  const step = 470 / Math.max(perColumn - 1, 1);
+  return { x: 400 + column * 145, y: 30 + row * step };
+}

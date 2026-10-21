@@ -1,5 +1,5 @@
 import { Injectable, signal, effect, computed, inject } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { UiService } from '../shared/ui.service';
@@ -40,6 +40,10 @@ export class AuthService {
   private readonly _user = signal<User | null>(this.readUser());
   readonly user = this._user.asReadonly();
 
+  /** The page the user wanted, kept while they sign in. */
+  private readonly _returnUrl = signal<string | null>(null);
+  readonly returnUrl = this._returnUrl.asReadonly();
+
   readonly isLoggedIn = computed(() => !!this._token() && !!this._user());
 
   constructor() {
@@ -57,7 +61,7 @@ export class AuthService {
     }
   }
 
-  loginWithGoogle(inviteToken?: string) {
+  loginWithGoogle(inviteToken?: string): void {
     if (!environment.googleClientId || environment.googleClientId === 'YOUR_GOOGLE_CLIENT_ID') {
       this.ui.error('Google Client ID is not configured.');
       return;
@@ -97,40 +101,36 @@ export class AuthService {
     const body: Record<string, string> = { id_token: response.credential };
     if (inviteToken) body['invite_token'] = inviteToken;
 
-    this.http
-      .post<{ access_token: string }>(`${this.base}/auth/google`, body)
-      .subscribe({
-        next: (res) => {
-          this._token.set(res.access_token);
-          this.fetchMe();
-        },
-        error: (err: Error) => {
-          this.ui.error(err.message || 'Google sign-in failed.');
-        },
-      });
+    this.http.post<{ access_token: string }>(`${this.base}/auth/google`, body).subscribe({
+      next: (res) => {
+        this._token.set(res.access_token);
+        this.fetchMe();
+      },
+      error: (err: Error) => {
+        this.ui.error(err.message || 'Google sign-in failed.');
+      },
+    });
   }
 
-  loginWithSystemAdmin(pin: string) {
-    this.http
-      .post<{ access_token: string }>(`${this.base}/auth/systemadmin`, { pin })
-      .subscribe({
-        next: (res) => {
-          this._token.set(res.access_token);
-          this.fetchMe();
-        },
-        error: (err: Error) => {
-          this.ui.error(err.message || 'System admin login failed.');
-        },
-      });
+  loginWithSystemAdmin(pin: string): void {
+    this.http.post<{ access_token: string }>(`${this.base}/auth/systemadmin`, { pin }).subscribe({
+      next: (res) => {
+        this._token.set(res.access_token);
+        this.fetchMe();
+      },
+      error: (err: Error) => {
+        this.ui.error(err.message || 'System admin login failed.');
+      },
+    });
   }
 
   systemAdminStatus() {
     return this.http.get<{ configured: boolean; email?: string }>(
-      `${this.base}/auth/systemadmin/status`
+      `${this.base}/auth/systemadmin/status`,
     );
   }
 
-  fetchMe() {
+  fetchMe(announce = true): void {
     const token = this._token();
     if (!token) return;
     this.http
@@ -140,15 +140,59 @@ export class AuthService {
       .subscribe({
         next: (user) => {
           this._user.set(user);
+          if (!announce) return;
           this.ui.success('Signed in successfully.');
           this.redirectAfterLogin();
         },
-        error: () => this.logout(),
+        error: () => {
+          this.clearSession();
+          if (announce) this.ui.error('Your account could not be read. Please sign in again.');
+        },
       });
   }
 
-  redirectAfterLogin() {
+  /**
+   * Check the session that was saved, and renew it while it is still good.
+   *
+   * A session that has ended is cleared with a word, so the user knows why
+   * they are asked to sign in again, and a session that is still good is
+   * renewed, so they do not have to sign in again every day.
+   */
+  restoreSession(): void {
+    const token = this._token();
+    if (!token) return;
+    this.http
+      .post<{ access_token: string }>(
+        `${this.base}/auth/refresh`,
+        {},
+        { headers: this.authHeaders() },
+      )
+      .subscribe({
+        next: (res) => {
+          this._token.set(res.access_token);
+          this.fetchMe(false);
+        },
+        error: () => {
+          this.clearSession();
+          this.ui.error('Your session has ended. Please sign in again.');
+          this.router.navigate(['/login']);
+        },
+      });
+  }
+
+  /** Keep the page the user wanted, so they land there after they sign in. */
+  rememberPage(url: string): void {
+    if (url && url !== '/login' && url !== '/systemadmin') this._returnUrl.set(url);
+  }
+
+  redirectAfterLogin(): void {
     if (!this.isLoggedIn()) return;
+    const wanted = this._returnUrl();
+    this._returnUrl.set(null);
+    if (wanted) {
+      this.router.navigateByUrl(wanted);
+      return;
+    }
     const user = this._user();
     if (!user) return;
     if (user.is_systemadmin) {
@@ -160,14 +204,24 @@ export class AuthService {
     }
   }
 
-  logout() {
-    this._token.set(null);
-    this._user.set(null);
+  logout(): void {
+    this.clearSession();
     try {
       localStorage.removeItem(ROLE_KEY);
       localStorage.removeItem(TENANT_KEY);
     } catch {}
     this.router.navigate(['/']);
+  }
+
+  /** Forget the session, without leaving the page the user is on. */
+  private clearSession(): void {
+    this._token.set(null);
+    this._user.set(null);
+  }
+
+  private authHeaders(): Record<string, string> {
+    const token = this._token();
+    return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
   private readToken(): string | null {

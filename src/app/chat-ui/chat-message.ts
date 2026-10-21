@@ -9,13 +9,10 @@ import type { ChatMessage as ChatMessageModel } from './chat.types';
   standalone: true,
   imports: [ChatMessageMeta],
   templateUrl: './chat-message.html',
-  styleUrls: [
-    './styles/chat-1.css',
-    './styles/chat-2.css',
-    './styles/chat-3.css',
-    './styles/chat-4.css',
-    './styles/chat-5.css',
-  ],
+  styleUrls: ['./styles/chat-message.css', './styles/chat-bubble.css'],
+  host: {
+    '[class.train-on]': 'session.trainMode()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatMessage {

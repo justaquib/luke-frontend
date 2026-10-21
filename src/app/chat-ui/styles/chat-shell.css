@@ -1,0 +1,66 @@
+/* The frame of the chat page: the sidebar on the left, the chat on the right. */
+:host {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  background: #f3f4f6;
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow: hidden;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  width: 100%;
+  height: 100%;
+  transition: grid-template-columns 0.2s ease;
+}
+
+.shell.train-on {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.shell.sidebar-collapsed {
+  grid-template-columns: 0 1fr;
+}
+
+.shell:not(.sidebar-collapsed) .chat-area {
+  border-left: 1px solid #e5e7eb;
+}
+
+.shell.train-on:not(.sidebar-collapsed) .chat-area {
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ---------- Chat area ---------- */
+.chat-area {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: #ffffff;
+  border-left: 1px solid #e5e7eb;
+}
+
+.shell.train-on .chat-area {
+  background: #0f172a;
+  border-left-color: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+}
+
+/* ---------- Train banner ---------- */
+.train-banner {
+  padding: 0.7rem 1.25rem;
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(251, 191, 36, 0.25);
+}
+
+.train-banner strong {
+  color: #fcd34d;
+  margin-right: 0.4rem;
+}

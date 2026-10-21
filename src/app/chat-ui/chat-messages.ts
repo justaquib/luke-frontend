@@ -19,13 +19,10 @@ import { ChatSessionService } from './chat-session.service';
   standalone: true,
   imports: [ChatMessage],
   templateUrl: './chat-messages.html',
-  styleUrls: [
-    './styles/chat-1.css',
-    './styles/chat-2.css',
-    './styles/chat-3.css',
-    './styles/chat-4.css',
-    './styles/chat-5.css',
-  ],
+  styleUrls: ['./styles/chat-messages.css', './styles/chat-bubble.css'],
+  host: {
+    '[class.train-on]': 'session.trainMode()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatMessages implements AfterViewChecked {

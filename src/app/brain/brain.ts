@@ -1,34 +1,40 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { ApiService, FaqItem, KnowledgeGraph, LanguageBrainState, LanguageModelState, ModelLevel, ModelLevelRung, StatsResponse } from '../core/api.service';
+import {
+  ApiService,
+  FaqItem,
+  KnowledgeGraph,
+  LanguageBrainState,
+  LanguageModelState,
+  ModelLevel,
+  ModelLevelRung,
+  StatsResponse,
+} from '../core/api.service';
 import { LanguageModelApiService } from '../core/api/language-model-api.service';
 import { AppPageHeader } from '../shared/app-page-header';
 import { UiService } from '../shared/ui.service';
 import { AppShell } from '../shared/app-shell';
 import { BrainTrainingPanel } from './brain-training-panel';
 import { BrainVocabularyPanel } from './brain-vocabulary-panel';
-import { KNOWLEDGE_NODES } from './brain.nodes';
-
-interface BrainStage {
-  name: string;
-  minimum: number;
-  description: string;
-}
+import { rungHint, rungName, rungState, type RungState } from './brain.ladder';
+import { BRAIN_STAGES, graphPoint, KNOWLEDGE_NODES } from './brain.nodes';
 
 interface MergedIntentGroup {
   canonical: FaqItem;
   variants: FaqItem[];
 }
 
-function float(value: number | string): number {
-  const parsed = typeof value === 'number' ? value : parseFloat(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
 @Component({
   selector: 'app-brain',
-  imports: [CommonModule, RouterLink, AppShell, AppPageHeader, BrainTrainingPanel, BrainVocabularyPanel],
+  imports: [
+    CommonModule,
+    RouterLink,
+    AppShell,
+    AppPageHeader,
+    BrainTrainingPanel,
+    BrainVocabularyPanel,
+  ],
   templateUrl: './brain.html',
   styleUrl: './brain.css',
 })
@@ -49,7 +55,9 @@ export class Brain implements OnInit {
   protected readonly brainState = signal<LanguageBrainState | null>(null);
   protected readonly guideOpen = signal(false);
   protected readonly selectedRung = signal<string | null>(null);
-  protected readonly modelLevel = computed<ModelLevel | null>(() => this.brainState()?.model_level ?? null);
+  protected readonly modelLevel = computed<ModelLevel | null>(
+    () => this.brainState()?.model_level ?? null,
+  );
   protected readonly ladderRungs = computed(() =>
     (this.modelLevel()?.levels ?? []).filter((entry: any) => entry.level <= 1),
   );
@@ -57,30 +65,24 @@ export class Brain implements OnInit {
     this.ladderRungs().filter((entry: any) => Math.round(entry.level * 10) % 2 === 0),
   );
   protected rungName(rung: string): string {
-    const entry = this.modelLevel()?.levels?.find((item: any) => item.level.toFixed(1) === rung);
-    return entry?.name ?? 'Seed';
+    return rungName(rung, this.modelLevel()?.levels);
   }
 
-  /** A rung above the current level passes on its own, but Luke has to climb to it in order. */
-  protected rungState(rung: ModelLevelRung): 'passed' | 'ahead' | 'open' {
-    const level = this.modelLevel()?.level ?? 0;
-    if (float(rung.rung) <= level) return 'passed';
-    if (rung.rate >= 0.6) return 'ahead';
-    return 'open';
+  protected rungState(rung: ModelLevelRung): RungState {
+    return rungState(rung, this.modelLevel()?.level ?? 0);
   }
 
   protected rungHint(rung: ModelLevelRung): string {
-    const state = this.rungState(rung);
-    if (state === 'ahead') {
-      const level = this.modelLevel()?.level ?? 0;
-      return `It clears this test on its own, but Luke is still at ${level.toFixed(1)}. The rung below has to be passed first.`;
-    }
-    return rung.test ?? '';
+    return rungHint(rung, this.modelLevel()?.level ?? 0);
   }
 
   protected readonly generalityProbes = computed(() => this.modelLevel()?.generality_probes ?? []);
-  protected readonly instructionProbes = computed(() => this.modelLevel()?.instruction_probes ?? []);
-  protected readonly instructionScore = computed(() => this.modelLevel()?.instruction_following ?? 0);
+  protected readonly instructionProbes = computed(
+    () => this.modelLevel()?.instruction_probes ?? [],
+  );
+  protected readonly instructionScore = computed(
+    () => this.modelLevel()?.instruction_following ?? 0,
+  );
   protected readonly instructionTotal = computed(() => this.modelLevel()?.instruction_total ?? 0);
 
   protected readonly volumeProgress = computed(() => {
@@ -93,13 +95,9 @@ export class Brain implements OnInit {
   protected readonly selectedNode = signal<{ label: string; detail: string } | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly stages: BrainStage[] = [
-    { name: 'Newborn', minimum: 0, description: 'No indexed knowledge yet' },
-    { name: 'Learning', minimum: 1, description: 'The first knowledge is taking shape' },
-    { name: 'Capable', minimum: 25, description: 'A growing base of learned material' },
-    { name: 'Skilled', minimum: 100, description: 'A substantial indexed knowledge base' },
-    { name: 'Experienced', minimum: 500, description: 'A broad library of learned material' },
-  ];
+  protected readonly stages = BRAIN_STAGES;
+
+  protected readonly graphPoint = graphPoint;
   protected readonly knowledgeNodes = KNOWLEDGE_NODES;
 
   protected readonly knowledgeItems = computed(() => {
@@ -118,10 +116,14 @@ export class Brain implements OnInit {
   });
 
   protected readonly currentStage = computed(() => this.stages[this.stageIndex()]);
-  protected readonly stageProgress = computed(() => (this.stageIndex() / (this.stages.length - 1)) * 100);
+  protected readonly stageProgress = computed(
+    () => (this.stageIndex() / (this.stages.length - 1)) * 100,
+  );
 
   protected readonly approvedQuestions = computed(() =>
-    this.trainedQuestions().filter((faq: any) => faq.status === 'approved').slice(0, 5),
+    this.trainedQuestions()
+      .filter((faq: any) => faq.status === 'approved')
+      .slice(0, 5),
   );
   protected readonly approvedQuestionCount = computed(
     () => this.trainedQuestions().filter((faq: any) => faq.status === 'approved').length,
@@ -136,8 +138,8 @@ export class Brain implements OnInit {
     return Math.min(this.knowledgeNodes.length, Math.round(Math.log2(signal + 1) * 3.1));
   });
 
-  protected readonly brainActivity = computed(() =>
-    this.activeNodeCount() / this.knowledgeNodes.length,
+  protected readonly brainActivity = computed(
+    () => this.activeNodeCount() / this.knowledgeNodes.length,
   );
 
   protected readonly learnerStage = computed(() => this.learnerState()?.stage ?? 'Not started');
@@ -208,7 +210,12 @@ export class Brain implements OnInit {
 
   protected loadBrainState(): void {
     this.languageApi.languageModelBrain().subscribe({
-      next: (state: any) => this.brainState.set(state),
+      next: (state: any) => {
+        this.brainState.set(state);
+        // A training that is already running is shown with the panel open, so
+        // the trainer can see what it is learning while it learns.
+        if (state?.training) this.sourcesOpen.set(true);
+      },
       error: () => this.brainState.set(null),
     });
   }
@@ -218,6 +225,9 @@ export class Brain implements OnInit {
     this.brainTraining.set(true);
     this.brainSentence.set(null);
     const before = this.brainState()?.vocabulary ?? 0;
+    // The panel opens with the training, so the trainer can watch what it is
+    // learning from and how it is learning it.
+    this.sourcesOpen.set(true);
     this.languageApi.trainLanguageModelBrain().subscribe({
       next: (result: any) => {
         this.brainState.set(result.state);
@@ -319,33 +329,22 @@ export class Brain implements OnInit {
     this.loadKnowledgeGraph();
   }
 
-  protected selectGraphNode(node: { label: string; type: string; count?: number; grade?: string }): void {
+  protected selectGraphNode(node: {
+    label: string;
+    type: string;
+    count?: number;
+    grade?: string;
+  }): void {
     this.selectedNode.set({
       label: node.label,
-      detail: node.type === 'subject'
-        ? `${node.count ?? 0} lesson${node.count === 1 ? '' : 's'} in this subject`
-        : `Taught in ${node.grade ?? 'nursery'}`,
+      detail:
+        node.type === 'subject'
+          ? `${node.count ?? 0} lesson${node.count === 1 ? '' : 's'} in this subject`
+          : `Taught in ${node.grade ?? 'nursery'}`,
     });
   }
 
   /** Subjects on the left, the lessons they hold on the right in four columns. */
-  protected graphPoint(id: string, graph: KnowledgeGraph): { x: number; y: number } {
-    const subjects = graph.nodes.filter((node: any) => node.type === 'subject');
-    const lessons = graph.nodes.filter((node: any) => node.type !== 'subject');
-    const subject = subjects.find((node: any) => node.id === id);
-    if (subject) {
-      const index = subjects.indexOf(subject);
-      const step = 470 / Math.max(subjects.length - 1, 1);
-      return { x: 130, y: 30 + index * step };
-    }
-    const index = lessons.findIndex((node: any) => node.id === id);
-    if (index < 0) return { x: 0, y: 0 };
-    const perColumn = Math.ceil(lessons.length / 4);
-    const column = Math.floor(index / perColumn);
-    const row = index % perColumn;
-    const step = 470 / Math.max(perColumn - 1, 1);
-    return { x: 400 + column * 145, y: 30 + row * step };
-  }
 
   protected refresh(): void {
     this.loading.set(true);

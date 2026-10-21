@@ -14,6 +14,16 @@
     Everything the brain learns from, and what it does with it. The report is read from the same
     material the training uses.
   </p>
+  @if (training()) {
+    <div class="training-live" role="status">
+      <span class="training-live-dot" aria-hidden="true"></span>
+      <strong>Training in progress</strong>
+      <span class="training-live-numbers">
+        {{ live()?.vocabulary ?? 0 }} words &middot; loss
+        {{ live()?.transformer?.loss ?? '—' }} &middot; {{ live()?.transformer?.steps ?? 0 }} steps
+      </span>
+    </div>
+  }
   @if (loading()) {
     <p class="training-status" role="status">Reading the material&hellip;</p>
   }

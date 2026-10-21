@@ -48,7 +48,13 @@
                   <stop offset="1" stop-color="#7c3aed" />
                 </linearGradient>
                 <filter id="brain-lift" x="-30%" y="-30%" width="160%" height="160%">
-                  <feDropShadow dx="0" dy="3" stdDeviation="2.4" flood-color="#1e1b4b" flood-opacity="0.55" />
+                  <feDropShadow
+                    dx="0"
+                    dy="3"
+                    stdDeviation="2.4"
+                    flood-color="#1e1b4b"
+                    flood-opacity="0.55"
+                  />
                 </filter>
                 <g id="brain-shape">
                   <g filter="url(#brain-lift)">
@@ -66,7 +72,12 @@
                       opacity="0.9"
                     />
                   </g>
-                  <g fill="none" stroke="rgba(226,232,240,0.4)" stroke-width="2.4" stroke-linecap="round">
+                  <g
+                    fill="none"
+                    stroke="rgba(226,232,240,0.4)"
+                    stroke-width="2.4"
+                    stroke-linecap="round"
+                  >
                     <path d="M62 26c12 8 18 20 10 30" />
                     <path d="M40 44c10 6 16 18 8 28" />
                     <path d="M78 62c10 10 12 24 2 34" />
@@ -82,7 +93,13 @@
                     <path d="M156 106c-10 2-16 10-12 20" />
                     <path d="M112 30c-5 12-6 24-2 34" />
                   </g>
-                  <path d="M100 16c2 34 2 92 0 122" fill="none" stroke="rgba(15,23,42,0.55)" stroke-width="3" stroke-linecap="round" />
+                  <path
+                    d="M100 16c2 34 2 92 0 122"
+                    fill="none"
+                    stroke="rgba(15,23,42,0.55)"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                  />
                 </g>
               </defs>
               <use href="#brain-shape" />
@@ -115,7 +132,9 @@
           <p class="luna-gap">
             Luke is rated on the same scale as {{ luna.frontier_title }}. {{ luna.frontier_note }}
           </p>
-          <button type="button" class="guide-button" (click)="toggleGuide()">How to reach the next level →</button>
+          <button type="button" class="guide-button" (click)="toggleGuide()">
+            How to reach the next level →
+          </button>
           <ul class="luna-capabilities">
             @for (capability of luna.capabilities; track capability.key) {
               <li [class.ready]="capability.ready">
@@ -125,10 +144,21 @@
               </li>
             }
           </ul>
-          <div class="brain-progress" role="img" [attr.aria-label]="'Model level ' + luna.level + ' of the Luna ' + luna.frontier_level + ' standard'">
+          <div
+            class="brain-progress"
+            role="img"
+            [attr.aria-label]="
+              'Model level ' + luna.level + ' of the Luna ' + luna.frontier_level + ' standard'
+            "
+          >
             <span [style.width.%]="(luna.level / luna.frontier_level) * 100"></span>
           </div>
-          <p class="brain-progress-note">Level {{ luna.level | number: '1.0-1' }} on a scale of {{ luna.max_level }}. @if (luna.next_level) { Next is {{ luna.next_level }} — it needs to {{ luna.next_requirement }}. }</p>
+          <p class="brain-progress-note">
+            Level {{ luna.level | number: '1.0-1' }} on a scale of {{ luna.max_level }}.
+            @if (luna.next_level) {
+              Next is {{ luna.next_level }} — it needs to {{ luna.next_requirement }}.
+            }
+          </p>
         } @else {
           <p class="eyebrow dark-eyebrow">MODEL LEVEL</p>
           <h2>Reading the model…</h2>
@@ -145,7 +175,14 @@
         </div>
         <button class="refresh-button" type="button" (click)="refresh()" [disabled]="loading()">
           <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-            <path d="M20 7v5h-5M4 17v-5h5m10-1a7 7 0 0 0-12-4L4 12m16 0-3 5a7 7 0 0 1-12-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+            <path
+              d="M20 7v5h-5M4 17v-5h5m10-1a7 7 0 0 0-12-4L4 12m16 0-3 5a7 7 0 0 1-12-1"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
           Refresh
         </button>
@@ -202,8 +239,17 @@
             >
               <span aria-hidden="true">i</span>
             </button>
-            <button class="refresh-button" type="button" (click)="trainBrain()" [disabled]="brainTraining() || brainTesting()">
-              @if (brainTraining()) { Training… } @else { Train the brain }
+            <button
+              class="refresh-button"
+              type="button"
+              (click)="trainBrain()"
+              [disabled]="brainTraining() || brainTesting()"
+            >
+              @if (brainTraining()) {
+                Training…
+              } @else {
+                Train the brain
+              }
             </button>
           </div>
         </div>
@@ -218,27 +264,37 @@
             >
               <span class="metric-label">WORDS IT CAN WRITE WITH</span>
               <strong class="metric-value">{{ brain.vocabulary }}</strong>
-              <span class="metric-note">the vocabulary the answering model uses &middot; click to see the words</span>
+              <span class="metric-note"
+                >the vocabulary the answering model uses &middot; click to see the words</span
+              >
             </button>
             <article class="brain-stat">
               <span class="metric-label">EMOTIONS</span>
               <strong class="metric-value">{{ brain.emotions.length }}</strong>
-              <span class="metric-note">{{ brain.emotion_ready ? 'learned from your material' : 'waiting for more examples' }}</span>
+              <span class="metric-note">{{
+                brain.emotion_ready ? 'learned from your material' : 'waiting for more examples'
+              }}</span>
             </article>
           </div>
           <div class="brain-ability-row">
             <span class="brain-ability" [class.ready]="brain.trained">Writes sentences</span>
             <span class="brain-ability" [class.ready]="brain.emotion_ready">Reads emotions</span>
             <span class="brain-ability" [class.ready]="brain.clarify_ready">Asks back</span>
-            <span class="brain-ability" [class.ready]="brain.confidence_ready">Knows its limits</span>
-            <span class="brain-ability" [class.ready]="brain.transformer_ready">Writes in your words</span>
+            <span class="brain-ability" [class.ready]="brain.confidence_ready"
+              >Knows its limits</span
+            >
+            <span class="brain-ability" [class.ready]="brain.transformer_ready"
+              >Writes in your words</span
+            >
           </div>
           @if (brain.transformer; as writer) {
             @if (writer.trained) {
               <div class="brain-stat-row transformer-row">
                 <article class="brain-stat">
                   <span class="metric-label">TRANSFORMER</span>
-                  <strong class="metric-value">{{ ((writer.parameters ?? 0) / 1000000) | number: '1.1-1' }}M</strong>
+                  <strong class="metric-value"
+                    >{{ (writer.parameters ?? 0) / 1000000 | number: '1.1-1' }}M</strong
+                  >
                   <span class="metric-note">weights, trained from scratch on your material</span>
                 </article>
                 <article class="brain-stat">
@@ -257,16 +313,24 @@
                   <span class="metric-note">{{ brain.feedback_entries }} answers reviewed</span>
                 </article>
               </div>
-              <p class="brain-sample">It writes the answers in your own words, and proposes one for a question it was never taught. Every proposal waits for your approval.</p>
+              <p class="brain-sample">
+                It writes the answers in your own words, and proposes one for a question it was
+                never taught. Every proposal waits for your approval.
+              </p>
             } @else {
-              <p class="brain-sample">The transformer that writes in your words is not trained yet. Train the brain and it learns from your lessons, your answers and your documents.</p>
+              <p class="brain-sample">
+                The transformer that writes in your words is not trained yet. Train the brain and it
+                learns from your lessons, your answers and your documents.
+              </p>
             }
           }
           @if (brainSentence()) {
             <p class="brain-sample">It wrote: “{{ brainSentence() }}”</p>
           }
         } @else {
-          <p class="panel-empty">The brain has not been trained yet. Teach some lessons and then train it.</p>
+          <p class="panel-empty">
+            The brain has not been trained yet. Teach some lessons and then train it.
+          </p>
         }
       </section>
 
@@ -276,26 +340,47 @@
             <p class="eyebrow dark-eyebrow">HOW TO ADVANCE</p>
             <h2>Climb the ladder</h2>
           </div>
-          <button class="refresh-button" type="button" (click)="testLevel()" [disabled]="brainTesting() || brainTraining()">
-            @if (brainTesting()) { Testing… } @else { Test my level }
+          <button
+            class="refresh-button"
+            type="button"
+            (click)="testLevel()"
+            [disabled]="brainTesting() || brainTraining()"
+          >
+            @if (brainTesting()) {
+              Testing…
+            } @else {
+              Test my level
+            }
           </button>
         </div>
         <p class="ladder-intro">
-          Every rung is a test. Each one asks for what Luke has been taught in a harder way, so the way
-          to climb is to teach more of it, and to teach it in more ways. The rungs are climbed in order:
-          Luke only reaches a level when every rung below it is passed.
+          Every rung is a test. Each one asks for what Luke has been taught in a harder way, so the
+          way to climb is to teach more of it, and to teach it in more ways. The rungs are climbed
+          in order: Luke only reaches a level when every rung below it is passed.
         </p>
         @if (modelLevel(); as level) {
           <ul class="ladder-rungs">
             @for (rung of level.rungs ?? []; track rung.rung) {
-              <li [class.passed]="rungState(rung) === 'passed'" [class.ahead]="rungState(rung) === 'ahead'">
-                <div class="ladder-rung-open" role="button" tabindex="0" (click)="openRung(rung.rung)" (keydown.enter)="openRung(rung.rung)" (keydown.space)="openRung(rung.rung)">
+              <li
+                [class.passed]="rungState(rung) === 'passed'"
+                [class.ahead]="rungState(rung) === 'ahead'"
+              >
+                <div
+                  class="ladder-rung-open"
+                  role="button"
+                  tabindex="0"
+                  (click)="openRung(rung.rung)"
+                  (keydown.enter)="openRung(rung.rung)"
+                  (keydown.space)="openRung(rung.rung)"
+                >
                   <div class="ladder-rung-head">
                     <strong>Luke {{ rung.rung }} · {{ rungName(rung.rung) }}</strong>
                     <span>{{ rung.passed }} of {{ rung.probes }} passed →</span>
                   </div>
                   <div class="ladder-rung-bar"><span [style.width.%]="rung.rate * 100"></span></div>
-                  @if (rung.detail) { <p class="ladder-rung-detail">{{ rung.detail }}</p> }
+                  @if (rung.detail) {
+                    <p class="ladder-rung-detail">{{ rung.detail }}</p>
+                  }
                   @if (rungState(rung) !== 'passed') {
                     <p class="ladder-rung-hint">{{ rungHint(rung) }}</p>
                   }
@@ -313,11 +398,14 @@
               <p class="eyebrow dark-eyebrow">THE GENERALISING TEST</p>
               <h2>Questions it was never taught</h2>
             </div>
-            <span class="generality-score">{{ (level.generality * 100) | number: '1.0-0' }}% answered</span>
+            <span class="generality-score"
+              >{{ level.generality * 100 | number: '1.0-0' }}% answered</span
+            >
           </div>
           <p class="ladder-intro">
-            These questions are not in Luke's lessons. It can only answer them from what it learned by
-            itself, and a lookup in the dictionary does not count. Most AI models cannot answer them either.
+            These questions are not in Luke's lessons. It can only answer them from what it learned
+            by itself, and a lookup in the dictionary does not count. Most AI models cannot answer
+            them either.
           </p>
           <ul class="probe-list generality-list">
             @for (probe of generalityProbes(); track probe.question) {
@@ -325,7 +413,9 @@
                 <span class="probe-mark" aria-hidden="true">{{ probe.answered ? '✓' : '×' }}</span>
                 <div>
                   <strong>{{ probe.question }}</strong>
-                  <small>{{ probe.answered ? 'Answered from what it learned' : 'It does not know this yet' }}</small>
+                  <small>{{
+                    probe.answered ? 'Answered from what it learned' : 'It does not know this yet'
+                  }}</small>
                 </div>
               </li>
             }
@@ -340,12 +430,14 @@
               <p class="eyebrow dark-eyebrow">THE INSTRUCTION TEST</p>
               <h2>Requests it was never worded for</h2>
             </div>
-            <span class="generality-score">{{ (instructionScore() * 100) | number: '1.0-0' }}% answered</span>
+            <span class="generality-score"
+              >{{ instructionScore() * 100 | number: '1.0-0' }}% answered</span
+            >
           </div>
           <p class="ladder-intro">
             The material is in Luke's lessons, but these requests are worded in ways it was never
-            taught. It answers them by writing from what you taught, and it says so when it does
-            not know the subject.
+            taught. It answers them by writing from what you taught, and it says so when it does not
+            know the subject.
           </p>
           <ul class="probe-list generality-list">
             @for (probe of instructionProbes(); track probe.question) {
@@ -353,7 +445,9 @@
                 <span class="probe-mark" aria-hidden="true">{{ probe.correct ? '✓' : '×' }}</span>
                 <div>
                   <strong>{{ probe.question }}</strong>
-                  <small>{{ probe.correct ? 'Answered from what it learned' : 'It did not get it right' }}</small>
+                  <small>{{
+                    probe.correct ? 'Answered from what it learned' : 'It did not get it right'
+                  }}</small>
                 </div>
               </li>
             }
@@ -367,9 +461,21 @@
             <p class="eyebrow dark-eyebrow">KNOWLEDGE GRAPH</p>
             <h2>What the brain has connected</h2>
           </div>
-          <button class="refresh-button" type="button" (click)="loadKnowledgeGraph()" [disabled]="graphLoading()">
+          <button
+            class="refresh-button"
+            type="button"
+            (click)="loadKnowledgeGraph()"
+            [disabled]="graphLoading()"
+          >
             <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-              <path d="M20 7v5h-5M4 17v-5h5m10-1a7 7 0 0 0-12-4L4 12m16 0-3 5a7 7 0 0 1-12-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+              <path
+                d="M20 7v5h-5M4 17v-5h5m10-1a7 7 0 0 0-12-4L4 12m16 0-3 5a7 7 0 0 1-12-1"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.8"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
             </svg>
             Refresh
           </button>
@@ -398,15 +504,42 @@
           </div>
 
           <div class="graph-canvas">
-            <svg viewBox="0 0 940 530" role="img" aria-label="Graph of the subjects and lessons the assistant has learned">
+            <svg
+              viewBox="0 0 940 530"
+              role="img"
+              aria-label="Graph of the subjects and lessons the assistant has learned"
+            >
               @for (edge of graph.edges; track edge.source + edge.target) {
-                <line class="graph-link" [attr.x1]="graphPoint(edge.source, graph).x" [attr.y1]="graphPoint(edge.source, graph).y" [attr.x2]="graphPoint(edge.target, graph).x" [attr.y2]="graphPoint(edge.target, graph).y" />
+                <line
+                  class="graph-link"
+                  [attr.x1]="graphPoint(edge.source, graph).x"
+                  [attr.y1]="graphPoint(edge.source, graph).y"
+                  [attr.x2]="graphPoint(edge.target, graph).x"
+                  [attr.y2]="graphPoint(edge.target, graph).y"
+                />
               }
               @for (node of graph.nodes; track node.id) {
-                <g class="graph-node" [attr.data-type]="node.type" (click)="selectGraphNode(node)" tabindex="0" role="button" [attr.aria-label]="node.label">
-                  <circle [attr.cx]="graphPoint(node.id, graph).x" [attr.cy]="graphPoint(node.id, graph).y" [attr.r]="node.type === 'subject' ? 12 : 4" />
+                <g
+                  class="graph-node"
+                  [attr.data-type]="node.type"
+                  (click)="selectGraphNode(node)"
+                  tabindex="0"
+                  role="button"
+                  [attr.aria-label]="node.label"
+                >
+                  <circle
+                    [attr.cx]="graphPoint(node.id, graph).x"
+                    [attr.cy]="graphPoint(node.id, graph).y"
+                    [attr.r]="node.type === 'subject' ? 12 : 4"
+                  />
                   @if (node.type === 'subject') {
-                    <text [attr.x]="graphPoint(node.id, graph).x + 18" [attr.y]="graphPoint(node.id, graph).y + 4" class="graph-subject-label">{{ node.label }}</text>
+                    <text
+                      [attr.x]="graphPoint(node.id, graph).x + 18"
+                      [attr.y]="graphPoint(node.id, graph).y + 4"
+                      class="graph-subject-label"
+                    >
+                      {{ node.label }}
+                    </text>
                   }
                 </g>
               }
@@ -417,7 +550,9 @@
                 <span>{{ picked.detail }}</span>
               </div>
             } @else {
-              <p class="graph-hint">Select a node to see what it holds. {{ graph.total }} lessons in total.</p>
+              <p class="graph-hint">
+                Select a node to see what it holds. {{ graph.total }} lessons in total.
+              </p>
             }
           </div>
         } @else if (graphLoading()) {
@@ -431,22 +566,40 @@
           @if (modelLevel(); as level) {
             <h2>{{ level.training_volume?.title }}</h2>
             <p>Based on {{ knowledgeItems() | number }} indexed knowledge items.</p>
-            <p class="measure-note">A training-volume estimate, not a measure of intelligence or answer accuracy. The model level above is the one that counts.</p>
+            <p class="measure-note">
+              A training-volume estimate, not a measure of intelligence or answer accuracy. The
+              model level above is the one that counts.
+            </p>
           } @else {
             <h2>Reading the training…</h2>
             <p>Based on {{ knowledgeItems() | number }} indexed knowledge items.</p>
-            <p class="measure-note">A training-volume estimate, not a measure of intelligence or answer accuracy.</p>
+            <p class="measure-note">
+              A training-volume estimate, not a measure of intelligence or answer accuracy.
+            </p>
           }
         </div>
         <div class="maturity-scale">
-          <div class="scale-track" role="img" [attr.aria-label]="'Training maturity: ' + (modelLevel()?.training_volume?.title ?? 'unknown')">
+          <div
+            class="scale-track"
+            role="img"
+            [attr.aria-label]="
+              'Training maturity: ' + (modelLevel()?.training_volume?.title ?? 'unknown')
+            "
+          >
             @for (rung of ladderRungs(); track rung.level) {
-              <span class="scale-step" [class.step-reached]="rung.level <= (modelLevel()?.training_volume?.level ?? 0)" [class.step-current]="rung.level === (modelLevel()?.training_volume?.level ?? 0)"></span>
+              <span
+                class="scale-step"
+                [class.step-reached]="rung.level <= (modelLevel()?.training_volume?.level ?? 0)"
+                [class.step-current]="rung.level === (modelLevel()?.training_volume?.level ?? 0)"
+              ></span>
             }
           </div>
           <div class="scale-labels">
             @for (rung of ladderLabels(); track rung.level) {
-              <span [class.label-current]="rung.level === (modelLevel()?.training_volume?.level ?? 0)">{{ rung.name }}</span>
+              <span
+                [class.label-current]="rung.level === (modelLevel()?.training_volume?.level ?? 0)"
+                >{{ rung.name }}</span
+              >
             }
           </div>
           <div class="scale-footer">
@@ -459,19 +612,33 @@
 
       <footer class="page-footer">
         <span>Knowledge grows with every document and approved answer.</span>
-        <a routerLink="/trainer" [queryParams]="{ tab: 'new' }">Go to training <span aria-hidden="true">→</span></a>
+        <a routerLink="/trainer" [queryParams]="{ tab: 'new' }"
+          >Go to training <span aria-hidden="true">→</span></a
+        >
       </footer>
     </section>
 
     @if (guideOpen()) {
       <div class="guide-backdrop" (click)="closeGuide()"></div>
-      <aside class="guide-drawer" role="dialog" aria-modal="true" aria-label="How to reach the next level">
+      <aside
+        class="guide-drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="How to reach the next level"
+      >
         <header class="guide-header">
           <div>
             <span class="eyebrow dark-eyebrow">LEVEL GUIDE</span>
             <h2>How to reach the next level</h2>
           </div>
-          <button type="button" class="icon-btn" (click)="closeGuide()" aria-label="Close the level guide">×</button>
+          <button
+            type="button"
+            class="icon-btn"
+            (click)="closeGuide()"
+            aria-label="Close the level guide"
+          >
+            ×
+          </button>
         </header>
 
         @if (selectedRung(); as rungKey) {
@@ -479,10 +646,18 @@
             @for (rung of level.rungs ?? []; track rung.rung) {
               @if (rung.rung === rungKey) {
                 <section class="guide-block">
-                  <button type="button" class="guide-back" (click)="closeRung()">← All levels</button>
+                  <button type="button" class="guide-back" (click)="closeRung()">
+                    ← All levels
+                  </button>
                   <div class="guide-levels">
-                    <div><span>THE TEST</span><strong>Luke {{ rung.rung }} · {{ rungName(rung.rung) }}</strong></div>
-                    <div><span>RESULT</span><strong>{{ rung.passed }} of {{ rung.probes }} passed</strong></div>
+                    <div>
+                      <span>THE TEST</span
+                      ><strong>Luke {{ rung.rung }} · {{ rungName(rung.rung) }}</strong>
+                    </div>
+                    <div>
+                      <span>RESULT</span
+                      ><strong>{{ rung.passed }} of {{ rung.probes }} passed</strong>
+                    </div>
                   </div>
                   <p class="guide-lead">{{ rung.test }}</p>
                 </section>
@@ -517,7 +692,9 @@
                           <div>
                             <strong>{{ probe.question }}</strong>
                             <small>{{ probe.form }}</small>
-                            @if (probe.answered) { <span class="probe-answer">It answered: {{ probe.answered }}</span> }
+                            @if (probe.answered) {
+                              <span class="probe-answer">It answered: {{ probe.answered }}</span>
+                            }
                             <span class="probe-answer">Expected: {{ probe.expected }}</span>
                           </div>
                         </li>
@@ -531,8 +708,12 @@
         } @else if (modelLevel(); as level) {
           <section class="guide-block">
             <div class="guide-levels">
-              <div><span>NOW</span><strong>{{ level.title }}</strong></div>
-              <div><span>NEXT</span><strong>{{ level.next_level ?? 'The top of the scale' }}</strong></div>
+              <div>
+                <span>NOW</span><strong>{{ level.title }}</strong>
+              </div>
+              <div>
+                <span>NEXT</span><strong>{{ level.next_level ?? 'The top of the scale' }}</strong>
+              </div>
             </div>
             <p class="guide-lead">{{ level.next_requirement }} — that is what it needs next.</p>
           </section>
@@ -541,10 +722,22 @@
             <section class="guide-block">
               <h3>What it can read today</h3>
               <div class="guide-coverage">
-                <div><span>DOCUMENTS</span><strong>{{ coverage.documents }}</strong><small>files chunked and embedded</small></div>
-                <div><span>CHUNKS</span><strong>{{ coverage.chunks }}</strong><small>passages read word by word</small></div>
-                <div><span>TRAINED ANSWERS</span><strong>{{ coverage.trained_answers }}</strong><small>question and answer pairs</small></div>
-                <div><span>LESSONS</span><strong>{{ coverage.lessons }}</strong><small>taught in the school</small></div>
+                <div>
+                  <span>DOCUMENTS</span><strong>{{ coverage.documents }}</strong
+                  ><small>files chunked and embedded</small>
+                </div>
+                <div>
+                  <span>CHUNKS</span><strong>{{ coverage.chunks }}</strong
+                  ><small>passages read word by word</small>
+                </div>
+                <div>
+                  <span>TRAINED ANSWERS</span><strong>{{ coverage.trained_answers }}</strong
+                  ><small>question and answer pairs</small>
+                </div>
+                <div>
+                  <span>LESSONS</span><strong>{{ coverage.lessons }}</strong
+                  ><small>taught in the school</small>
+                </div>
               </div>
             </section>
           }
@@ -554,14 +747,25 @@
             <ul class="guide-rungs">
               @for (rung of level.rungs ?? []; track rung.rung) {
                 <li [class.passed]="rung.rate >= 0.6">
-                  <div class="guide-rung-open" role="button" tabindex="0" (click)="openRung(rung.rung)" (keydown.enter)="openRung(rung.rung)" (keydown.space)="openRung(rung.rung)">
+                  <div
+                    class="guide-rung-open"
+                    role="button"
+                    tabindex="0"
+                    (click)="openRung(rung.rung)"
+                    (keydown.enter)="openRung(rung.rung)"
+                    (keydown.space)="openRung(rung.rung)"
+                  >
                     <div class="guide-rung-head">
                       <strong>Luke {{ rung.rung }} · {{ rungName(rung.rung) }}</strong>
                       <span>{{ rung.passed }}/{{ rung.probes }} →</span>
                     </div>
-                    <div class="guide-rung-bar"><span [style.width.%]="rung.rate * 100"></span></div>
+                    <div class="guide-rung-bar">
+                      <span [style.width.%]="rung.rate * 100"></span>
+                    </div>
                     <small>{{ rung.test }}</small>
-                    @if (rung.detail) { <small class="guide-rung-detail">{{ rung.detail }}</small> }
+                    @if (rung.detail) {
+                      <small class="guide-rung-detail">{{ rung.detail }}</small>
+                    }
                   </div>
                 </li>
               }
@@ -576,9 +780,13 @@
                   <strong>{{ step.title }}</strong>
                   <p>{{ step.detail }}</p>
                   @if (step.action === 'train_brain') {
-                    <button type="button" class="primary small" (click)="trainBrainFromGuide()">Train the brain</button>
+                    <button type="button" class="primary small" (click)="trainBrainFromGuide()">
+                      Train the brain
+                    </button>
                   } @else if (step.link) {
-                    <a class="primary small" [routerLink]="step.link" (click)="closeGuide()">{{ step.link_label }}</a>
+                    <a class="primary small" [routerLink]="step.link" (click)="closeGuide()">{{
+                      step.link_label
+                    }}</a>
                   }
                 </li>
               }

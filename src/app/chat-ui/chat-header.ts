@@ -7,6 +7,7 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ChatService } from './chat.service';
 import { ChatSessionService } from './chat-session.service';
 import { ChatUiStore } from './chat-ui.store';
@@ -14,14 +15,12 @@ import { ChatUiStore } from './chat-ui.store';
 @Component({
   selector: 'app-chat-header',
   standalone: true,
+  imports: [RouterLink],
   templateUrl: './chat-header.html',
-  styleUrls: [
-    './styles/chat-1.css',
-    './styles/chat-2.css',
-    './styles/chat-3.css',
-    './styles/chat-4.css',
-    './styles/chat-5.css',
-  ],
+  styleUrl: './styles/chat-header.css',
+  host: {
+    '[class.train-on]': 'session.trainMode()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatHeader {
@@ -53,13 +52,6 @@ export class ChatHeader {
 
   toggleTrain(): void {
     this.session.trainMode.update((value) => !value);
-    if (!this.session.trainMode()) {
-      this.ui.closeSettings();
-    }
-  }
-
-  toggleSettings(): void {
-    this.ui.toggleSettings();
   }
 
   startEditTitle(): void {

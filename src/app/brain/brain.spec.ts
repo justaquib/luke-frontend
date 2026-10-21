@@ -37,7 +37,9 @@ describe('Brain', () => {
     expect(compiled.querySelector('app-page-header')).toBeTruthy();
     expect(compiled.querySelector('.page-header h1')?.textContent?.trim()).toBe('Assistance Brain');
 
-    const links = [...compiled.querySelectorAll('app-sidebar a.nav-item')].map((link) => link.getAttribute('href'));
+    const links = [...compiled.querySelectorAll('app-sidebar a.nav-item')].map((link) =>
+      link.getAttribute('href'),
+    );
     expect(links).toEqual(['/chat', '/trainer', '/learner', '/brain', '/settings']);
   });
 
@@ -58,34 +60,100 @@ describe('Brain', () => {
     testButton?.click();
     const tested = http.expectOne((req) => req.url.endsWith('/language-model/brain/test'));
     expect(tested.request.method).toBe('POST');
-    tested.flush({ state: {
-      vocabulary: 10,
-      emotions: [],
-      trained: false,
-      transformer_ready: false,
-      transformer: {},
-      corrections: 0,
-      feedback_entries: 0,
-      model_level: { level: 0, levels: [], rungs: [], generality_probes: [], training_volume: { level: 0 } },
-    }, rungs: [], passed: 3, total: 9 });
+    tested.flush({
+      state: {
+        vocabulary: 10,
+        emotions: [],
+        trained: false,
+        transformer_ready: false,
+        transformer: {},
+        corrections: 0,
+        feedback_entries: 0,
+        model_level: {
+          level: 0,
+          levels: [],
+          rungs: [],
+          generality_probes: [],
+          training_volume: { level: 0 },
+        },
+      },
+      rungs: [],
+      passed: 3,
+      total: 9,
+    });
     await fixture.whenStable();
     fixture.detectChanges();
 
     trainButton?.click();
     const trained = http.expectOne((req) => req.url.endsWith('/language-model/brain/train'));
     expect(trained.request.method).toBe('POST');
-    trained.flush({ state: {
-      vocabulary: 10,
-      emotions: [],
-      trained: false,
-      transformer_ready: false,
-      transformer: {},
-      corrections: 0,
-      feedback_entries: 0,
-      model_level: { level: 0, levels: [], rungs: [], generality_probes: [], training_volume: { level: 0 } },
-    }, sentence: 'a cat sat', training: false });
+    trained.flush({
+      state: {
+        vocabulary: 10,
+        emotions: [],
+        trained: false,
+        transformer_ready: false,
+        transformer: {},
+        corrections: 0,
+        feedback_entries: 0,
+        model_level: {
+          level: 0,
+          levels: [],
+          rungs: [],
+          generality_probes: [],
+          training_volume: { level: 0 },
+        },
+      },
+      sentence: 'a cat sat',
+      training: false,
+    });
     await fixture.whenStable();
     fixture.detectChanges();
+  });
+
+  it('opens the training panel while the brain trains', async () => {
+    const fixture = TestBed.createComponent(Brain);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('app-brain-training-panel')).toBeNull();
+
+    const trainButton = [...compiled.querySelectorAll('button')].find(
+      (button) => button.textContent?.trim() === 'Train the brain',
+    );
+    trainButton?.click();
+
+    const trained = http.expectOne((req) => req.url.endsWith('/language-model/brain/train'));
+    trained.flush({
+      state: {
+        vocabulary: 10,
+        emotions: [],
+        trained: false,
+        transformer_ready: false,
+        transformer: {},
+        corrections: 0,
+        feedback_entries: 0,
+        training: true,
+        model_level: {
+          level: 0,
+          levels: [],
+          rungs: [],
+          generality_probes: [],
+          training_volume: { level: 0 },
+        },
+      },
+      sentence: null,
+      training: true,
+    });
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    // The panel is open, so the trainer can see what it learns from while it
+    // learns it.
+    expect(compiled.querySelector('app-brain-training-panel')).toBeTruthy();
   });
 
   it('opens the training sources beside the training button', async () => {
@@ -111,7 +179,13 @@ describe('Brain', () => {
     expect(report.request.method).toBe('GET');
     report.flush({
       sources: [
-        { key: 'lesson', label: 'Lessons you taught', detail: 'Every lesson.', items: 3, words: 40 },
+        {
+          key: 'lesson',
+          label: 'Lessons you taught',
+          detail: 'Every lesson.',
+          items: 3,
+          words: 40,
+        },
         { key: 'document', label: 'Your documents', detail: 'Every document.', items: 0, words: 0 },
       ],
       steps: [{ title: 'Collect', detail: 'Every source is gathered.' }],

@@ -1,5 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { ChatApiService, type QueryOptions } from '../core/api/chat-api.service';
+import { LanguageModelApiService } from '../core/api/language-model-api.service';
 import { TrainerApiService } from '../core/api/trainer-api.service';
 import { BrowserService } from '../core/browser.service';
 import { UiService } from '../shared/ui.service';
@@ -10,6 +11,7 @@ import type { ChatMessage } from './chat.types';
 export class ChatService {
   private readonly api = inject(ChatApiService);
   private readonly trainerApi = inject(TrainerApiService);
+  private readonly languageApi = inject(LanguageModelApiService);
   private readonly ui = inject(UiService);
   private readonly session = inject(ChatSessionService);
   private readonly browser = inject(BrowserService);
@@ -19,6 +21,9 @@ export class ChatService {
   readonly ratedMessages = signal<Record<number, boolean>>({});
   readonly editingId = signal<number | null>(null);
   readonly editingText = signal('');
+  /** The answer the trainer is giving for the message that was wrong. */
+  readonly correctionId = signal<number | null>(null);
+  readonly correctionDraft = signal('');
 
   constructor() {
     this.checkBackend();
@@ -119,14 +124,20 @@ export class ChatService {
       this.isTyping.set(false);
       return;
     }
-    this.trainerApi.createFaq(question, answer).subscribe({
-      next: () => {
+    // The answer was given, so the right one is taught: the assistant uses
+    // it from the next question on, instead of waiting to be approved.
+    this.languageApi.correctAnswer(question, message.text, answer).subscribe({
+      next: (result) => {
         this.session.updateMessage(message.id, (item) => ({
           ...item,
           text: answer,
           source: 'faq',
         }));
-        this.finishEdit('New Q&A created as pending.');
+        this.finishEdit(
+          result.learned
+            ? 'Answer corrected, and the assistant keeps it.'
+            : 'Answer corrected and taught.',
+        );
       },
       error: (error: Error) => {
         this.ui.error(error.message);
@@ -155,7 +166,49 @@ export class ChatService {
       return;
     }
     this.ratedMessages.update((map) => ({ ...map, [message.id]: true }));
-    this.sendFeedback(message, 'dislike');
+    // The answer was wrong, so the trainer is asked what the right answer is.
+    this.startCorrection(message);
+  }
+
+  /** Open the box where the trainer writes the right answer. */
+  startCorrection(message: ChatMessage): void {
+    this.correctionId.set(message.id);
+    this.correctionDraft.set('');
+  }
+
+  /** Close the box without teaching anything. */
+  cancelCorrection(): void {
+    this.correctionId.set(null);
+    this.correctionDraft.set('');
+  }
+
+  /**
+   * Teach the assistant the right answer to a question it answered wrongly.
+   *
+   * The answer is stored as a trained answer, so the next question of that
+   * kind is answered correctly.
+   */
+  sendCorrection(message: ChatMessage): void {
+    const correction = this.correctionDraft().trim();
+    if (!correction) {
+      this.ui.error('Write the answer that should have been given.');
+      return;
+    }
+    const question = this.session.findUserQuestion(message.id) ?? '';
+    this.languageApi.correctAnswer(question, message.text, correction).subscribe({
+      next: (result) => {
+        this.cancelCorrection();
+        this.session.appendMessage({
+          id: this.session.nextMessageId(),
+          role: 'system',
+          text: result.learned
+            ? `Learned. “${question}” is answered with: ${result.answer}`
+            : `Taught. “${question}” is answered with: ${result.answer}`,
+          timestamp: new Date(),
+        });
+      },
+      error: (error: Error) => this.ui.error(error.message || 'The correction failed.'),
+    });
   }
 
   private finishEdit(notice: string): void {

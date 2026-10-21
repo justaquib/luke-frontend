@@ -51,19 +51,20 @@
         Regular
       }
     </span>
-    <span
-      class="status-dot"
-      [hidden]="ui.sidebarOpen()"
-      [class.online]="service.backendStatus() === 'online'"
-      [class.offline]="service.backendStatus() === 'offline'"
-      [attr.title]="
-        service.backendStatus() === 'online'
-          ? 'Backend connected'
-          : service.backendStatus() === 'offline'
-            ? 'Backend offline'
-            : 'Connecting…'
-      "
-    ></span>
+    @if (!ui.sidebarOpen()) {
+      <span
+        class="status-dot"
+        [class.online]="service.backendStatus() === 'online'"
+        [class.offline]="service.backendStatus() === 'offline'"
+        [attr.title]="
+          service.backendStatus() === 'online'
+            ? 'Backend connected'
+            : service.backendStatus() === 'offline'
+              ? 'Backend offline'
+              : 'Connecting…'
+        "
+      ></span>
+    }
   </div>
   <div class="header-actions">
     <button
@@ -78,8 +79,6 @@
         ○ Train
       }
     </button>
-    <button type="button" class="icon-btn" (click)="toggleSettings()" aria-label="Settings">
-      ⚙
-    </button>
+    <a class="icon-btn" routerLink="/settings" aria-label="Settings" title="Settings"> ⚙ </a>
   </div>
 </header>

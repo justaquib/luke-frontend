@@ -1,6 +1,8 @@
-<span class="source-tag" [class]="message().source ?? ''" [hidden]="!message().source">
-  {{ sourceLabel() }}
-</span>
+@if (message().source) {
+  <span class="source-tag" [class]="message().source ?? ''">
+    {{ sourceLabel() }}
+  </span>
+}
 @if (showIntentNote()) {
   <small class="intent-note">
     → matched “{{ message().intent?.matched_question }}”

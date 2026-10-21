@@ -11,13 +11,11 @@ import { ChatUiStore } from './chat-ui.store';
   standalone: true,
   imports: [RouterLink],
   templateUrl: './chat-sidebar.html',
-  styleUrls: [
-    './styles/chat-1.css',
-    './styles/chat-2.css',
-    './styles/chat-3.css',
-    './styles/chat-4.css',
-    './styles/chat-5.css',
-  ],
+  styleUrl: './styles/chat-sidebar.css',
+  host: {
+    '[class.train-on]': 'session.trainMode()',
+    '[class.collapsed]': '!ui.sidebarOpen()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatSidebar {

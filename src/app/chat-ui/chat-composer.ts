@@ -3,22 +3,21 @@ import type { QueryOptions } from '../core/api/chat-api.service';
 import { AppPrefsService } from '../core/app-prefs.service';
 import { IntegrationsService } from '../core/integrations.service';
 import { ChatService } from './chat.service';
+import { ChatSessionService } from './chat-session.service';
 
 @Component({
   selector: 'app-chat-composer',
   standalone: true,
   templateUrl: './chat-composer.html',
-  styleUrls: [
-    './styles/chat-1.css',
-    './styles/chat-2.css',
-    './styles/chat-3.css',
-    './styles/chat-4.css',
-    './styles/chat-5.css',
-  ],
+  styleUrl: './styles/chat-composer.css',
+  host: {
+    '[class.train-on]': 'session.trainMode()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatComposer {
   protected readonly service = inject(ChatService);
+  protected readonly session = inject(ChatSessionService);
   protected readonly prefs = inject(AppPrefsService);
   protected readonly draft = signal('');
   private readonly integrations = inject(IntegrationsService);
