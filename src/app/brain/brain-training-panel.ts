@@ -2,6 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   type OnDestroy,
   type OnInit,
@@ -12,16 +13,29 @@ import {
 import {
   type BrainTrainingState,
   LanguageModelApiService,
+  type TrainingProgress,
+  type TrainingStageStatus,
   type TrainingSources,
 } from '../core/api/language-model-api.service';
 
 /** How often the training is read while it runs, in milliseconds. */
 const WATCH_INTERVAL = 3000;
 
+/** How a whole training is told in words once it is over. */
+const clock = (seconds: number): string => {
+  if (seconds >= 0 && seconds < 60) return `${Math.round(seconds)}s`;
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+  return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+};
+
 /**
  * The panel that says what the brain has trained from and how the training
  * works. It is opened from the small info button beside the training button,
- * and it opens by itself while the brain is training.
+ * and it opens by itself while the brain is training. While the training
+ * runs it reads the checklist the training itself writes: the parts that are
+ * done, the part it is on, the steps and the time the rest will take. When
+ * the training is over it says how long it took.
  */
 @Component({
   selector: 'app-brain-training-panel',
@@ -43,6 +57,10 @@ export class BrainTrainingPanel implements OnInit, OnDestroy {
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
 
+  protected readonly progress = computed<TrainingProgress | null>(
+    () => this.live()?.progress ?? null,
+  );
+
   private timer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
@@ -54,6 +72,28 @@ export class BrainTrainingPanel implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.stopWatching();
+  }
+
+  /** The mark beside one part of the checklist: check, current, or to come. */
+  protected markFor(status: TrainingStageStatus): string {
+    if (status === 'done') return '✓';
+    if (status === 'working') return '…';
+    return '·';
+  }
+
+  /** The numbers of the writer's steps, as the live line reads them. */
+  protected stepsFor(progress: TrainingProgress): string {
+    const done = progress.steps_done ?? 0;
+    const total = progress.steps_total ?? 0;
+    if (!total) return 'Counting the material…';
+    return `${done} of ${total} steps · about ${clock(progress.eta_seconds ?? 0)} left`;
+  }
+
+  /** How long the last training took, once the checklist is closed. */
+  protected resultFor(progress: TrainingProgress): string {
+    const parts = (progress.stages ?? []).filter((stage) => stage.status === 'done').length;
+    if (parts < (progress.stages ?? []).length) return 'Training stopped before it finished.';
+    return `Trained in ${clock(progress.seconds ?? 0)}.`;
   }
 
   /** Read the material the training uses. */

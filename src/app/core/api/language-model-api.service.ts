@@ -55,10 +55,32 @@ export interface TrainingSources {
 /** The kinds of lesson the learner can be taught. */
 export type LessonKind = 'qa' | 'story';
 
+/** How far one part of the training has come. */
+export type TrainingStageStatus = 'waiting' | 'working' | 'done';
+
+/** One part of a training, as the checklist the training itself writes. */
+export interface TrainingStage {
+  key: string;
+  label: string;
+  status: TrainingStageStatus;
+}
+
+/** What a training has done so far, and how long the rest will take. */
+export interface TrainingProgress {
+  started?: number;
+  finished?: number | null;
+  seconds?: number | null;
+  eta_seconds?: number | null;
+  steps_done?: number;
+  steps_total?: number;
+  stages?: TrainingStage[];
+}
+
 /** What the brain knows about itself, as the training panel reads it. */
 export interface BrainTrainingState {
   vocabulary?: number;
   training?: boolean;
+  progress?: TrainingProgress;
   transformer?: {
     trained?: boolean;
     steps?: number;
@@ -148,6 +170,15 @@ export class LanguageModelApiService extends BaseApiService {
   testLanguageModelLevel(): Observable<LanguageLevelTest> {
     return this.http.post<LanguageLevelTest>(
       `${this.base}/language-model/brain/test`,
+      {},
+      { headers: this.authHeaders() },
+    );
+  }
+
+  /** Promote the brain to the level it has measured, on the trainer's word. */
+  approveLanguageModelLevel(): Observable<LanguageBrainResponse> {
+    return this.http.post<LanguageBrainResponse>(
+      `${this.base}/language-model/brain/level/approve`,
       {},
       { headers: this.authHeaders() },
     );

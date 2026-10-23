@@ -1,0 +1,11 @@
+@if (ready()) {
+  <div class="level-approval">
+    <span>
+      It measures as {{ measured() }}. A level only counts when you approve it, so the promotion
+      waits for your word.
+    </span>
+    <button type="button" (click)="approve.emit()" [disabled]="approving()">
+      Approve {{ measured() }}
+    </button>
+  </div>
+}

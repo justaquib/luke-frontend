@@ -148,17 +148,23 @@
             class="brain-progress"
             role="img"
             [attr.aria-label]="
-              'Model level ' + luna.level + ' of the Luna ' + luna.frontier_level + ' standard'
+              'Model level ' + luna.level + ' on the way to the ' + luna.frontier_title + ' scale'
             "
           >
-            <span [style.width.%]="(luna.level / luna.frontier_level) * 100"></span>
+            <span [style.width.%]="levelShare()"></span>
           </div>
           <p class="brain-progress-note">
-            Level {{ luna.level | number: '1.0-1' }} on a scale of {{ luna.max_level }}.
+            Level {{ luna.level }} on a scale to {{ luna.max_level }}.
             @if (luna.next_level) {
               Next is {{ luna.next_level }} — it needs to {{ luna.next_requirement }}.
             }
           </p>
+          <app-level-approval
+            [ready]="luna.approval_ready"
+            [measured]="luna.measured_level"
+            [approving]="brainApproving()"
+            (approve)="approveLevel()"
+          />
         } @else {
           <p class="eyebrow dark-eyebrow">MODEL LEVEL</p>
           <h2>Reading the model…</h2>
@@ -356,11 +362,12 @@
         <p class="ladder-intro">
           Every rung is a test. Each one asks for what Luke has been taught in a harder way, so the
           way to climb is to teach more of it, and to teach it in more ways. The rungs are climbed
-          in order: Luke only reaches a level when every rung below it is passed.
+          in order: Luke only reaches a level when every rung below it is passed, and the level
+          moves only when you approve the promotion.
         </p>
         @if (modelLevel(); as level) {
           <ul class="ladder-rungs">
-            @for (rung of level.rungs ?? []; track rung.rung) {
+            @for (rung of level.rungs; track rung.rung) {
               <li
                 [class.passed]="rungState(rung) === 'passed'"
                 [class.ahead]="rungState(rung) === 'ahead'"
@@ -423,21 +430,20 @@
         </section>
       }
 
-      @if (instructionTotal() > 0) {
+      @if (modelLevel(); as level) {
         <section class="ladder-section generality-section">
           <div class="section-heading">
             <div>
               <p class="eyebrow dark-eyebrow">THE INSTRUCTION TEST</p>
               <h2>Requests it was never worded for</h2>
             </div>
-            <span class="generality-score"
-              >{{ instructionScore() * 100 | number: '1.0-0' }}% answered</span
-            >
+            <span class="generality-score">{{ instructionSummary() }}</span>
           </div>
           <p class="ladder-intro">
             The material is in Luke's lessons, but these requests are worded in ways it was never
             taught. It answers them by writing from what you taught, and it says so when it does not
-            know the subject.
+            know the subject. The test takes about a minute, so the last result is kept and it is
+            taken again only here, and at the level test.
           </p>
           <ul class="probe-list generality-list">
             @for (probe of instructionProbes(); track probe.question) {
@@ -564,7 +570,7 @@
         <div class="maturity-copy">
           <p class="eyebrow dark-eyebrow">TRAINING MATURITY</p>
           @if (modelLevel(); as level) {
-            <h2>{{ level.training_volume?.title }}</h2>
+            <h2>{{ level.training_volume.title }}</h2>
             <p>Based on {{ knowledgeItems() | number }} indexed knowledge items.</p>
             <p class="measure-note">
               A training-volume estimate, not a measure of intelligence or answer accuracy. The
@@ -586,26 +592,23 @@
               'Training maturity: ' + (modelLevel()?.training_volume?.title ?? 'unknown')
             "
           >
-            @for (rung of ladderRungs(); track rung.level) {
+            @for (stage of maturityStages(); track stage.title) {
               <span
                 class="scale-step"
-                [class.step-reached]="rung.level <= (modelLevel()?.training_volume?.level ?? 0)"
-                [class.step-current]="rung.level === (modelLevel()?.training_volume?.level ?? 0)"
+                [class.step-reached]="stage.reached"
+                [class.step-current]="stage.current"
               ></span>
             }
           </div>
           <div class="scale-labels">
-            @for (rung of ladderLabels(); track rung.level) {
-              <span
-                [class.label-current]="rung.level === (modelLevel()?.training_volume?.level ?? 0)"
-                >{{ rung.name }}</span
-              >
+            @for (stage of maturityStages(); track stage.title) {
+              <span [class.label-current]="stage.current">{{ stage.title }}</span>
             }
           </div>
           <div class="scale-footer">
-            <span>LUKE 0</span>
-            <span>{{ volumeProgress() | number: '1.0-0' }}% of the way to Luke 1</span>
-            <span>LUKE 1</span>
+            <span>NEWBORN</span>
+            <span>Based on {{ maturityItems() }} items</span>
+            <span>SCHOLAR</span>
           </div>
         </div>
       </section>
@@ -643,7 +646,7 @@
 
         @if (selectedRung(); as rungKey) {
           @if (modelLevel(); as level) {
-            @for (rung of level.rungs ?? []; track rung.rung) {
+            @for (rung of level.rungs; track rung.rung) {
               @if (rung.rung === rungKey) {
                 <section class="guide-block">
                   <button type="button" class="guide-back" (click)="closeRung()">
@@ -682,7 +685,7 @@
                   }
                 </section>
 
-                @if (rung.failures.length) {
+                @if (rung.failures?.length) {
                   <section class="guide-block">
                     <h3>What it still gets wrong</h3>
                     <ul class="probe-list">
@@ -745,7 +748,7 @@
           <section class="guide-block">
             <h3>What it has passed</h3>
             <ul class="guide-rungs">
-              @for (rung of level.rungs ?? []; track rung.rung) {
+@for (rung of level.rungs; track rung.rung) {
                 <li [class.passed]="rung.rate >= 0.6">
                   <div
                     class="guide-rung-open"
@@ -775,7 +778,7 @@
           <section class="guide-block">
             <h3>What to do next</h3>
             <ol class="guide-steps">
-              @for (step of level.next_steps ?? []; track step.action + step.title) {
+              @for (step of level.next_steps; track step.action + step.title) {
                 <li>
                   <strong>{{ step.title }}</strong>
                   <p>{{ step.detail }}</p>

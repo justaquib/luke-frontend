@@ -7,8 +7,6 @@ import { AuthService } from './auth.service';
 export type KnowledgeGraph = any;
 export type LanguageBrainState = any;
 export type LanguageModelState = any;
-export type ModelLevel = any;
-export type ModelLevelRung = any;
 export type LanguageDictionaryEntry = any;
 export type LanguagePreviewResponse = any;
 export type LanguageTest = any;
@@ -17,6 +15,90 @@ export type QueryReasoning = any;
 export type ReasoningEdge = any;
 export type ReasoningNode = any;
 export type FaqItem2 = any;
+
+/** One entry of the level ladder, from the seed 0.0.0 up to 0.1.0. */
+export interface ModelLevelEntry {
+  level: string;
+  name: string;
+  description: string;
+  reference: string;
+}
+
+/** One rung of the ladder, measured by its probes. */
+export interface ModelLevelRung {
+  rung: string;
+  probes: number;
+  passed: number;
+  rate: number;
+  test?: string;
+  detail?: string;
+  passes?: { question: string; expected: string; form: string; answered?: string }[];
+  failures?: { question: string; expected: string; form: string; answered?: string }[];
+}
+
+/** How much material the brain has taken in, on its own human scale. */
+export interface ModelTrainingVolume {
+  title: string;
+  detail: string;
+  items: number;
+  stages: { title: string; items: number; detail: string; reached: boolean; current: boolean }[];
+  next_stage: { title: string; items: number } | null;
+}
+
+/** What the brain reads under the tested requests. */
+export interface ModelProbe {
+  question: string;
+  answered?: boolean;
+  correct?: boolean;
+  source?: string;
+  answered_text?: string;
+}
+
+/** The level the brain has reached, measured and approved separately. */
+export interface ModelLevel {
+  level: string;
+  measured_level: string;
+  approval_ready: boolean;
+  level_value: number;
+  name: string;
+  title: string;
+  description: string;
+  reference: string;
+  next_level: string | null;
+  next_requirement: string;
+  capabilities: { key: string; name: string; ready: boolean; detail: string }[];
+  max_level: string;
+  ladder_size: number;
+  levels: ModelLevelEntry[];
+  training_volume: ModelTrainingVolume;
+  rungs: ModelLevelRung[];
+  next_steps: {
+    action: string;
+    title: string;
+    detail: string;
+    link?: string;
+    link_label?: string;
+  }[];
+  coverage: {
+    documents: number;
+    chunks: number;
+    trained_answers: number;
+    lessons: number;
+    passed_grades: number;
+    current_stage: string;
+  };
+  generality: number;
+  generality_cap: number | null;
+  generality_probes: ModelProbe[];
+  instruction_following: number;
+  instruction_probes: ModelProbe[];
+  instruction_total: number;
+  instruction_measured: boolean;
+  frontier_level: number;
+  frontier_title: string;
+  frontier_note: string;
+  model_name: string;
+}
 
 /** The words the answering model can write with, one page at a time. */
 export interface LanguageWordPage {
@@ -66,7 +148,13 @@ export interface LanguageBrainResponse {
 /** The result of running the level tests again. */
 export interface LanguageLevelTest {
   state: LanguageBrainState;
-  rungs: { rung: string; rate: number; passed?: number; probes?: number }[];
+  rungs: ModelLevelRung[];
+  instruction: {
+    score: number;
+    passed: number;
+    total: number;
+    measured: boolean;
+  };
   passed: number;
   total: number;
 }
@@ -124,7 +212,6 @@ export interface StoreSummary {
   };
 }
 
-
 export interface QueryHit {
   text: string;
   metadata: { source: string };
@@ -138,7 +225,12 @@ export interface QueryResponse {
   hits: QueryHit[];
   entities: { text: string; label: string }[];
   pending_id: number | null;
-  intent?: { matched_question?: string; matched_faq_id?: number; distance?: number; answer?: string } | null;
+  intent?: {
+    matched_question?: string;
+    matched_faq_id?: number;
+    distance?: number;
+    answer?: string;
+  } | null;
   app?: Record<string, unknown> | null;
   disabled_external_sources?: string[] | null;
 }
@@ -256,10 +348,14 @@ export class ApiService {
     return this.http.get<{ status: string }>(`${this.base}/health`);
   }
 
-  query(question: string, nResults = 4, opts?: {
-    apps?: { weather?: boolean; wiki?: boolean };
-    location?: { lat?: number; lon?: number };
-  }): Observable<QueryResponse> {
+  query(
+    question: string,
+    nResults = 4,
+    opts?: {
+      apps?: { weather?: boolean; wiki?: boolean };
+      location?: { lat?: number; lon?: number };
+    },
+  ): Observable<QueryResponse> {
     const body: Record<string, unknown> = { question, n_results: nResults };
     if (opts?.apps) body['apps'] = opts.apps;
     if (opts?.location) body['location'] = opts.location;
@@ -270,7 +366,11 @@ export class ApiService {
 
   ingest(source: string, text: string): Observable<IngestResponse> {
     return this.http
-      .post<IngestResponse>(`${this.base}/ingest`, { source, text }, { headers: this.authHeaders() })
+      .post<IngestResponse>(
+        `${this.base}/ingest`,
+        { source, text },
+        { headers: this.authHeaders() },
+      )
       .pipe(catchError((err) => this.handleError(err)));
   }
 
@@ -295,10 +395,7 @@ export class ApiService {
       .pipe(catchError((err) => this.handleError(err)));
   }
 
-  setFaqStatus(
-    id: number,
-    status: FaqItem['status'],
-  ): Observable<FaqItem> {
+  setFaqStatus(id: number, status: FaqItem['status']): Observable<FaqItem> {
     return this.http
       .patch<FaqItem>(`${this.base}/faq/${id}/status`, { status }, { headers: this.authHeaders() })
       .pipe(catchError((err) => this.handleError(err)));
@@ -311,15 +408,18 @@ export class ApiService {
   }
 
   listInbox(resolved = false): Observable<PendingItem[]> {
-    return this.http.get<PendingItem[]>(
-      `${this.base}/faq/inbox?resolved=${resolved}`,
-      { headers: this.authHeaders() },
-    );
+    return this.http.get<PendingItem[]>(`${this.base}/faq/inbox?resolved=${resolved}`, {
+      headers: this.authHeaders(),
+    });
   }
 
   answerPending(id: number, answer: string): Observable<FaqItem> {
     return this.http
-      .post<FaqItem>(`${this.base}/faq/inbox/${id}/answer`, { answer }, { headers: this.authHeaders() })
+      .post<FaqItem>(
+        `${this.base}/faq/inbox/${id}/answer`,
+        { answer },
+        { headers: this.authHeaders() },
+      )
       .pipe(catchError((err) => this.handleError(err)));
   }
 
@@ -336,17 +436,12 @@ export class ApiService {
   }
 
   previewMerge(pendingId: number): Observable<MergePreview> {
-    return this.http.get<MergePreview>(
-      `${this.base}/faq/pending/${pendingId}/merge-preview`,
-      { headers: this.authHeaders() },
-    );
+    return this.http.get<MergePreview>(`${this.base}/faq/pending/${pendingId}/merge-preview`, {
+      headers: this.authHeaders(),
+    });
   }
 
-  mergePending(
-    pendingId: number,
-    pendingIds: number[],
-    answer: string,
-  ): Observable<MergeResult> {
+  mergePending(pendingId: number, pendingIds: number[], answer: string): Observable<MergeResult> {
     return this.http.post<MergeResult>(
       `${this.base}/faq/pending/${pendingId}/merge`,
       { pending_ids: pendingIds, answer },
@@ -358,16 +453,26 @@ export class ApiService {
     return this.http.get<IntentItem[]>(`${this.base}/intents`, { headers: this.authHeaders() });
   }
 
-  createIntent(name: string, responseTemplate: string, faqId: number | null): Observable<IntentItem> {
-    return this.http.post<IntentItem>(`${this.base}/intents`, {
-      name,
-      response_template: responseTemplate,
-      faq_id: faqId,
-    }, { headers: this.authHeaders() });
+  createIntent(
+    name: string,
+    responseTemplate: string,
+    faqId: number | null,
+  ): Observable<IntentItem> {
+    return this.http.post<IntentItem>(
+      `${this.base}/intents`,
+      {
+        name,
+        response_template: responseTemplate,
+        faq_id: faqId,
+      },
+      { headers: this.authHeaders() },
+    );
   }
 
   deleteIntent(id: number): Observable<{ deleted: number }> {
-    return this.http.delete<{ deleted: number }>(`${this.base}/intents/${id}`, { headers: this.authHeaders() });
+    return this.http.delete<{ deleted: number }>(`${this.base}/intents/${id}`, {
+      headers: this.authHeaders(),
+    });
   }
 
   intentSuggestions(question: string): Observable<IntentSuggestions> {
@@ -378,14 +483,18 @@ export class ApiService {
   }
 
   faqMergePreview(id: number): Observable<FaqMergePreview> {
-    return this.http.get<FaqMergePreview>(`${this.base}/faq/${id}/merge-preview`, { headers: this.authHeaders() });
+    return this.http.get<FaqMergePreview>(`${this.base}/faq/${id}/merge-preview`, {
+      headers: this.authHeaders(),
+    });
   }
 
   faqMerge(
     id: number,
     req: { faq_ids: number[]; answer?: string | null; target_id?: number | null },
   ): Observable<FaqMergeResult> {
-    return this.http.post<FaqMergeResult>(`${this.base}/faq/${id}/merge`, req, { headers: this.authHeaders() });
+    return this.http.post<FaqMergeResult>(`${this.base}/faq/${id}/merge`, req, {
+      headers: this.authHeaders(),
+    });
   }
 
   uploadFile(file: File): Observable<{ source: string; chunks: number; status: string }> {
@@ -405,7 +514,9 @@ export class ApiService {
     );
   }
 
-  deleteDocument(source: string): Observable<{ source: string; deleted_chunks: number; status: string }> {
+  deleteDocument(
+    source: string,
+  ): Observable<{ source: string; deleted_chunks: number; status: string }> {
     return this.http.delete<{ source: string; deleted_chunks: number; status: string }>(
       `${this.base}/documents/${encodeURIComponent(source)}`,
       { headers: this.authHeaders() },
@@ -433,7 +544,9 @@ export class ApiService {
     source: string;
     rating: 'like' | 'dislike';
   }): Observable<{ id: number; rating: string }> {
-    return this.http.post<{ id: number; rating: string }>(`${this.base}/feedback`, req, { headers: this.authHeaders() });
+    return this.http.post<{ id: number; rating: string }>(`${this.base}/feedback`, req, {
+      headers: this.authHeaders(),
+    });
   }
 
   listTenants(): Observable<Tenant[]> {
@@ -441,7 +554,11 @@ export class ApiService {
   }
 
   createInvite(email: string, role = 'user'): Observable<Invite> {
-    return this.http.post<Invite>(`${this.base}/auth/invites`, { email, role }, { headers: this.authHeaders() });
+    return this.http.post<Invite>(
+      `${this.base}/auth/invites`,
+      { email, role },
+      { headers: this.authHeaders() },
+    );
   }
 
   listInvites(): Observable<Invite[]> {
@@ -459,7 +576,6 @@ export class ApiService {
     }
     return throwError(() => new Error(message));
   }
-
 }
 
 export interface Tenant {

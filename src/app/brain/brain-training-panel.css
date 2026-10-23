@@ -79,10 +79,66 @@
   }
 }
 
+.training-progress {
+  display: grid;
+  gap: 0.5rem;
+}
+
 .training-totals {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.4rem;
+}
+
+.training-checklist {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.training-checklist li {
+  display: grid;
+  grid-template-columns: 1.1rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 9px;
+  background: rgba(15, 23, 42, 0.4);
+  color: #94a3b8;
+  font-size: 0.72rem;
+}
+
+.training-checklist li.stage-done {
+  border-color: rgba(74, 222, 128, 0.35);
+  color: #d1fae5;
+}
+
+.training-checklist li.stage-done .stage-mark {
+  color: #4ade80;
+}
+
+.training-checklist li.stage-working {
+  border-color: rgba(129, 140, 248, 0.45);
+  color: #c7d2fe;
+  background: rgba(99, 102, 241, 0.12);
+}
+
+.training-checklist li.stage-working .stage-mark {
+  color: #818cf8;
+}
+
+.training-progress .training-live-numbers {
+  color: #94a3b8;
+  font-size: 0.7rem;
+}
+
+.training-result {
+  color: #d1fae5;
+  font-size: 0.75rem;
+  font-weight: 650;
 }
 
 .training-totals div {

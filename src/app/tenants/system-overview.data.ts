@@ -83,6 +83,13 @@ export const SYSTEM_PACKAGES: SystemPackage[] = [
     kind: 'runtime',
   },
   {
+    name: 'posthog',
+    area: 'Backend',
+    purpose:
+      'The telemetry library chromadb sends its status events through. It is pinned below version 6, the last that accepts the calls chromadb 0.5.5 makes, and the anonymized telemetry is switched off, so it sends nothing.',
+    kind: 'runtime',
+  },
+  {
     name: 'spacy',
     area: 'Backend',
     purpose:

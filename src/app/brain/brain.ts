@@ -17,13 +17,17 @@ import { UiService } from '../shared/ui.service';
 import { AppShell } from '../shared/app-shell';
 import { BrainTrainingPanel } from './brain-training-panel';
 import { BrainVocabularyPanel } from './brain-vocabulary-panel';
-import { rungHint, rungName, rungState, type RungState } from './brain.ladder';
+import { LevelApproval } from './level-approval';
+import { rungHint, rungName, rungState, SEED_LEVEL, type RungState } from './brain.ladder';
+import {
+  brainNodeCount,
+  graphNodeDetail,
+  mergedIntentGroups,
+  stageIndexOf,
+  trainingReportMessage,
+  type MergedIntentGroup,
+} from './brain-numbers';
 import { BRAIN_STAGES, graphPoint, KNOWLEDGE_NODES } from './brain.nodes';
-
-interface MergedIntentGroup {
-  canonical: FaqItem;
-  variants: FaqItem[];
-}
 
 @Component({
   selector: 'app-brain',
@@ -34,6 +38,7 @@ interface MergedIntentGroup {
     AppPageHeader,
     BrainTrainingPanel,
     BrainVocabularyPanel,
+    LevelApproval,
   ],
   templateUrl: './brain.html',
   styleUrl: './brain.css',
@@ -58,23 +63,30 @@ export class Brain implements OnInit {
   protected readonly modelLevel = computed<ModelLevel | null>(
     () => this.brainState()?.model_level ?? null,
   );
-  protected readonly ladderRungs = computed(() =>
-    (this.modelLevel()?.levels ?? []).filter((entry: any) => entry.level <= 1),
+  protected readonly maturityStages = computed(
+    () => this.modelLevel()?.training_volume?.stages ?? [],
   );
-  protected readonly ladderLabels = computed(() =>
-    this.ladderRungs().filter((entry: any) => Math.round(entry.level * 10) % 2 === 0),
-  );
+
+  protected readonly maturityItems = computed(() => this.modelLevel()?.training_volume?.items ?? 0);
+
   protected rungName(rung: string): string {
     return rungName(rung, this.modelLevel()?.levels);
   }
 
   protected rungState(rung: ModelLevelRung): RungState {
-    return rungState(rung, this.modelLevel()?.level ?? 0);
+    return rungState(rung, this.modelLevel()?.level ?? SEED_LEVEL);
   }
 
   protected rungHint(rung: ModelLevelRung): string {
-    return rungHint(rung, this.modelLevel()?.level ?? 0);
+    return rungHint(rung, this.modelLevel()?.level ?? SEED_LEVEL);
   }
+
+  protected readonly levelShare = computed(() => {
+    const level = this.modelLevel();
+    if (!level) return 0;
+    const frontier = level.frontier_level ?? 6.0;
+    return Math.max(0, Math.min(100, ((level.level_value ?? 0) / frontier) * 100));
+  });
 
   protected readonly generalityProbes = computed(() => this.modelLevel()?.generality_probes ?? []);
   protected readonly instructionProbes = computed(
@@ -85,12 +97,16 @@ export class Brain implements OnInit {
   );
   protected readonly instructionTotal = computed(() => this.modelLevel()?.instruction_total ?? 0);
 
-  protected readonly volumeProgress = computed(() => {
-    const volume = this.modelLevel()?.training_volume?.level ?? 0;
-    return Math.min(100, (volume / 1) * 100);
+  /** What the trainer reads beside the instruction test: a number or a miss. */
+  protected readonly instructionSummary = computed(() => {
+    const level = this.modelLevel();
+    if (!level?.instruction_measured) return 'not measured yet — take the level test';
+    return `${Math.round((level.instruction_following ?? 0) * 100)}% answered`;
   });
+
   protected readonly brainTraining = signal(false);
   protected readonly brainTesting = signal(false);
+  protected readonly brainApproving = signal(false);
   protected readonly brainSentence = signal<string | null>(null);
   protected readonly selectedNode = signal<{ label: string; detail: string } | null>(null);
   protected readonly loading = signal(false);
@@ -105,15 +121,7 @@ export class Brain implements OnInit {
     return current ? current.chunks + current.faqs : 0;
   });
 
-  protected readonly stageIndex = computed(() => {
-    const count = this.knowledgeItems();
-    let index = 0;
-    for (let i = 1; i < this.stages.length; i++) {
-      if (count < this.stages[i].minimum) break;
-      index = i;
-    }
-    return index;
-  });
+  protected readonly stageIndex = computed(() => stageIndexOf(this.knowledgeItems(), this.stages));
 
   protected readonly currentStage = computed(() => this.stages[this.stageIndex()]);
   protected readonly stageProgress = computed(
@@ -130,13 +138,13 @@ export class Brain implements OnInit {
   );
   protected readonly mergedPreview = computed(() => this.mergedIntents().slice(0, 5));
 
-  protected readonly activeNodeCount = computed(() => {
-    const knowledge = this.knowledgeItems();
-    const lessons = this.learnerState()?.trainer_lessons ?? 0;
-    const signal = knowledge + lessons * 4;
-    if (signal <= 0) return 0;
-    return Math.min(this.knowledgeNodes.length, Math.round(Math.log2(signal + 1) * 3.1));
-  });
+  protected readonly activeNodeCount = computed(() =>
+    brainNodeCount(
+      this.knowledgeItems(),
+      this.learnerState()?.trainer_lessons ?? 0,
+      this.knowledgeNodes.length,
+    ),
+  );
 
   protected readonly brainActivity = computed(
     () => this.activeNodeCount() / this.knowledgeNodes.length,
@@ -256,7 +264,12 @@ export class Brain implements OnInit {
       next: (result: any) => {
         this.brainState.set(result.state);
         this.brainTesting.set(false);
-        this.ui.success(`Level test done: ${result.passed} of ${result.total} rungs passed.`);
+        const instruction = result.instruction?.score ?? 0;
+        this.ui.success(
+          `Level test done: ${result.passed} of ${result.total} rungs passed, ${Math.round(
+            instruction * 100,
+          )}% of the never-worded requests answered. The result is kept.`,
+        );
       },
       error: (err: Error) => {
         this.brainTesting.set(false);
@@ -265,19 +278,36 @@ export class Brain implements OnInit {
     });
   }
 
+  /**
+   * The measurements can run ahead of the displayed level. The promotion
+   * waits for the trainer's word, and this call closes the gap.
+   */
+  protected approveLevel(): void {
+    if (this.brainApproving()) return;
+    this.brainApproving.set(true);
+    this.languageApi.approveLanguageModelLevel().subscribe({
+      next: (result: any) => {
+        this.brainApproving.set(false);
+        const level = result.state?.model_level;
+        this.brainState.set(result.state);
+        this.ui.success(`Luke is now at ${level?.level ?? 'the approved level'}. Approved.`);
+      },
+      error: (err: Error) => {
+        this.brainApproving.set(false);
+        this.ui.info(err.message);
+      },
+    });
+  }
+
   /** Say what the training changed, so the button is not a mystery. */
   private reportTraining(state: any, before = 0): void {
     const writer = state?.transformer;
-    if (!writer?.trained) {
-      this.ui.info('The brain trained, but it has no writer yet.');
-      return;
+    const message = trainingReportMessage(writer, before);
+    if (writer?.trained) {
+      this.ui.success(message);
+    } else {
+      this.ui.info(message);
     }
-    const vocabulary = writer.vocabulary ?? 0;
-    const change = vocabulary - before;
-    const moved = change === 0 ? 'the same words' : `${change > 0 ? '+' : ''}${change} words`;
-    this.ui.success(
-      `The brain is trained: ${vocabulary} words (${moved}), ${writer.steps ?? 0} steps, loss ${Number(writer.loss ?? 0).toFixed(3)}.`,
-    );
   }
 
   /** Wait for the training in the background and show the result. */
@@ -337,10 +367,7 @@ export class Brain implements OnInit {
   }): void {
     this.selectedNode.set({
       label: node.label,
-      detail:
-        node.type === 'subject'
-          ? `${node.count ?? 0} lesson${node.count === 1 ? '' : 's'} in this subject`
-          : `Taught in ${node.grade ?? 'nursery'}`,
+      detail: graphNodeDetail(node.type, node.count, node.grade),
     });
   }
 
@@ -352,7 +379,7 @@ export class Brain implements OnInit {
     this.api.listFaqs().subscribe({
       next: (faqs) => {
         this.trainedQuestions.set(faqs);
-        this.mergedIntents.set(this.groupMergedIntents(faqs));
+        this.mergedIntents.set(mergedIntentGroups(faqs));
       },
       error: (err: Error) => this.error.set(err.message),
     });
@@ -368,26 +395,5 @@ export class Brain implements OnInit {
 
   protected toggleSidebar(): void {
     this.sidebarOpen.update((open) => !open);
-  }
-
-  private groupMergedIntents(faqs: FaqItem[]): MergedIntentGroup[] {
-    const byAnswer = new Map<string, FaqItem[]>();
-    for (const faq of faqs) {
-      if (faq.status === 'declined' || faq.status === 'duplicate') continue;
-      const key = faq.answer.trim().toLocaleLowerCase();
-      if (!key) continue;
-      const items = byAnswer.get(key) ?? [];
-      items.push(faq);
-      byAnswer.set(key, items);
-    }
-
-    return [...byAnswer.values()]
-      .filter((items) => items.length > 1)
-      .map((items) => {
-        items.sort((a, b) => a.id - b.id);
-        const canonical = items.find((item: any) => item.status === 'approved') ?? items[0];
-        return { canonical, variants: items.filter((item: any) => item.id !== canonical.id) };
-      })
-      .sort((a, b) => b.variants.length - a.variants.length);
   }
 }

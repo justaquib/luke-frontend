@@ -70,11 +70,14 @@ describe('Brain', () => {
         corrections: 0,
         feedback_entries: 0,
         model_level: {
-          level: 0,
+          level: '0.0.0',
+          measured_level: '0.0.0',
+          approval_ready: false,
+          level_value: 0,
           levels: [],
           rungs: [],
           generality_probes: [],
-          training_volume: { level: 0 },
+          training_volume: { title: 'Newborn', items: 0, stages: [] },
         },
       },
       rungs: [],
@@ -97,11 +100,14 @@ describe('Brain', () => {
         corrections: 0,
         feedback_entries: 0,
         model_level: {
-          level: 0,
+          level: '0.0.0',
+          measured_level: '0.0.0',
+          approval_ready: false,
+          level_value: 0,
           levels: [],
           rungs: [],
           generality_probes: [],
-          training_volume: { level: 0 },
+          training_volume: { title: 'Newborn', items: 0, stages: [] },
         },
       },
       sentence: 'a cat sat',
@@ -138,11 +144,14 @@ describe('Brain', () => {
         feedback_entries: 0,
         training: true,
         model_level: {
-          level: 0,
+          level: '0.0.0',
+          measured_level: '0.0.0',
+          approval_ready: false,
+          level_value: 0,
           levels: [],
           rungs: [],
           generality_probes: [],
-          training_volume: { level: 0 },
+          training_volume: { title: 'Newborn', items: 0, stages: [] },
         },
       },
       sentence: null,
@@ -199,5 +208,56 @@ describe('Brain', () => {
     expect(text).toContain('Lessons you taught');
     expect(text).toContain('Your documents');
     expect(text).toContain('Collect');
+  });
+
+  it('asks the trainer for the word before the level moves', async () => {
+    const fixture = TestBed.createComponent(Brain);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    let brainState: any = {
+      vocabulary: 10,
+      emotions: [],
+      trained: false,
+      transformer_ready: false,
+      transformer: {},
+      corrections: 0,
+      feedback_entries: 0,
+      model_level: {
+        level: '0.0.0',
+        measured_level: '0.0.2',
+        approval_ready: true,
+        level_value: 0,
+        levels: [],
+        rungs: [],
+        generality_probes: [],
+        training_volume: { title: 'First words', items: 1, stages: [] },
+      },
+    };
+    http.expectOne((req) => req.url.endsWith('/language-model/brain')).flush(brainState);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const approveButton = compiled.querySelector<HTMLButtonElement>('.level-approval button');
+    expect(approveButton?.textContent?.trim()).toBe('Approve 0.0.2');
+
+    approveButton?.click();
+    const requested = http.expectOne((req) =>
+      req.url.endsWith('/language-model/brain/level/approve'),
+    );
+    expect(requested.request.method).toBe('POST');
+    brainState = {
+      ...brainState,
+      model_level: { ...brainState.model_level, approval_ready: false, level: '0.0.2' },
+    };
+    requested.flush(brainState);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    // The level moves on the trainer's word, so the banner asks no more.
+    expect(compiled.querySelector('.level-approval button')).toBeNull();
   });
 });
