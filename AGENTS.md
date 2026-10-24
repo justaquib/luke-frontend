@@ -24,10 +24,11 @@ Read it before changing any page. In short:
 - Page identity is route metadata (`pageInfoForUrl`); `PageInfoService` reads
   it from router events. The top bar shows the route's name and scope (they can
   differ from the panel title: `Assistance brain` / `Neural engine`). The info
-  control shows the page's title, description, registered controls and the
-  engine facts; the details control shows the page's registered details.
-  Actions register through the `appPageInfoActions` directive and clear with
-  the page; the top action registers through `appTopBarActions` the same way.
+  control shows the page's title, description, registered facts and controls,
+  and the engine facts; the details control shows the page's registered
+  details. Facts register through `appPageInfoFacts`, actions through
+  `appPageInfoActions`, and the top action through `appTopBarActions`; each
+  clears with the page.
 - The right panel is content-aware: in info mode it shows the current page's
   info and engine facts, in details mode the page's registered details, and it
   pins a running background task below the active mode's content. The task
@@ -86,15 +87,37 @@ Read it before changing any page. In short:
   controls, followed by the engine facts. A page never repeats a title,
   eyebrow, description or actions row in its body; its first content block is
   `app-engine-facts` (2–4 measured facts) followed by tabs, filters or cards.
-  Do not repeat a count in the info panel, a chip and the strip. Fact values
-  come from the same tenant-scoped list the rows show, never a global count
-  beside per-tenant rows.
+  A page's live facts register through `<ng-template appPageInfoFacts>` and
+  are drawn at the top of the info panel; Chat is the one view whose facts are
+  conversation state, so they live there instead of the body and follow the
+  active session. Do not repeat a count in the info panel, a chip and the
+  strip. Fact values come from the same tenant-scoped list the rows show, never
+  a global count beside per-tenant rows.
 - Fold card explanations behind `app-card-info`; keep the heading and controls
   visible. Show provenance as a labelled `Source` line, not a pill.
-- Chat: flat answers on the page surface, header carries engine state, facts
-  above the messages, each answer shows provenance and icon-only feedback.
-- Trainer: the strip counts trained answers, waiting questions and their sum
-  from the loaded corpus lists; tab counters are plain mono text.
+- Chat: flat answers on the page surface, the session title in the top bar
+  (renamed there), and the conversation facts in the info panel, read from the
+  active session. An answer's text or info control opens the right panel with
+  the question, answer, source, passages and the measured "How the model reads
+  this question" trace — real tokens,
+  embeddings, per-layer/per-head attention heatmap, next-word candidates and
+  the writer's own choice steps from `POST /language-model/trace`. State the
+  served route honestly; a served answer that was not generated word by word
+  gets the writer's reading of the same question as a labelled comparison,
+  not as its own path. The bubble keeps provenance and icon-only feedback.
+- Trainer: the corpus facts (trained answers, pending questions, corpus items)
+  sit in the shared info panel's facts slot and come from the loaded corpus
+  lists; tab counters are plain mono text. The Inbox lists pending questions
+  only — answered ones live under Trained answers, so there is no resolved
+  toggle or pending/total counter. The Documents tab leads with a dashed upload
+  tile wired to the file picker; the uploaded file cards follow it, and the
+  tile reports the indexing state while the upload runs. The info panel carries
+  only the corpus facts — no upload or refresh controls.
+- Brain: the level card shows the whole `0.0.0`→`1.0.0` road in bands, each
+  rung passed, ahead, next or locked. Only the rung after the approved level,
+  and only when a real test exists for it, can be next; every other rung is
+  locked and says that no test has been written yet. Never fill a locked rung
+  with a measurement.
 - Settings: Model identity (name and starting version), then Engine connection,
   then Live sources, then Appearance (color mode, text size, typeface,
   palette); one info button per card. The model name from Model identity is

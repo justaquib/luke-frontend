@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { AppIcon } from '../shared/app-icon';
 import { ChatMessageMeta } from './chat-message-meta';
 import { ChatService } from './chat.service';
@@ -14,6 +14,7 @@ import type { ChatMessage as ChatMessageModel } from './chat.types';
 })
 export class ChatMessage {
   readonly message = input.required<ChatMessageModel>();
+  readonly openDetails = output<ChatMessageModel>();
 
   protected readonly service = inject(ChatService);
 

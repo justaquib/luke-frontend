@@ -6,12 +6,13 @@ import { Router, provideRouter } from '@angular/router';
 import { AppRightSidebar } from './app-right-sidebar';
 import { BackgroundTasksService } from './background-tasks.service';
 import { PageInfoActions } from './page-info-actions';
+import { PageInfoFacts } from './page-info-facts';
 import { RightSidebarService } from './right-sidebar.service';
 
 @Component({
   selector: 'app-sidebar-host',
   standalone: true,
-  imports: [AppRightSidebar, PageInfoActions],
+  imports: [AppRightSidebar, PageInfoActions, PageInfoFacts],
   templateUrl: './app-right-sidebar.spec-host.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -97,7 +98,13 @@ describe('AppRightSidebar', () => {
       'What the brain has learned, what it can do on its own, and what it still needs to be taught.',
     );
     expect(root().querySelector('.engine-details')).toBeTruthy();
+    expect(text(root().querySelector('.host-fact')!)).toBe('41 messages');
     expect(text(root().querySelector('.host-action')!)).toBe('Train');
+
+    const body = root().querySelector('.page-info');
+    const blocks = [...(body?.children ?? [])];
+    expect(blocks[0].classList.contains('page-info-facts')).toBe(true);
+    expect(blocks[1].classList.contains('page-info-actions')).toBe(true);
 
     expect(root().querySelector('.sidebar-tasks')).toBeNull();
 

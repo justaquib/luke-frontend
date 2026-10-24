@@ -7,7 +7,7 @@
     </div>
   } @else {
     @for (message of session.active().messages; track message.id) {
-      <app-chat-message [message]="message" />
+      <app-chat-message [message]="message" (openDetails)="openDetails.emit($event)" />
     }
   }
 

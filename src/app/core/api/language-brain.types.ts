@@ -160,6 +160,70 @@ export interface ModelVersion {
   description: string;
 }
 
+/** One token the writer read, with its id in the vocabulary. */
+export interface TraceToken {
+  id: number;
+  token: string;
+}
+
+/** The shape of the model the trace was measured on. */
+export interface TraceModel {
+  layers: number;
+  heads: number;
+  d_model: number;
+  context: number;
+  vocabulary: number;
+  parameters: number;
+  device: string;
+}
+
+/** The learned vector of one token, previewed. */
+export interface TraceEmbeddingToken {
+  token: string;
+  values: number[];
+  norm: number;
+}
+
+/** One scored word and its probability. */
+export interface TraceCandidate {
+  token: string;
+  probability: number;
+}
+
+/** The word the writer chose, and the scores it chose from. */
+export interface TraceChoice {
+  token: string;
+  probability: number;
+  candidates: TraceCandidate[];
+}
+
+/** Attention of every layer and head, over the tokens that were read. */
+export interface TraceAttention {
+  tokens: string[];
+  layers: number[][][][];
+}
+
+/** The writer's own run on the question. */
+export interface TraceGeneration {
+  steps: TraceChoice[];
+  text: string | null;
+  stop: 'end' | 'limit';
+  seconds: number;
+}
+
+/** The measured reading of the writer, or why there is none. */
+export interface AnswerTrace {
+  trained: boolean;
+  reason?: string;
+  model?: TraceModel;
+  reading?: { tokens: TraceToken[]; words: number };
+  embeddings?: { dimensions: number; preview: number; tokens: TraceEmbeddingToken[] };
+  attention?: TraceAttention;
+  next?: TraceChoice | null;
+  generation?: TraceGeneration;
+  measured_at?: number;
+}
+
 /** The name the model answers to and the version it starts from. */
 export interface ModelSettingsDocument {
   name: string;

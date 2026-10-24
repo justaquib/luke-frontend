@@ -6,33 +6,6 @@
     </span>
   </p>
 }
-@if (showIntentNote()) {
-  <small class="intent-note">
-    Matched “{{ message().intent?.matched_question }}”
-    @if (hasDistance()) {
-      <span class="distance">· dist {{ distanceText() }}</span>
-    }
-  </small>
-}
-@if (showWikiNote()) {
-  <small class="intent-note">
-    <a [href]="stringValue('url')" target="_blank" rel="noopener">
-      {{ stringValue('title') || 'source' }}
-    </a>
-    <app-icon name="external" [size]="12" />
-  </small>
-}
-@if (hasHits()) {
-  <details class="sources">
-    <summary>Sources ({{ message().hits?.length }})</summary>
-    @for (hit of message().hits ?? []; track $index) {
-      <div class="source-item">
-        <small>{{ hit.metadata.source }} · dist {{ hit.distance?.toFixed(3) }}</small>
-        <p>{{ hit.text }}</p>
-      </div>
-    }
-  </details>
-}
 @if (hasDisabledSources()) {
   <small class="source-hint">
     Live answers are off.

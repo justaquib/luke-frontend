@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { AppEngineDetails } from './app-engine-details';
 import { PageInfoService } from './page-info.service';
 
-/** The info panel body: the page's own state and actions, then the engine. */
+/** The info panel body: the page's own facts and actions, then the engine. */
 @Component({
   selector: 'app-page-info',
   standalone: true,

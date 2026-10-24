@@ -1,0 +1,224 @@
+:host {
+  display: block;
+}
+
+.roadmap {
+  display: grid;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.roadmap-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.number {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.bands,
+.nodes,
+.legend {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bands {
+  display: grid;
+  gap: 10px;
+}
+
+.band {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.band-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.band-head app-icon {
+  color: var(--faint);
+}
+
+.band-head .number {
+  margin-left: auto;
+  font-size: 11px;
+}
+
+.nodes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  gap: 4px;
+  min-width: 0;
+}
+
+.node {
+  position: relative;
+  display: grid;
+  align-content: center;
+  gap: 1px;
+  min-height: 44px;
+  padding: 5px 6px;
+  padding-right: 24px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--faint);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.node-icon {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: grid;
+  place-items: center;
+}
+
+.node-level {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.node-name {
+  overflow: hidden;
+  color: var(--faint);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.band:last-child .node {
+  max-width: 220px;
+}
+
+.node.passed {
+  background: var(--surface-2);
+  color: var(--accent);
+}
+
+.node.passed .node-level {
+  color: var(--muted);
+}
+
+.node.passed .node-name {
+  color: var(--muted);
+}
+
+.node.ahead {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.node.ahead .node-level {
+  color: var(--warn);
+}
+
+.node.ahead .node-name {
+  color: var(--text);
+}
+
+.node.next {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.node.next .node-level {
+  color: var(--accent);
+}
+
+.node.next .node-name {
+  color: var(--text);
+}
+
+.node.locked {
+  background: transparent;
+}
+
+.node.current {
+  border-color: var(--accent);
+}
+
+.node.current .node-level {
+  color: var(--accent);
+}
+
+.node.current .node-name {
+  color: var(--text);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: var(--faint);
+  font-size: 11px;
+}
+
+.legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.swatch {
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--surface);
+}
+
+.swatch.passed {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.swatch.ahead {
+  border-color: var(--warn);
+  background: var(--warn);
+}
+
+.swatch.next {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.swatch.locked {
+  background: var(--surface-2);
+}

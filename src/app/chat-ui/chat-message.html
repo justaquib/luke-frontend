@@ -5,7 +5,18 @@
   [class.system]="message().role === 'system'"
 >
   <div class="bubble">
-    <p class="msg-text">{{ message().text }}</p>
+    @if (message().role === 'assistant') {
+      <button
+        type="button"
+        class="answer-open"
+        (click)="openDetails.emit(message())"
+        title="Open answer details"
+      >
+        <span class="msg-text">{{ message().text }}</span>
+      </button>
+    } @else {
+      <p class="msg-text">{{ message().text }}</p>
+    }
 
     <app-chat-message-meta [message]="message()" />
 
@@ -16,6 +27,15 @@
 
   @if (message().role === 'assistant') {
     <div class="message-actions">
+      <button
+        type="button"
+        class="ghost icon-only small"
+        (click)="openDetails.emit(message())"
+        title="Answer details"
+        aria-label="Answer details"
+      >
+        <app-icon name="info" [size]="14" />
+      </button>
       <button
         type="button"
         class="ghost icon-only small"

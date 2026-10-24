@@ -50,21 +50,6 @@
             </button>
           }
         </div>
-        <div class="option-row" role="group" aria-label="Sidebar side">
-          @for (side of sides; track side.value) {
-            <button
-              type="button"
-              class="icon-btn option"
-              [class.active]="design.sidebarSide() === side.value"
-              (click)="design.setSidebarSide(side.value)"
-              [attr.aria-pressed]="design.sidebarSide() === side.value"
-              [attr.aria-label]="side.label"
-              [title]="side.label"
-            >
-              <app-icon [name]="side.icon" [size]="15" />
-            </button>
-          }
-        </div>
       </div>
     }
     <app-background-task-strip />

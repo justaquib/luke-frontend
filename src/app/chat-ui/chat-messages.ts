@@ -5,6 +5,7 @@ import {
   type ElementRef,
   effect,
   inject,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
@@ -14,6 +15,7 @@ import { AppIcon } from '../shared/app-icon';
 import { ChatMessage } from './chat-message';
 import { ChatService } from './chat.service';
 import { ChatSessionService } from './chat-session.service';
+import type { ChatMessage as ChatMessageModel } from './chat.types';
 
 @Component({
   selector: 'app-chat-messages',
@@ -24,6 +26,8 @@ import { ChatSessionService } from './chat-session.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatMessages implements AfterViewChecked {
+  readonly openDetails = output<ChatMessageModel>();
+
   protected readonly session = inject(ChatSessionService);
   protected readonly service = inject(ChatService);
   protected readonly prefs = inject(AppPrefsService);

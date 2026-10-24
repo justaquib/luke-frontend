@@ -60,6 +60,8 @@
         (approve)="approve.emit()"
       />
 
+      <app-brain-roadmap [level]="current" />
+
       <ul class="rungs">
         @for (rung of current.rungs; track rung.rung) {
           <li class="rung" [class.passed]="state(rung) === 'passed'">

@@ -9,11 +9,7 @@
   <app-chat-sidebar />
 
   <main class="chat-area">
-    <app-chat-header />
-
-    <app-engine-facts class="chat-facts" [facts]="facts()" label="Conversation engine state" />
-
-    <app-chat-messages />
+    <app-chat-messages (openDetails)="showAnswer($event)" />
     <app-chat-composer />
   </main>
 
@@ -21,3 +17,14 @@
 </div>
 
 <app-right-sidebar />
+
+<ng-template #answerDetails>
+  @if (selectedAnswer(); as answer) {
+    <app-chat-answer-details [message]="answer.message" [question]="answer.question" />
+  }
+</ng-template>
+
+<ng-template appPageInfoFacts>
+  <h3 class="eyebrow">This conversation</h3>
+  <app-engine-facts [facts]="facts()" label="Conversation engine state" />
+</ng-template>

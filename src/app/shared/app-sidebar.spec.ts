@@ -107,7 +107,7 @@ describe('AppSidebar', () => {
     expect(strip?.querySelector('.task-meter')?.getAttribute('aria-valuenow')).toBe('50');
   });
 
-  it('switches sidebar behaviour and side from the footer', async () => {
+  it('switches sidebar behaviour from the footer', async () => {
     const fixture = TestBed.createComponent(AppSidebar);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -125,15 +125,5 @@ describe('AppSidebar', () => {
     expect(design.sidebarMode()).toBe('overlay');
     expect(root.getAttribute('data-sidebar-mode')).toBe('overlay');
     expect(float?.getAttribute('aria-pressed')).toBe('true');
-
-    const right = compiled.querySelector<HTMLButtonElement>(
-      'button[aria-label="Open the sidebar on the right"]',
-    );
-    right?.click();
-    fixture.detectChanges();
-
-    expect(design.sidebarSide()).toBe('right');
-    expect(root.getAttribute('data-sidebar-side')).toBe('right');
-    expect(right?.getAttribute('aria-pressed')).toBe('true');
   });
 });

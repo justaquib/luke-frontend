@@ -1,5 +1,15 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  type ElementRef,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs';
@@ -19,7 +29,7 @@ import { RightSidebarService } from './right-sidebar.service';
   standalone: true,
   imports: [NgTemplateOutlet, RouterLink, AppIcon],
   templateUrl: './app-top-bar.html',
-  styleUrl: './app-top-bar.css',
+  styleUrls: ['./app-top-bar.css', './app-top-bar-context.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppTopBar {
@@ -57,4 +67,55 @@ export class AppTopBar {
     const target = info ? 'the info panel' : 'the details panel';
     return this.sidebar.isOpen() ? `Close ${target}` : `Open ${target}`;
   });
+
+  protected readonly titleEditing = signal(false);
+  protected readonly titleDraft = signal('');
+  private readonly titleInput = viewChild<ElementRef<HTMLInputElement>>('contextTitleInput');
+
+  constructor() {
+    effect(() => {
+      if (!this.titleEditing()) return;
+      queueMicrotask(() => {
+        const element = this.titleInput()?.nativeElement;
+        if (element) {
+          element.focus();
+          element.select();
+        }
+      });
+    });
+  }
+
+  protected startTitleEdit(): void {
+    const context = this.info.contextTitle();
+    if (!context?.rename || this.titleEditing()) return;
+    this.titleDraft.set(context.title);
+    this.titleEditing.set(true);
+  }
+
+  protected commitTitle(): void {
+    const context = this.info.contextTitle();
+    if (!this.titleEditing() || !context?.rename) return;
+    const next = this.titleDraft().trim();
+    if (next) context.rename(next);
+    this.titleEditing.set(false);
+  }
+
+  protected cancelTitle(): void {
+    this.titleEditing.set(false);
+  }
+
+  protected onTitleInput(event: Event): void {
+    const target = event.target;
+    if (target instanceof HTMLInputElement) this.titleDraft.set(target.value);
+  }
+
+  protected onTitleKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.commitTitle();
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      this.cancelTitle();
+    }
+  }
 }

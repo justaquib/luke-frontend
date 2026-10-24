@@ -74,11 +74,6 @@ app-chat-sidebar {
   border-left: 0;
 }
 
-.chat-facts {
-  flex: 0 0 auto;
-  margin: 10px 16px 0;
-}
-
 .sidebar-scrim {
   display: none;
 }
@@ -192,10 +187,6 @@ app-chat-sidebar {
     z-index: 1040;
     display: block;
     background: var(--overlay);
-  }
-
-  .chat-facts {
-    margin: 8px 12px 0;
   }
 }
 

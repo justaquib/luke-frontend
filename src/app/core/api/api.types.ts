@@ -1,11 +1,16 @@
 /** The shapes the app exchanges with the backend, kept apart from the calls. */
 
-/** One entry of the level ladder, from the seed 0.0.0 up to 0.1.0. */
+/** One entry of the level ladder, from the seed 0.0.0 up to 1.0.0. */
 export interface ModelLevelEntry {
   level: string;
   name: string;
   description: string;
   reference: string;
+  /** Whether a test exists for this level; a locked level has none yet. */
+  open?: boolean;
+  band?: string;
+  band_name?: string;
+  band_detail?: string;
 }
 
 /** One rung of the ladder, measured by its probes. */

@@ -2,10 +2,27 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
+import { RightSidebarService } from '../shared/right-sidebar.service';
 import { Trainer } from './trainer';
 
 function text(node: Element): string {
   return node.textContent?.trim() ?? '';
+}
+
+function query(root: ParentNode, selector: string): Element {
+  const node = root.querySelector(selector);
+  if (!node) throw new Error(`Missing ${selector}`);
+  return node;
+}
+
+function modelSettings(): Record<string, unknown> {
+  return {
+    name: 'Luke',
+    start_level: '0.0.0',
+    level: '0.0.0',
+    defaults: { name: 'Luke', start_level: '0.0.0' },
+    levels: [],
+  };
 }
 
 describe('Trainer', () => {
@@ -34,7 +51,7 @@ describe('Trainer', () => {
     );
   });
 
-  it('shows the corpus state as measured facts above the tabs', () => {
+  it('puts the corpus state in the shared info panel', () => {
     const fixture = TestBed.createComponent(Trainer);
     const http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
@@ -61,7 +78,20 @@ describe('Trainer', () => {
     http.expectOne((req) => req.url.endsWith('/documents')).flush([]);
     fixture.detectChanges();
 
-    const facts = (fixture.nativeElement as HTMLElement).querySelector('app-engine-facts');
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('app-engine-facts')).toBeNull();
+
+    TestBed.inject(RightSidebarService).showInfo();
+    fixture.detectChanges();
+    http
+      .match((req) => req.url.endsWith('/language-model/settings'))
+      .forEach((request) => request.flush(modelSettings()));
+    http
+      .match((req) => req.url.endsWith('/language-model/brain'))
+      .forEach((request) => request.flush({ training: false, progress: null }));
+    fixture.detectChanges();
+
+    const facts = compiled.querySelector('.page-info-facts app-engine-facts');
     expect(facts?.querySelector('.engine-facts')?.getAttribute('aria-label')).toBe(
       'Training corpus state',
     );
@@ -76,6 +106,35 @@ describe('Trainer', () => {
       '20',
     ]);
     expect(facts?.textContent).toContain('trained + waiting');
+    expect(compiled.querySelector('.trainer-content app-engine-facts')).toBeNull();
+    http.verify();
+  });
+
+  it('keeps upload and refresh out of the trainer info panel', () => {
+    const fixture = TestBed.createComponent(Trainer);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+
+    http.expectOne((req) => req.url.includes('/faq/inbox')).flush([]);
+    http.expectOne((req) => req.url.endsWith('/faq')).flush([]);
+    http.expectOne((req) => req.url.endsWith('/documents')).flush([]);
+    fixture.detectChanges();
+
+    TestBed.inject(RightSidebarService).showInfo();
+    fixture.detectChanges();
+    http
+      .match((req) => req.url.endsWith('/language-model/settings'))
+      .forEach((request) => request.flush(modelSettings()));
+    http
+      .match((req) => req.url.endsWith('/language-model/brain'))
+      .forEach((request) => request.flush({ training: false, progress: null }));
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('#right-sidebar .page-info-facts')).toBeTruthy();
+    expect(compiled.querySelector('#right-sidebar .page-info-actions')).toBeNull();
+    expect(compiled.querySelector('#right-sidebar button[aria-label="Refresh"]')).toBeNull();
+    expect(compiled.querySelector('#right-sidebar input[type="file"]')).toBeNull();
     http.verify();
   });
 
@@ -122,6 +181,98 @@ describe('Trainer', () => {
       'Twenty days each year, plus public holidays.',
     );
     expect(compiled.querySelector('.faq-row .a')).toBeNull();
+    http.verify();
+  });
+
+  it('asks for pending questions only and gives the inbox no resolved toggle', () => {
+    const fixture = TestBed.createComponent(Trainer);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+
+    const inboxRequest = http.expectOne((req) => req.url.includes('/faq/inbox'));
+    expect(inboxRequest.request.url).toContain('resolved=false');
+    inboxRequest.flush([
+      {
+        id: 3,
+        question: 'How do I request a laptop?',
+        occurrences: 2,
+        resolved: false,
+        created_at: '2026-01-01T00:00:00Z',
+        last_seen_at: '2026-01-02T00:00:00Z',
+      },
+    ]);
+    http.expectOne((req) => req.url.endsWith('/faq')).flush([]);
+    http.expectOne((req) => req.url.endsWith('/documents')).flush([]);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.trainer-content .toolbar')).toBeNull();
+    expect(compiled.textContent).not.toContain('Show answered');
+    expect(compiled.textContent).not.toContain('pending ·');
+    expect(Array.from(compiled.querySelectorAll('.trainer-content .card .q')).map(text)).toEqual([
+      'How do I request a laptop?',
+    ]);
+    expect(compiled.querySelector('.trainer-content textarea')).toBeTruthy();
+    http.verify();
+  });
+
+  it('puts the upload card first in the documents grid and uploads from it', () => {
+    const fixture = TestBed.createComponent(Trainer);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+
+    http.expectOne((req) => req.url.includes('/faq/inbox')).flush([]);
+    http.expectOne((req) => req.url.endsWith('/faq')).flush([]);
+    http
+      .expectOne((req) => req.url.endsWith('/documents'))
+      .flush([{ source: 'handbook.pdf', chunks: 12 }]);
+    fixture.detectChanges();
+
+    fixture.componentInstance.setTab('documents');
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const grid = query(compiled, '.documents-grid');
+    const cards = Array.from(grid.querySelectorAll('.doc-card'));
+    expect(cards.map((card) => card.classList.contains('upload-card'))).toEqual([true, false]);
+    expect(text(query(cards[0], '.doc-name'))).toBe('Upload a document');
+    expect(text(query(cards[0], '.doc-meta'))).toBe('csv, xlsx, docx, doc, pdf, txt');
+    expect(text(query(cards[1], '.doc-name'))).toBe('handbook.pdf');
+    expect(text(query(cards[1], '.doc-meta'))).toBe('12 chunks');
+    expect(compiled.querySelector('.empty')).toBeNull();
+
+    const input = query(cards[0], 'input[type=file]') as HTMLInputElement;
+    expect(input.accept).toBe('.csv,.xlsx,.xls,.docx,.doc,.pdf,.txt');
+    expect(input.getAttribute('aria-label')).toBe('Upload a document');
+
+    const file = new File(['name,role'], 'people.csv', { type: 'text/csv' });
+    Object.defineProperty(input, 'files', { value: [file] });
+    input.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(text(query(cards[0], '.doc-name'))).toBe('Uploading…');
+    expect(text(query(cards[0], '.doc-meta'))).toBe('Reading and indexing the file');
+    expect(input.disabled).toBe(true);
+
+    const upload = http.expectOne((req) => req.url.endsWith('/upload'));
+    expect(upload.request.method).toBe('POST');
+    const sent = (upload.request.body as FormData).get('file') as File;
+    expect(sent.name).toBe('people.csv');
+    expect(sent.size).toBe(file.size);
+    upload.flush({ source: 'people.csv', chunks: 2, status: 'ok' });
+    http
+      .expectOne((req) => req.url.endsWith('/documents'))
+      .flush([
+        { source: 'people.csv', chunks: 2 },
+        { source: 'handbook.pdf', chunks: 12 },
+      ]);
+    fixture.detectChanges();
+
+    const refreshed = Array.from(grid.querySelectorAll('.doc-card'));
+    expect(refreshed).toHaveLength(3);
+    expect(text(query(refreshed[0], '.doc-name'))).toBe('Upload a document');
+    expect(text(query(refreshed[1], '.doc-name'))).toBe('people.csv');
+    expect(input.disabled).toBe(false);
     http.verify();
   });
 });

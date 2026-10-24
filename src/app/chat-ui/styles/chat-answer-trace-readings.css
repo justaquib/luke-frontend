@@ -1,0 +1,136 @@
+/* What the writer read and wrote: embeddings, next-word candidates, the run. */
+.embeddings {
+  max-height: 210px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: auto;
+}
+
+.embedding-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9px;
+}
+
+.embedding-table caption {
+  text-align: left;
+}
+
+.embedding-table th,
+.embedding-table td {
+  padding: 3px 5px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.embedding-table thead th {
+  position: sticky;
+  top: 0;
+  border-top: 0;
+  background: var(--surface-2);
+  color: var(--faint);
+  font-weight: 500;
+}
+
+.embedding-table th:first-child,
+.embedding-table tbody th {
+  color: var(--text);
+  font-family: var(--mono);
+  font-weight: 500;
+  text-align: left;
+}
+
+.candidates {
+  display: grid;
+  gap: 4px;
+}
+
+.candidate {
+  display: grid;
+  grid-template-columns: minmax(56px, 92px) minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 6px;
+}
+
+.candidate-token {
+  overflow: hidden;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.candidate.chosen .candidate-token {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.candidate-track {
+  height: 5px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.candidate-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.candidate-value {
+  color: var(--muted);
+  font-size: 10px;
+  text-align: right;
+}
+
+.candidate.chosen .candidate-value {
+  color: var(--text);
+}
+
+.written-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.written-word {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.word-chance {
+  color: var(--faint);
+  font-size: 9px;
+}
+
+.written-text {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 680px) {
+  .candidate {
+    grid-template-columns: minmax(48px, 76px) minmax(0, 1fr) 44px;
+  }
+}

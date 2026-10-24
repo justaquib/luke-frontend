@@ -1,40 +1,5 @@
 <app-shell>
   <main class="trainer-area">
-    <ng-template appPageInfoActions>
-      <div class="header-controls">
-        <label
-          class="upload"
-          [attr.title]="uploading() ? 'Uploading the document' : 'Upload a document'"
-        >
-          <input
-            type="file"
-            accept=".csv,.xlsx,.xls,.docx,.doc,.pdf,.txt"
-            (change)="uploadDocument($event)"
-            [attr.aria-label]="uploading() ? 'Uploading the document' : 'Upload a document'"
-            [disabled]="uploading()"
-          />
-          <span class="icon-only">
-            <app-icon name="upload" [size]="14" />
-          </span>
-        </label>
-        <button
-          type="button"
-          class="icon-btn"
-          (click)="refresh()"
-          aria-label="Refresh"
-          title="Refresh"
-        >
-          <app-icon name="refresh" [size]="16" />
-        </button>
-      </div>
-    </ng-template>
-
-    @if (engineFacts(); as facts) {
-      <div class="facts-row">
-        <app-engine-facts [facts]="facts" label="Training corpus state" />
-      </div>
-    }
-
     <nav class="tool-tabs" aria-label="Training tools">
       <button
         type="button"
@@ -103,20 +68,6 @@
     <section class="trainer-content">
       @switch (tab()) {
         @case ('inbox') {
-          <div class="toolbar">
-            <button
-              type="button"
-              class="dup-toggle"
-              [class.on]="includeResolved()"
-              [attr.aria-pressed]="includeResolved()"
-              (click)="toggleIncludeResolved()"
-            >
-              <app-icon name="eye" [size]="14" />
-              Show answered
-            </button>
-            <span class="meta">{{ pendingCount() }} pending · {{ inbox().length }} total</span>
-          </div>
-
           @if (inbox().length === 0) {
             <p class="empty">
               No pending questions. Good job — the assistant has answers for everything asked so
@@ -125,138 +76,119 @@
           } @else {
             <ul class="list">
               @for (p of inbox(); track p.id) {
-                <li class="card" [class.resolved]="p.resolved">
+                <li class="card">
                   <div class="row">
                     <strong class="q">{{ p.question }}</strong>
-                    <span class="meta">
-                      asked {{ p.occurrences }}×
-                      @if (p.resolved) {
-                        · <span class="status-tag small approved">answered</span>
-                      }
-                    </span>
+                    <span class="meta">asked {{ p.occurrences }}×</span>
                   </div>
-                  @if (!p.resolved) {
-                    <textarea
-                      rows="2"
-                      placeholder="Type the correct answer…"
-                      [value]="answers()[p.id] || ''"
-                      (input)="setAnswer(p.id, $any($event.target).value)"
-                    ></textarea>
-                    <div class="actions">
-                      <button
-                        type="button"
-                        class="primary icon-only"
-                        [attr.aria-label]="saving() ? 'Saving and training' : 'Save and train'"
-                        [title]="saving() ? 'Saving and training' : 'Save and train'"
-                        [disabled]="saving()"
-                        (click)="saveAnswer(p)"
-                      >
-                        <app-icon name="check" [size]="14" />
-                      </button>
-                      <button
-                        type="button"
-                        class="ghost icon-only"
-                        (click)="dismiss(p)"
-                        aria-label="Skip this question"
-                        title="Skip this question"
-                      >
-                        <app-icon name="arrow-right" [size]="14" />
-                      </button>
-                      <button
-                        type="button"
-                        class="ghost icon-only"
-                        [attr.aria-label]="mergeRowOpen(p) ? 'Cancel merging' : 'Merge duplicates'"
-                        [title]="mergeRowOpen(p) ? 'Cancel merging' : 'Merge duplicates'"
-                        (click)="toggleMergeRow(p)"
-                        [disabled]="isMerging(p)"
-                      >
-                        <app-icon name="merge" [size]="14" />
-                      </button>
-                      <button
-                        type="button"
-                        class="danger icon-only"
-                        (click)="deletePending(p)"
-                        aria-label="Remove this question from the inbox"
-                        title="Remove this question from the inbox"
-                      >
-                        <app-icon name="trash" [size]="14" />
-                      </button>
-                    </div>
+                  <textarea
+                    rows="2"
+                    placeholder="Type the correct answer…"
+                    [value]="answers()[p.id] || ''"
+                    (input)="setAnswer(p.id, $any($event.target).value)"
+                  ></textarea>
+                  <div class="actions">
+                    <button
+                      type="button"
+                      class="primary icon-only"
+                      [attr.aria-label]="saving() ? 'Saving and training' : 'Save and train'"
+                      [title]="saving() ? 'Saving and training' : 'Save and train'"
+                      [disabled]="saving()"
+                      (click)="saveAnswer(p)"
+                    >
+                      <app-icon name="check" [size]="14" />
+                    </button>
+                    <button
+                      type="button"
+                      class="ghost icon-only"
+                      (click)="dismiss(p)"
+                      aria-label="Skip this question"
+                      title="Skip this question"
+                    >
+                      <app-icon name="arrow-right" [size]="14" />
+                    </button>
+                    <button
+                      type="button"
+                      class="ghost icon-only"
+                      [attr.aria-label]="mergeRowOpen(p) ? 'Cancel merging' : 'Merge duplicates'"
+                      [title]="mergeRowOpen(p) ? 'Cancel merging' : 'Merge duplicates'"
+                      (click)="toggleMergeRow(p)"
+                      [disabled]="isMerging(p)"
+                    >
+                      <app-icon name="merge" [size]="14" />
+                    </button>
+                    <button
+                      type="button"
+                      class="danger icon-only"
+                      (click)="deletePending(p)"
+                      aria-label="Remove this question from the inbox"
+                      title="Remove this question from the inbox"
+                    >
+                      <app-icon name="trash" [size]="14" />
+                    </button>
+                  </div>
 
-                    @if (mergeRowOpen(p)) {
-                      <div class="merge-panel">
-                        <p class="hint">
-                          Pick which similar pending questions this canonical answer should also
-                          cover. They'll be created as pending FAQs pointing at the same answer.
-                        </p>
-                        @if (mergeMatchesFor(p).length === 0) {
-                          <p class="empty">No close matches found in the inbox.</p>
-                        } @else {
-                          <ul class="merge-list">
-                            @for (mm of mergeMatchesFor(p); track mm.pending_id) {
-                              <li class="merge-row">
-                                <label>
-                                  <input
-                                    type="checkbox"
-                                    [checked]="isMergeMatchSelected(p.id, mm.pending_id)"
-                                    (change)="toggleMergeMatch(p.id, mm.pending_id)"
-                                  />
-                                  <span class="merge-q">{{ mm.question }}</span>
-                                </label>
-                                <span class="meta"
-                                  >asked {{ mm.occurrences }}× · dist
-                                  {{ mm.distance.toFixed(2) }}</span
-                                >
-                              </li>
-                            }
-                          </ul>
-                        }
-                        <label class="merge-answer">
-                          <span class="field-label">Answer for all of these</span>
-                          <textarea
-                            rows="2"
-                            [value]="mergeAnswer()[p.id] || ''"
-                            (input)="updateMergeAnswer(p.id, $any($event.target).value)"
-                            placeholder="The correct answer…"
-                          ></textarea>
-                        </label>
-                        <div class="actions">
-                          <button
-                            type="button"
-                            class="primary icon-only"
-                            [attr.aria-label]="
-                              isMerging(p) ? 'Merging and training' : 'Merge and train'
-                            "
-                            [title]="isMerging(p) ? 'Merging and training' : 'Merge and train'"
-                            [disabled]="isMerging(p)"
-                            (click)="commitMergeRow(p)"
-                          >
-                            <app-icon name="merge" [size]="14" />
-                          </button>
-                          <button
-                            type="button"
-                            class="ghost icon-only"
-                            (click)="cancelMergeRow(p)"
-                            aria-label="Cancel the merge"
-                            title="Cancel the merge"
-                            [disabled]="isMerging(p)"
-                          >
-                            <app-icon name="x" [size]="14" />
-                          </button>
-                        </div>
+                  @if (mergeRowOpen(p)) {
+                    <div class="merge-panel">
+                      <p class="hint">
+                        Pick which similar pending questions this canonical answer should also
+                        cover. They'll be created as pending FAQs pointing at the same answer.
+                      </p>
+                      @if (mergeMatchesFor(p).length === 0) {
+                        <p class="empty">No close matches found in the inbox.</p>
+                      } @else {
+                        <ul class="merge-list">
+                          @for (mm of mergeMatchesFor(p); track mm.pending_id) {
+                            <li class="merge-row">
+                              <label>
+                                <input
+                                  type="checkbox"
+                                  [checked]="isMergeMatchSelected(p.id, mm.pending_id)"
+                                  (change)="toggleMergeMatch(p.id, mm.pending_id)"
+                                />
+                                <span class="merge-q">{{ mm.question }}</span>
+                              </label>
+                              <span class="meta"
+                                >asked {{ mm.occurrences }}× · dist
+                                {{ mm.distance.toFixed(2) }}</span
+                              >
+                            </li>
+                          }
+                        </ul>
+                      }
+                      <label class="merge-answer">
+                        <span class="field-label">Answer for all of these</span>
+                        <textarea
+                          rows="2"
+                          [value]="mergeAnswer()[p.id] || ''"
+                          (input)="updateMergeAnswer(p.id, $any($event.target).value)"
+                          placeholder="The correct answer…"
+                        ></textarea>
+                      </label>
+                      <div class="actions">
+                        <button
+                          type="button"
+                          class="primary icon-only"
+                          [attr.aria-label]="
+                            isMerging(p) ? 'Merging and training' : 'Merge and train'
+                          "
+                          [title]="isMerging(p) ? 'Merging and training' : 'Merge and train'"
+                          [disabled]="isMerging(p)"
+                          (click)="commitMergeRow(p)"
+                        >
+                          <app-icon name="merge" [size]="14" />
+                        </button>
+                        <button
+                          type="button"
+                          class="ghost icon-only"
+                          (click)="cancelMergeRow(p)"
+                          aria-label="Cancel the merge"
+                          title="Cancel the merge"
+                          [disabled]="isMerging(p)"
+                        >
+                          <app-icon name="x" [size]="14" />
+                        </button>
                       </div>
-                    }
-                  } @else {
-                    <div class="actions">
-                      <button
-                        type="button"
-                        class="danger icon-only"
-                        (click)="deletePending(p)"
-                        aria-label="Remove this answered question from the inbox"
-                        title="Remove this answered question from the inbox"
-                      >
-                        <app-icon name="trash" [size]="14" />
-                      </button>
                     </div>
                   }
                 </li>
@@ -898,9 +830,11 @@
           </div>
         }
         @case ('documents') {
-          <div class="toolbar">
+          <div class="documents-grid">
             <label
-              class="upload-label toolbar-upload"
+              class="doc-card upload-card"
+              [class.busy]="uploading()"
+              [attr.aria-busy]="uploading() ? 'true' : null"
               [attr.title]="uploading() ? 'Uploading the document' : 'Upload a document'"
             >
               <input
@@ -910,70 +844,75 @@
                 [attr.aria-label]="uploading() ? 'Uploading the document' : 'Upload a document'"
                 [disabled]="uploading()"
               />
-              <span class="upload-btn icon-only">
-                <app-icon name="upload" [size]="14" />
+              <span class="doc-icon">
+                <app-icon name="upload" [size]="18" />
+              </span>
+              <span class="doc-body">
+                <span class="doc-name">{{ uploading() ? 'Uploading…' : 'Upload a document' }}</span>
+                <span class="doc-meta">
+                  {{
+                    uploading() ? 'Reading and indexing the file' : 'csv, xlsx, docx, doc, pdf, txt'
+                  }}
+                </span>
               </span>
             </label>
-            <span class="meta">csv, xlsx, docx, doc, pdf, txt</span>
+
+            @for (doc of documents(); track doc.source) {
+              <div class="doc-card">
+                <div class="doc-icon">
+                  <app-icon name="file" [size]="18" />
+                </div>
+                <div class="doc-body">
+                  <div class="doc-name" title="{{ doc.source }}">{{ doc.source }}</div>
+                  <div class="doc-meta">{{ doc.chunks }} chunks</div>
+                </div>
+                <div class="doc-actions">
+                  <button
+                    type="button"
+                    class="ghost small icon-only"
+                    (click)="viewDocument(doc.source)"
+                    aria-label="View the document"
+                    title="View the document"
+                    [disabled]="viewingSource() === doc.source"
+                  >
+                    <app-icon name="eye" [size]="14" />
+                  </button>
+                  <button
+                    type="button"
+                    class="ghost small icon-only"
+                    (click)="downloadDocument(doc.source)"
+                    aria-label="Download the document"
+                    title="Download the document"
+                  >
+                    <app-icon name="download" [size]="14" />
+                  </button>
+                  <button
+                    type="button"
+                    class="danger small icon-only"
+                    (click)="deleteDocument(doc.source)"
+                    [attr.aria-label]="
+                      deletingSource() === doc.source
+                        ? 'Removing the document'
+                        : 'Remove the document'
+                    "
+                    [title]="
+                      deletingSource() === doc.source
+                        ? 'Removing the document'
+                        : 'Remove the document'
+                    "
+                    [disabled]="deletingSource() === doc.source"
+                  >
+                    <app-icon name="trash" [size]="14" />
+                  </button>
+                </div>
+              </div>
+            }
           </div>
 
           @if (documents().length === 0) {
             <p class="empty">
               No documents uploaded yet. Upload a file to let the assistant answer from it.
             </p>
-          } @else {
-            <div class="documents-grid">
-              @for (doc of documents(); track doc.source) {
-                <div class="doc-card">
-                  <div class="doc-icon">
-                    <app-icon name="file" [size]="18" />
-                  </div>
-                  <div class="doc-body">
-                    <div class="doc-name" title="{{ doc.source }}">{{ doc.source }}</div>
-                    <div class="doc-meta">{{ doc.chunks }} chunks</div>
-                  </div>
-                  <div class="doc-actions">
-                    <button
-                      type="button"
-                      class="ghost small icon-only"
-                      (click)="viewDocument(doc.source)"
-                      aria-label="View the document"
-                      title="View the document"
-                      [disabled]="viewingSource() === doc.source"
-                    >
-                      <app-icon name="eye" [size]="14" />
-                    </button>
-                    <button
-                      type="button"
-                      class="ghost small icon-only"
-                      (click)="downloadDocument(doc.source)"
-                      aria-label="Download the document"
-                      title="Download the document"
-                    >
-                      <app-icon name="download" [size]="14" />
-                    </button>
-                    <button
-                      type="button"
-                      class="danger small icon-only"
-                      (click)="deleteDocument(doc.source)"
-                      [attr.aria-label]="
-                        deletingSource() === doc.source
-                          ? 'Removing the document'
-                          : 'Remove the document'
-                      "
-                      [title]="
-                        deletingSource() === doc.source
-                          ? 'Removing the document'
-                          : 'Remove the document'
-                      "
-                      [disabled]="deletingSource() === doc.source"
-                    >
-                      <app-icon name="trash" [size]="14" />
-                    </button>
-                  </div>
-                </div>
-              }
-            </div>
           }
         }
       }
@@ -1156,5 +1095,10 @@
     } @else {
       <p class="empty">This answer is no longer in the list.</p>
     }
+  </ng-template>
+
+  <ng-template appPageInfoFacts>
+    <h3 class="eyebrow">This training corpus</h3>
+    <app-engine-facts [facts]="engineFacts()" label="Training corpus state" />
   </ng-template>
 </app-shell>

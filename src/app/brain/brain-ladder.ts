@@ -1,17 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import type { ModelLevel, ModelLevelRung } from '../core/api/api.types';
 import { LevelApproval } from './level-approval';
+import { BrainRoadmap } from './brain-roadmap';
 import { AppIcon } from '../shared/app-icon';
 import { rungHint, rungName, rungState, SEED_LEVEL, type RungState } from './brain.ladder';
 
 /**
- * The level ladder: where the brain stands on the scale, the rungs it has
- * passed, and the promotion that waits for the trainer's word. The bar reads
+ * The level ladder: where the brain stands on the scale, the whole road to
+ * 1.0.0, and the promotion that waits for the trainer's word. The bar reads
  * the backend's share of the top level, not a hand-picked frontier.
  */
 @Component({
   selector: 'app-brain-ladder',
-  imports: [LevelApproval, AppIcon],
+  imports: [LevelApproval, BrainRoadmap, AppIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './brain-ladder.html',
   styleUrl: './brain-ladder.css',

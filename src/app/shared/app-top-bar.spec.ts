@@ -2,6 +2,7 @@ import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { DesignService } from '../core/design.service';
 import { AppTopBar } from './app-top-bar';
+import { PageInfoService } from './page-info.service';
 import { RightSidebarService } from './right-sidebar.service';
 
 function query<T extends Element>(root: ParentNode, selector: string): T {
@@ -68,6 +69,34 @@ describe('AppTopBar', () => {
     expect(query(center, '.page-scope').textContent?.trim()).toBe('Model builder');
     expect(query(center, '.page-dot').getAttribute('aria-hidden')).toBe('true');
     expect(center.textContent).not.toContain('What the brain');
+  });
+
+  it('shows the page context title and renames it in place', async () => {
+    const renames: string[] = [];
+    TestBed.inject(PageInfoService).setContextTitle({
+      title: 'Why the sky is blue',
+      rename: (title) => renames.push(title),
+    });
+    const { fixture, compiled } = render();
+    const center = query<HTMLElement>(compiled, '.top-bar .bar-center');
+    const trigger = query<HTMLButtonElement>(center, '.context-title');
+
+    expect(query(center, '.context-divider').getAttribute('aria-hidden')).toBe('true');
+    expect(trigger.textContent).toContain('Why the sky is blue');
+    expect(trigger.getAttribute('aria-label')).toBe('Rename conversation: Why the sky is blue');
+
+    trigger.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const input = query<HTMLInputElement>(center, '.context-title-input');
+    input.value = 'Sky colour';
+    input.dispatchEvent(new Event('input'));
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    fixture.detectChanges();
+
+    expect(renames).toEqual(['Sky colour']);
+    expect(center.querySelector('.context-title-input')).toBeNull();
+    expect(query(center, '.context-title').textContent).toContain('Why the sky is blue');
   });
 
   it('opens the page information from the right', () => {

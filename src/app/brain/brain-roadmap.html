@@ -1,0 +1,64 @@
+<section class="roadmap" aria-labelledby="roadmap-title">
+  <div class="roadmap-head">
+    <h3 id="roadmap-title">Ladder to {{ level()?.max_level ?? '1.0.0' }}</h3>
+    <span class="number">{{ passedLevels() }} of {{ totalLevels() }} passed</span>
+  </div>
+  <p class="hint">
+    The next level stays locked until the one before it is passed. Only levels with a test can open.
+  </p>
+
+  <ol class="bands">
+    @for (band of bands(); track band.key) {
+      <li class="band">
+        <div class="band-head">
+          <span class="band-name">{{ band.key }} {{ band.name }}</span>
+          @if (!band.tested) {
+            <app-icon name="lock" [size]="11" />
+          }
+          <span class="number">{{ band.passed }} / {{ band.levels.length }}</span>
+        </div>
+        <ol class="nodes">
+          @for (node of band.levels; track node.level) {
+            <li
+              class="node"
+              [class.passed]="node.state === 'passed'"
+              [class.ahead]="node.state === 'ahead'"
+              [class.next]="node.state === 'next'"
+              [class.locked]="node.state === 'locked'"
+              [class.current]="node.current"
+              [attr.aria-current]="node.current ? 'step' : null"
+              [attr.aria-label]="label(node)"
+              [title]="label(node)"
+            >
+              <span class="node-icon" aria-hidden="true">
+                @switch (node.state) {
+                  @case ('passed') {
+                    <app-icon name="check" [size]="11" />
+                  }
+                  @case ('ahead') {
+                    <app-icon name="eye" [size]="11" />
+                  }
+                  @case ('next') {
+                    <app-icon name="arrow-right" [size]="11" />
+                  }
+                  @default {
+                    <app-icon name="lock" [size]="11" />
+                  }
+                }
+              </span>
+              <span class="node-level">{{ node.level }}</span>
+              <span class="node-name">{{ node.name }}</span>
+            </li>
+          }
+        </ol>
+      </li>
+    }
+  </ol>
+
+  <p class="legend">
+    <span><span class="swatch passed"></span>Passed</span>
+    <span><span class="swatch ahead"></span>Ahead</span>
+    <span><span class="swatch next"></span>Next</span>
+    <span><span class="swatch locked"></span>Locked</span>
+  </p>
+</section>

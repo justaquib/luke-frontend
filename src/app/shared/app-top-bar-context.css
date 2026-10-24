@@ -1,0 +1,84 @@
+/* The live context a page adds after its scope, such as a chat's title. */
+.context-divider {
+  width: 1px;
+  height: 14px;
+  flex: 0 0 auto;
+  background: var(--border);
+}
+
+.context-title {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 24vw;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 5px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+}
+
+button.context-title {
+  cursor: text;
+}
+
+button.context-title:hover {
+  background: var(--surface-2);
+}
+
+button.context-title:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.context-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.context-title-hint {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--faint);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+button.context-title:hover .context-title-hint,
+button.context-title:focus-visible .context-title-hint {
+  opacity: 1;
+}
+
+.context-title-input {
+  width: min(260px, 24vw);
+  min-width: 80px;
+  padding: 3px 6px;
+  border: 1px solid var(--accent-line);
+  border-radius: 4px;
+  outline: none;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.context-title-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+@media (max-width: 680px) {
+  .context-title {
+    max-width: 34vw;
+  }
+
+  .context-title-input {
+    width: 34vw;
+  }
+}

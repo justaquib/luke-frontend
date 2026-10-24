@@ -11,6 +11,27 @@ function uid(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
+function normalizeMessageIds(sessions: ChatSession[]): number {
+  let next = 100;
+  for (const session of sessions) {
+    for (const message of session.messages) {
+      if (Number.isInteger(message.id)) {
+        next = Math.max(next, message.id + 1);
+      }
+    }
+  }
+  const seen = new Set<number>();
+  for (const session of sessions) {
+    for (const message of session.messages) {
+      if (!Number.isInteger(message.id) || seen.has(message.id)) {
+        message.id = next++;
+      }
+      seen.add(message.id);
+    }
+  }
+  return next;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ChatSessionService {
   private readonly browser = inject(BrowserService);
@@ -32,7 +53,9 @@ export class ChatSessionService {
   private nextId = 100;
 
   constructor() {
-    this.sessions.set(this.loadSessions());
+    const stored = this.loadSessions();
+    this.nextId = normalizeMessageIds(stored);
+    this.sessions.set(stored);
     this.activeId.set(this.browser.readLocal(ACTIVE_KEY));
     if (this.sessions().length === 0) {
       this.createSession();

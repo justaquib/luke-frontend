@@ -32,6 +32,37 @@
     <span class="page-name">{{ info.page().name }}</span>
     <span class="page-dot" aria-hidden="true"></span>
     <span class="page-scope">{{ info.page().scope }}</span>
+    @if (info.contextTitle(); as context) {
+      <span class="context-divider" aria-hidden="true"></span>
+      @if (titleEditing()) {
+        <input
+          #contextTitleInput
+          type="text"
+          class="context-title-input"
+          [value]="titleDraft()"
+          (input)="onTitleInput($event)"
+          (keydown)="onTitleKeydown($event)"
+          (blur)="commitTitle()"
+          maxlength="80"
+          aria-label="Conversation title"
+        />
+      } @else if (context.rename) {
+        <button
+          type="button"
+          class="context-title"
+          (click)="startTitleEdit()"
+          [attr.aria-label]="'Rename conversation: ' + context.title"
+          [title]="'Rename conversation: ' + context.title"
+        >
+          <span class="context-title-text">{{ context.title }}</span>
+          <span class="context-title-hint" aria-hidden="true">
+            <app-icon name="pencil" [size]="11" />
+          </span>
+        </button>
+      } @else {
+        <span class="context-title">{{ context.title }}</span>
+      }
+    }
   </div>
 
   <div class="bar-side bar-end">

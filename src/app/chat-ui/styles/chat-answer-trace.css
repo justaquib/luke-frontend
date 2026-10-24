@@ -1,0 +1,164 @@
+/* The measured reading of the writer, step by step, inside the details panel. */
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.trace {
+  display: grid;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.trace-head {
+  display: grid;
+  gap: 6px;
+}
+
+.trace .eyebrow {
+  margin: 0;
+}
+
+.trace-route,
+.step-copy,
+.trace-note,
+.heatmap-note,
+.step-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.trace-route {
+  color: var(--faint);
+  font-size: 12px;
+}
+
+.model-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.model-fact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  background: var(--surface-2);
+}
+
+.model-fact dt {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.model-fact dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.steps {
+  display: grid;
+  gap: 0;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+}
+
+.step:first-child {
+  border-top: 0;
+  padding-top: 4px;
+}
+
+.step:last-child {
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.step-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.step-number {
+  flex: 0 0 auto;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.step-name {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.step-note {
+  color: var(--faint);
+  font-size: 11px;
+}
+
+.tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.token {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.token.mark {
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+
+.trace-state {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.mono {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 680px) {
+  .model-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

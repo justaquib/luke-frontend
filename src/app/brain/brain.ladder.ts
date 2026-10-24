@@ -11,10 +11,15 @@ export interface LadderRung {
 export interface LadderLevel {
   level: string;
   name: string;
+  description?: string;
+  open?: boolean;
 }
 
 /** The state of a rung: passed, ahead of the level, or still open. */
 export type RungState = 'passed' | 'ahead' | 'open';
+
+/** The state of a level on the whole road to 1.0.0. */
+export type RoadmapState = 'passed' | 'ahead' | 'next' | 'locked';
 
 /** The floor of the ladder, where the brain starts before any test is passed. */
 export const SEED_LEVEL = '0.0.0';
@@ -50,4 +55,43 @@ export function rungHint(rung: LadderRung, level: string, modelName = 'The model
     return `It clears this test on its own, but ${modelName} is still at ${level}. The rung below has to be passed first.`;
   }
   return rung.test ?? '';
+}
+
+/** The level right after this one on the road, or null at the top. */
+export function nextLevel(level: string, levels: LadderLevel[] | undefined): LadderLevel | null {
+  if (!levels?.length) return null;
+  const index = levels.findIndex((entry) => entry.level === level);
+  if (index < 0 || index + 1 >= levels.length) return null;
+  return levels[index + 1];
+}
+
+/**
+ * The road is climbed in order: a level passes at or below the approved
+ * level, the next one opens only when it has a test and nothing is waiting
+ * for approval, and every level after that stays locked.
+ */
+export function roadmapState(
+  entry: LadderLevel,
+  levels: LadderLevel[] | undefined,
+  approved: string,
+  measured: string,
+  approvalPending: boolean,
+): RoadmapState {
+  const order = levelOrder(entry.level);
+  if (order <= levelOrder(approved)) return 'passed';
+  if (approvalPending && order <= levelOrder(measured)) return 'ahead';
+  const next = nextLevel(approved, levels);
+  if (!approvalPending && next?.level === entry.level && entry.open !== false) {
+    return 'next';
+  }
+  return 'locked';
+}
+
+/** What the trainer is told about a level on the road. */
+export function roadmapHint(entry: LadderLevel, state: RoadmapState): string {
+  if (state === 'passed') return 'Passed.';
+  if (state === 'ahead') return 'Measured. Waiting for your approval.';
+  if (state === 'next') return 'Next. This level is open.';
+  if (entry.open === false) return 'Locked. No test has been written for this level yet.';
+  return 'Locked until the level before it is passed.';
 }

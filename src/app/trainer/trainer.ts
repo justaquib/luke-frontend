@@ -25,7 +25,7 @@ import {
 import { UiService } from '../shared/ui.service';
 import { AppEngineFacts, type EngineFact } from '../shared/app-engine-facts';
 import { SafeUrlPipe } from '../shared/safe-url.pipe';
-import { PageInfoActions } from '../shared/page-info-actions';
+import { PageInfoFacts } from '../shared/page-info-facts';
 import { AppShell } from '../shared/app-shell';
 import { AppIcon } from '../shared/app-icon';
 import { RightSidebarService } from '../shared/right-sidebar.service';
@@ -55,7 +55,7 @@ const SIDEBAR_OWNER = 'trainer';
     CommonModule,
     SafeUrlPipe,
     AppShell,
-    PageInfoActions,
+    PageInfoFacts,
     AppIcon,
     AppEngineFacts,
   ],
@@ -70,7 +70,6 @@ export class Trainer implements OnInit, OnDestroy {
 
   protected readonly tab = signal<Tab>('inbox');
   protected readonly inbox = signal<PendingItem[]>([]);
-  protected readonly includeResolved = signal(false);
   protected readonly faqs = signal<FaqItem[]>([]);
   protected readonly error = signal<string | null>(null);
   protected readonly saving = signal(false);
@@ -181,7 +180,7 @@ export class Trainer implements OnInit, OnDestroy {
     return map;
   });
 
-  protected readonly pendingCount = computed(() => this.inbox().filter((p) => !p.resolved).length);
+  protected readonly pendingCount = computed(() => this.inbox().length);
   protected readonly faqCount = computed(() => this.faqs().length);
   protected readonly engineFacts = computed<readonly EngineFact[]>(() => {
     const trained = this.faqCount();
@@ -350,7 +349,7 @@ export class Trainer implements OnInit, OnDestroy {
   }
 
   refresh() {
-    this.api.listInbox(this.includeResolved()).subscribe({
+    this.api.listInbox().subscribe({
       next: (rows) => this.inbox.set(rows),
       error: (e: Error) => this.error.set(e.message),
     });
@@ -392,11 +391,6 @@ export class Trainer implements OnInit, OnDestroy {
         this.ui.error(e.message);
       },
     });
-  }
-
-  toggleIncludeResolved() {
-    this.includeResolved.update((v) => !v);
-    this.refresh();
   }
 
   dismiss(p: PendingItem) {

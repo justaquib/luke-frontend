@@ -16,6 +16,22 @@ describe('AppIcon', () => {
     }
   });
 
+  it('draws each shape kind with its geometry', () => {
+    const fixture = TestBed.createComponent(AppIcon);
+    fixture.componentRef.setInput('name', 'lock');
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    const rect = compiled.querySelector('rect');
+    expect(rect?.getAttribute('y')).toBe('11');
+    expect(rect?.getAttribute('rx')).toBe('2');
+    expect(compiled.querySelector('path')?.getAttribute('d')).toContain('M8 11V7');
+
+    fixture.componentRef.setInput('name', 'search');
+    fixture.detectChanges();
+    expect(compiled.querySelector('circle')?.getAttribute('r')).toBe('7');
+  });
+
   it('sizes the icon from the caller', () => {
     const fixture = TestBed.createComponent(AppIcon);
     fixture.componentRef.setInput('name', 'menu');

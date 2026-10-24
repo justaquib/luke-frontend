@@ -1,0 +1,91 @@
+<section class="answer-details" aria-label="Answer details">
+  <section class="detail-section">
+    <h3 class="section-label">Question</h3>
+    @if (question(); as asked) {
+      <p class="question">{{ asked }}</p>
+    } @else {
+      <p class="detail-note">No question was recorded before this answer.</p>
+    }
+  </section>
+
+  <section class="detail-section">
+    <h3 class="section-label">Answer</h3>
+    <p class="answer-text">{{ message().text }}</p>
+  </section>
+
+  <dl class="record">
+    <div class="record-row">
+      <dt>Source</dt>
+      <dd>{{ sourceLabel() }}</dd>
+    </div>
+    <div class="record-row">
+      <dt>Answered</dt>
+      <dd class="mono">{{ answeredAt() }}</dd>
+    </div>
+    @if (matchedQuestion()) {
+      <div class="record-row">
+        <dt>Matched lesson</dt>
+        <dd>{{ matchedQuestion() }}</dd>
+      </div>
+    }
+    @if (matchDistance(); as distance) {
+      <div class="record-row">
+        <dt>Match distance</dt>
+        <dd class="mono">{{ distance }}</dd>
+      </div>
+    }
+    @if (pendingId(); as id) {
+      <div class="record-row">
+        <dt>Training queue</dt>
+        <dd class="mono">#{{ id }}</dd>
+      </div>
+    }
+  </dl>
+
+  @if (hits().length) {
+    <section class="detail-section">
+      <h3 class="section-label">Retrieved passages ({{ hits().length }})</h3>
+      <div class="passages">
+        @for (hit of hits(); track $index) {
+          <article class="passage">
+            <div class="passage-head">
+              <span>{{ hit.metadata.source }}</span>
+              @if (hitDistance(hit); as distance) {
+                <span class="mono">dist {{ distance }}</span>
+              }
+            </div>
+            <p>{{ hit.text }}</p>
+          </article>
+        }
+      </div>
+    </section>
+  }
+
+  @if (liveLink(); as link) {
+    <section class="detail-section">
+      <h3 class="section-label">Live source</h3>
+      <a class="live-link" [href]="link.href" target="_blank" rel="noopener">
+        {{ link.title }}
+        <app-icon name="external" [size]="12" />
+      </a>
+    </section>
+  }
+
+  @if (hasDisabledSources()) {
+    <p class="source-hint">
+      Live answers are off.
+      <a routerLink="/dashboard/settings">
+        Enable {{ message().disabledExternalSources?.join(' and ') }} in Settings</a
+      >
+    </p>
+  }
+
+  @if (question(); as asked) {
+    <app-chat-answer-trace [question]="asked" [source]="message().source" />
+  } @else {
+    <section class="detail-section">
+      <h3 class="section-label">How the model reads this question</h3>
+      <p class="detail-note">No question was recorded, so there is nothing to trace.</p>
+    </section>
+  }
+</section>

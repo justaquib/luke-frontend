@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../core/auth.service';
-import { DesignService, type SidebarMode, type SidebarSide } from '../core/design.service';
+import { DesignService, type SidebarMode } from '../core/design.service';
 import { AppBackgroundTaskStrip } from './app-background-task-strip';
 import { AppIcon, type IconName } from './app-icon';
 
@@ -14,12 +14,6 @@ interface NavItem {
 
 interface ModeChoice {
   value: SidebarMode;
-  label: string;
-  icon: IconName;
-}
-
-interface SideChoice {
-  value: SidebarSide;
   label: string;
   icon: IconName;
 }
@@ -38,8 +32,8 @@ const NAV_ITEMS: readonly NavItem[] = [
 /**
  * The workspace navigation shared by the dashboard views. It opens and closes
  * through the shared design state, so a page keeps the choice, and it carries
- * the two decisions that shape it: docked, floating or full width, and the
- * side it opens from.
+ * the docked, floating or full-width decision; the side it opens from is set
+ * on the design page with the rest of the frame.
  */
 @Component({
   selector: 'app-sidebar',
@@ -65,10 +59,5 @@ export class AppSidebar {
     { value: 'push', label: 'Dock the sidebar beside the page', icon: 'sidebar' },
     { value: 'overlay', label: 'Float the sidebar over the page', icon: 'layers' },
     { value: 'full', label: 'Expand the sidebar to the full width', icon: 'maximize' },
-  ];
-
-  protected readonly sides: readonly SideChoice[] = [
-    { value: 'left', label: 'Open the sidebar on the left', icon: 'sidebar-left' },
-    { value: 'right', label: 'Open the sidebar on the right', icon: 'sidebar' },
   ];
 }

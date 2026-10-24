@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { type Observable } from 'rxjs';
+import { catchError, type Observable } from 'rxjs';
 import { BaseApiService } from './base-api.service';
 import type {
   DuplicateLessons,
@@ -16,6 +16,7 @@ import type {
   StoreSummary,
 } from '../api.service';
 import type {
+  AnswerTrace,
   LanguageBrainDocument,
   LanguageBrainTraining,
   LanguageLevelApproval,
@@ -123,6 +124,17 @@ export class LanguageModelApiService extends BaseApiService {
       { name, start_level: startLevel },
       { headers: this.authHeaders() },
     );
+  }
+
+  /** The writer's real reading of one question: tokens, attention and choices. */
+  traceAnswer(question: string): Observable<AnswerTrace> {
+    return this.http
+      .post<AnswerTrace>(
+        `${this.base}/language-model/trace`,
+        { question },
+        { headers: this.authHeaders() },
+      )
+      .pipe(catchError((error) => this.handleError(error)));
   }
 
   /** What the brain has trained from, and how the training works. */
