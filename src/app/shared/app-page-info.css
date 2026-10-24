@@ -1,0 +1,17 @@
+:host {
+  display: block;
+}
+
+.page-info {
+  display: grid;
+  gap: 14px;
+}
+
+.page-info-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}

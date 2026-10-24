@@ -10,11 +10,12 @@ export const appErrorLoggingInterceptor: HttpInterceptorFn = (request, next) => 
       if (error instanceof HttpErrorResponse) {
         const path = getRequestPath(request.url);
         const detail = error.error?.detail;
-        const message = error.status === 0
-          ? 'Request failed: the API could not be reached or the browser blocked the connection.'
-          : typeof detail === 'string'
-            ? detail
-            : error.statusText || 'The request failed.';
+        const message =
+          error.status === 0
+            ? 'Request failed: the API could not be reached or the browser blocked the connection.'
+            : typeof detail === 'string'
+              ? detail
+              : error.statusText || 'The request failed.';
         logs.record({
           level: error.status === 0 || error.status >= 500 ? 'error' : 'warning',
           source: `${request.method} API request`,
@@ -41,7 +42,8 @@ export class AppErrorHandler extends ErrorHandler {
 
 function getRequestPath(url: string): string {
   try {
-    return new URL(url, typeof window === 'undefined' ? 'http://localhost' : window.location.origin).pathname;
+    return new URL(url, typeof window === 'undefined' ? 'http://localhost' : window.location.origin)
+      .pathname;
   } catch {
     return url.split('?')[0];
   }

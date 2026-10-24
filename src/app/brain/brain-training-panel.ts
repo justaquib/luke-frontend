@@ -1,25 +1,18 @@
-import { isPlatformBrowser } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
   inject,
-  type OnDestroy,
+  input,
   type OnInit,
-  output,
-  PLATFORM_ID,
   signal,
 } from '@angular/core';
 import {
-  type BrainTrainingState,
   LanguageModelApiService,
-  type TrainingProgress,
-  type TrainingStageStatus,
   type TrainingSources,
 } from '../core/api/language-model-api.service';
-
-/** How often the training is read while it runs, in milliseconds. */
-const WATCH_INTERVAL = 3000;
+import type { LanguageBrainState, TrainingProgress } from '../core/api/language-brain.types';
+import { AppIcon } from '../shared/app-icon';
 
 /** How a whole training is told in words once it is over. */
 const clock = (seconds: number): string => {
@@ -30,55 +23,41 @@ const clock = (seconds: number): string => {
 };
 
 /**
- * The panel that says what the brain has trained from and how the training
- * works. It is opened from the small info button beside the training button,
- * and it opens by itself while the brain is training. While the training
- * runs it reads the checklist the training itself writes: the parts that are
- * done, the part it is on, the steps and the time the rest will take. When
- * the training is over it says how long it took.
+ * What the brain trains from and how the training works, shown in the shared
+ * right sidebar. The live progress is the brain state the page already reads;
+ * the panel only fetches the sources report.
  */
 @Component({
   selector: 'app-brain-training-panel',
   standalone: true,
+  imports: [AppIcon],
   templateUrl: './brain-training-panel.html',
   styleUrl: './brain-training-panel.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BrainTrainingPanel implements OnInit, OnDestroy {
+export class BrainTrainingPanel implements OnInit {
   private readonly api = inject(LanguageModelApiService);
-  private readonly platformId = inject(PLATFORM_ID);
 
-  /** Raised when the trainer closes the panel. */
-  readonly closed = output<void>();
+  /** The live brain state the page reads, so the panel does not poll again. */
+  readonly state = input<LanguageBrainState | null>(null);
 
   protected readonly report = signal<TrainingSources | null>(null);
-  protected readonly live = signal<BrainTrainingState | null>(null);
-  protected readonly training = signal(false);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
 
   protected readonly progress = computed<TrainingProgress | null>(
-    () => this.live()?.progress ?? null,
+    () => this.state()?.progress ?? null,
   );
+  protected readonly training = computed(() => !!this.state()?.training);
 
-  private timer: ReturnType<typeof setTimeout> | null = null;
+  /** The one line the panel shows while it reads, or when the read failed. */
+  protected readonly notice = computed<string | null>(() => {
+    if (this.loading()) return 'Reading the material…';
+    return this.error();
+  });
 
   ngOnInit(): void {
-    // The server has no session, so the report is read in the browser.
-    if (!isPlatformBrowser(this.platformId)) return;
     this.load();
-    this.watch();
-  }
-
-  ngOnDestroy(): void {
-    this.stopWatching();
-  }
-
-  /** The mark beside one part of the checklist: check, current, or to come. */
-  protected markFor(status: TrainingStageStatus): string {
-    if (status === 'done') return '✓';
-    if (status === 'working') return '…';
-    return '·';
   }
 
   /** The numbers of the writer's steps, as the live line reads them. */
@@ -110,30 +89,5 @@ export class BrainTrainingPanel implements OnInit, OnDestroy {
         this.loading.set(false);
       },
     });
-  }
-
-  /** Follow the training while it runs, so the panel shows what is happening. */
-  private watch(): void {
-    this.api.languageModelBrain().subscribe({
-      next: (response) => {
-        const state = (response?.state ?? {}) as BrainTrainingState;
-        this.live.set(state);
-        const running = !!state.training;
-        this.training.set(running);
-        if (running) this.scheduleWatch();
-      },
-      error: () => this.stopWatching(),
-    });
-  }
-
-  private scheduleWatch(): void {
-    this.stopWatching();
-    this.timer = setTimeout(() => this.watch(), WATCH_INTERVAL);
-  }
-
-  private stopWatching(): void {
-    if (this.timer === null) return;
-    clearTimeout(this.timer);
-    this.timer = null;
   }
 }

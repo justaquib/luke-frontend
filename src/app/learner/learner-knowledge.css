@@ -1,0 +1,217 @@
+.knowledge-panel {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.dictionary-entry {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.dictionary-entry > strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.dictionary-entry fieldset {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.dictionary-entry legend,
+.dictionary-definition-note {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.dictionary-definition {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.dictionary-definition input {
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+
+.learned-examples ol {
+  display: grid;
+  gap: 6px;
+  max-height: 420px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.learned-examples details {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.learned-examples details summary {
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.learned-examples details ol {
+  margin-top: 8px;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.learned-examples li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--text);
+}
+
+.learned-note {
+  margin: 8px 0 0;
+  color: var(--faint);
+  font-size: 11px;
+}
+
+.learner-book-content {
+  margin: 8px 0 0;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  line-height: 1.8;
+}
+
+.learned-answers-list > ol {
+  display: grid;
+  gap: 0;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.learned-answer-row {
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.learned-answer-content {
+  display: grid;
+  gap: 6px;
+}
+
+.learned-answer-content > strong {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.learned-answer-content > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.learned-answer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.expression-example-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+}
+
+.expression-example {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.expression-example strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.expression-example p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.lesson-kind {
+  min-width: 86px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.learner-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.duplicate-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--warn-line);
+  border-radius: 4px;
+  background: var(--warn-soft);
+  color: var(--warn);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.grade-browser {
+  padding: 12px;
+}
+
+.grade-browser-body {
+  display: grid;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+@media (max-width: 760px) {
+  .learner-badges {
+    justify-content: flex-start;
+  }
+}

@@ -1,0 +1,84 @@
+<section class="panel" aria-labelledby="measure-title">
+  <header class="panel-head">
+    <h2 id="measure-title">Measurements</h2>
+    @if (measuredAt(); as at) {
+      <span class="stamp">{{ at | date: 'yyyy-MM-dd HH:mm' }}</span>
+    } @else {
+      <span class="stamp">not measured yet</span>
+    }
+  </header>
+
+  <dl class="rows">
+    <div class="row">
+      <dt>Never-worded requests</dt>
+      <dd>{{ percent(heldOut()) }}</dd>
+    </div>
+    <div class="row">
+      <dt>Written itself</dt>
+      <dd>
+        {{ ratio(written(), level()?.instruction_total) }}
+        @if (lookedUp() !== null && lookedUp() !== undefined) {
+          <small>{{ lookedUp() }} looked up</small>
+        }
+      </dd>
+    </div>
+    <div class="row">
+      <dt>Adversarial refusals</dt>
+      <dd>
+        <span
+          class="dot"
+          [class.ok]="(adversarial().score ?? 0) > 0"
+          [class.bad]="adversarial().score === 0 && adversarial().total"
+          aria-hidden="true"
+        ></span>
+        {{ percent(adversarial().score) }}
+        @if (adversarial().total) {
+          <small>
+            {{ adversarial().passed ?? 0 }} of {{ adversarial().total }}
+            @if (adversarial().model !== undefined) {
+              &middot; model {{ adversarial().model }}
+            }
+          </small>
+        }
+      </dd>
+    </div>
+    <div class="row">
+      <dt>Held-out subject</dt>
+      <dd>
+        @if (crossTopic().score !== undefined) {
+          {{ percent(crossTopic().score) }}
+          <small>{{ crossTopic().subject ?? 'no subject was held out' }}</small>
+        } @else {
+          not measured yet
+        }
+      </dd>
+    </div>
+    <div class="row">
+      <dt>Generality</dt>
+      <dd>{{ percent(level()?.generality) }}</dd>
+    </div>
+    <div class="row">
+      <dt>Probe overlap</dt>
+      <dd>
+        @if (contamination(); as check) {
+          <span
+            class="dot"
+            [class.ok]="check.clean"
+            [class.bad]="!check.clean"
+            aria-hidden="true"
+          ></span>
+          {{ check.clean ? 'clean' : check.overlaps + ' overlap' }}
+          <small>{{ check.checked }} held-out forms checked</small>
+        } @else {
+          not measured yet
+        }
+      </dd>
+    </div>
+  </dl>
+
+  <p class="note">
+    Written rows are produced by the model; looked-up rows are read from the taught answer. The two
+    are counted apart, and the probes are kept out of training. A refusal is the product's: an
+    unknown request is never answered. The writer's own refusals are shown after the dot.
+  </p>
+</section>

@@ -4,10 +4,8 @@ import { BaseApiService } from './base-api.service';
 import type {
   DuplicateLessons,
   KnowledgeGraph,
-  LanguageBrainResponse,
   LanguageDictionaryEntry,
   LanguageDictionaryLearn,
-  LanguageLevelTest,
   LanguageModelState,
   LanguagePreviewResponse,
   LanguageSentence,
@@ -17,6 +15,13 @@ import type {
   LanguageWordPage,
   StoreSummary,
 } from '../api.service';
+import type {
+  LanguageBrainDocument,
+  LanguageBrainTraining,
+  LanguageLevelApproval,
+  LanguageLevelTest,
+  ModelSettingsDocument,
+} from './language-brain.types';
 
 /** What the brain has trained from, and how the training works. */
 export interface TrainingSource {
@@ -54,41 +59,6 @@ export interface TrainingSources {
 
 /** The kinds of lesson the learner can be taught. */
 export type LessonKind = 'qa' | 'story';
-
-/** How far one part of the training has come. */
-export type TrainingStageStatus = 'waiting' | 'working' | 'done';
-
-/** One part of a training, as the checklist the training itself writes. */
-export interface TrainingStage {
-  key: string;
-  label: string;
-  status: TrainingStageStatus;
-}
-
-/** What a training has done so far, and how long the rest will take. */
-export interface TrainingProgress {
-  started?: number;
-  finished?: number | null;
-  seconds?: number | null;
-  eta_seconds?: number | null;
-  steps_done?: number;
-  steps_total?: number;
-  stages?: TrainingStage[];
-}
-
-/** What the brain knows about itself, as the training panel reads it. */
-export interface BrainTrainingState {
-  vocabulary?: number;
-  training?: boolean;
-  progress?: TrainingProgress;
-  transformer?: {
-    trained?: boolean;
-    steps?: number;
-    loss?: number | null;
-    vocabulary?: number;
-    device?: string;
-  };
-}
 
 /** The answer the assistant is taught when it answered wrongly. */
 export interface BrainCorrection {
@@ -133,10 +103,26 @@ export class LanguageModelApiService extends BaseApiService {
     });
   }
 
-  languageModelBrain(): Observable<LanguageBrainResponse> {
-    return this.http.get<LanguageBrainResponse>(`${this.base}/language-model/brain`, {
+  languageModelBrain(): Observable<LanguageBrainDocument> {
+    return this.http.get<LanguageBrainDocument>(`${this.base}/language-model/brain`, {
       headers: this.authHeaders(),
     });
+  }
+
+  /** The model name, the version it starts from and the ladder to choose from. */
+  modelSettings(): Observable<ModelSettingsDocument> {
+    return this.http.get<ModelSettingsDocument>(`${this.base}/language-model/settings`, {
+      headers: this.authHeaders(),
+    });
+  }
+
+  /** Rename the model and choose the version it starts from. */
+  saveModelSettings(name: string, startLevel: string): Observable<ModelSettingsDocument> {
+    return this.http.put<ModelSettingsDocument>(
+      `${this.base}/language-model/settings`,
+      { name, start_level: startLevel },
+      { headers: this.authHeaders() },
+    );
   }
 
   /** What the brain has trained from, and how the training works. */
@@ -159,8 +145,8 @@ export class LanguageModelApiService extends BaseApiService {
     );
   }
 
-  trainLanguageModelBrain(): Observable<LanguageBrainResponse> {
-    return this.http.post<LanguageBrainResponse>(
+  trainLanguageModelBrain(): Observable<LanguageBrainTraining> {
+    return this.http.post<LanguageBrainTraining>(
       `${this.base}/language-model/brain/train`,
       {},
       { headers: this.authHeaders() },
@@ -176,8 +162,8 @@ export class LanguageModelApiService extends BaseApiService {
   }
 
   /** Promote the brain to the level it has measured, on the trainer's word. */
-  approveLanguageModelLevel(): Observable<LanguageBrainResponse> {
-    return this.http.post<LanguageBrainResponse>(
+  approveLanguageModelLevel(): Observable<LanguageLevelApproval> {
+    return this.http.post<LanguageLevelApproval>(
       `${this.base}/language-model/brain/level/approve`,
       {},
       { headers: this.authHeaders() },

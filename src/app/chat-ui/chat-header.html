@@ -1,84 +1,66 @@
 <header class="chat-header">
   <div class="title-wrap">
-    <button
-      type="button"
-      class="icon-btn sidebar-toggle"
-      (click)="toggleSidebar()"
-      [attr.aria-label]="ui.sidebarOpen() ? 'Hide sidebar' : 'Show sidebar'"
-      [attr.aria-expanded]="ui.sidebarOpen()"
-      title="Toggle sidebar"
-    >
-      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-        <path
-          d="M3 6h18M3 12h18M3 18h18"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
-      </svg>
-    </button>
-    <h1
-      class="editable-title"
-      [class.editing]="titleEditing()"
-      (click)="startEditTitle()"
-      (keydown.enter)="startEditTitle()"
-      [attr.tabindex]="titleEditing() ? -1 : 0"
-      [attr.role]="titleEditing() ? null : 'button'"
-    >
-      @if (titleEditing()) {
-        <input
-          #titleInput
-          type="text"
-          class="title-input"
-          [value]="titleDraft()"
-          (input)="titleDraft.set($any($event.target).value)"
-          (keydown)="onTitleKeydown($event)"
-          (blur)="commitTitle()"
-          maxlength="80"
-          aria-label="Chat title"
-        />
-      } @else {
-        <span class="title-text">{{ session.active().title }}</span>
-        <span class="title-edit-hint" aria-hidden="true">✎</span>
-      }
-    </h1>
-    <span class="mode-pill" [class.train]="session.trainMode()">
-      @if (session.trainMode()) {
-        Train mode
-      } @else {
-        Regular
-      }
-    </span>
-    @if (!ui.sidebarOpen()) {
-      <span
-        class="status-dot"
-        [class.online]="service.backendStatus() === 'online'"
-        [class.offline]="service.backendStatus() === 'offline'"
-        [attr.title]="
-          service.backendStatus() === 'online'
-            ? 'Backend connected'
-            : service.backendStatus() === 'offline'
-              ? 'Backend offline'
-              : 'Connecting…'
-        "
-      ></span>
-    }
+    <div class="title-block">
+      <span class="context-label">Conversation engine</span>
+      <h1
+        class="editable-title"
+        [class.editing]="titleEditing()"
+        (click)="startEditTitle()"
+        (keydown.enter)="startEditTitle()"
+        [attr.tabindex]="titleEditing() ? -1 : 0"
+        [attr.role]="titleEditing() ? null : 'button'"
+      >
+        @if (titleEditing()) {
+          <input
+            #titleInput
+            type="text"
+            class="title-input"
+            [value]="titleDraft()"
+            (input)="titleDraft.set($any($event.target).value)"
+            (keydown)="onTitleKeydown($event)"
+            (blur)="commitTitle()"
+            maxlength="80"
+            aria-label="Chat title"
+          />
+        } @else {
+          <span class="title-text">{{ session.active().title }}</span>
+          <span class="title-edit-hint" aria-hidden="true">
+            <app-icon name="pencil" [size]="12" />
+          </span>
+        }
+      </h1>
+    </div>
   </div>
   <div class="header-actions">
-    <button
-      type="button"
-      class="train-toggle"
-      [class.on]="session.trainMode()"
-      (click)="toggleTrain()"
+    <span
+      class="engine-status"
+      [attr.title]="
+        service.backendStatus() === 'online'
+          ? 'Backend connected'
+          : service.backendStatus() === 'offline'
+            ? 'Backend offline'
+            : 'Connecting…'
+      "
     >
-      @if (session.trainMode()) {
-        ◉ Train
-      } @else {
-        ○ Train
+      <span
+        class="dot"
+        [class.ok]="service.backendStatus() === 'online'"
+        [class.bad]="service.backendStatus() === 'offline'"
+      ></span>
+      @switch (service.backendStatus()) {
+        @case ('online') {
+          Engine online
+        }
+        @case ('offline') {
+          Engine offline
+        }
+        @default {
+          Connecting…
+        }
       }
-    </button>
-    <a class="icon-btn" routerLink="/settings" aria-label="Settings" title="Settings"> ⚙ </a>
+    </span>
+    <a class="icon-btn" routerLink="/dashboard/settings" aria-label="Settings" title="Settings">
+      <app-icon name="sliders" [size]="16" />
+    </a>
   </div>
 </header>

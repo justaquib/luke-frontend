@@ -1,0 +1,67 @@
+<section class="panel store" aria-labelledby="brain-store-title">
+  <header class="store-head">
+    <div class="store-copy">
+      <h2 id="brain-store-title">Knowledge</h2>
+      <p>
+        What the assistant has learned: the files it read, the answers it holds, and how much room
+        they take.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="icon-btn"
+      (click)="load()"
+      [disabled]="loading()"
+      [attr.aria-label]="loading() ? 'Reading the knowledge' : 'Refresh the knowledge'"
+      [title]="loading() ? 'Reading the knowledge' : 'Refresh the knowledge'"
+    >
+      <app-icon name="refresh" [size]="16" />
+    </button>
+  </header>
+
+  @if (error(); as message) {
+    <p class="store-error" role="alert">{{ message }}</p>
+  }
+
+  @if (summary(); as store) {
+    <div class="store-metrics">
+      @for (metric of metrics(); track metric.label) {
+        <article class="store-metric">
+          <span class="metric-label">{{ metric.label }}</span>
+          <strong class="metric-value">{{ metric.value }}</strong>
+          <span class="metric-note">{{ metric.note }}</span>
+        </article>
+      }
+    </div>
+
+    <dl class="store-rows">
+      @for (row of rows(); track row.label) {
+        <div class="store-row">
+          <dt>{{ row.label }}</dt>
+          <dd>
+            {{ row.value }}
+            <small>{{ row.note }}</small>
+          </dd>
+        </div>
+      }
+    </dl>
+
+    @if (store.documents.length) {
+      <div class="store-files">
+        <h3>Files</h3>
+        <ul>
+          @for (document of store.documents; track document.source) {
+            <li>
+              <span class="file-name">{{ document.source }}</span>
+              <span class="file-meta">{{ document.chunks }} chunks</span>
+            </li>
+          }
+        </ul>
+      </div>
+    } @else {
+      <p class="empty">No files have been ingested yet.</p>
+    }
+  } @else if (!loading()) {
+    <p class="empty">The knowledge could not be read.</p>
+  }
+</section>

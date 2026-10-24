@@ -1,7 +1,16 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  OnInit,
+  OnDestroy,
+  computed,
+  TemplateRef,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import {
   ApiService,
@@ -13,9 +22,13 @@ import {
   FaqSuggestion,
   FaqMergePreview,
 } from '../core/api.service';
-import { AppPrefsService } from '../core/app-prefs.service';
 import { UiService } from '../shared/ui.service';
+import { AppEngineFacts, type EngineFact } from '../shared/app-engine-facts';
 import { SafeUrlPipe } from '../shared/safe-url.pipe';
+import { PageInfoActions } from '../shared/page-info-actions';
+import { AppShell } from '../shared/app-shell';
+import { AppIcon } from '../shared/app-icon';
+import { RightSidebarService } from '../shared/right-sidebar.service';
 
 type Tab = 'inbox' | 'faqs' | 'merge' | 'new' | 'documents';
 type StatusFilter = 'all' | 'pending' | 'approved' | 'declined' | 'duplicate';
@@ -31,23 +44,34 @@ interface IntentGroup {
   aliases: FaqItem[];
 }
 
+/** The trainer's mark on the shared right sidebar, so it clears only its own. */
+const SIDEBAR_OWNER = 'trainer';
+
 @Component({
   selector: 'app-trainer',
-  imports: [FormsModule, DatePipe, RouterLink, CommonModule, SafeUrlPipe],
+  imports: [
+    FormsModule,
+    DatePipe,
+    CommonModule,
+    SafeUrlPipe,
+    AppShell,
+    PageInfoActions,
+    AppIcon,
+    AppEngineFacts,
+  ],
   templateUrl: './trainer.html',
   styleUrl: './trainer.css',
 })
-export class Trainer implements OnInit {
+export class Trainer implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly ui = inject(UiService);
-  protected readonly prefs = inject(AppPrefsService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly sidebar = inject(RightSidebarService);
 
-  protected readonly sidebarOpen = signal(true);
   protected readonly tab = signal<Tab>('inbox');
   protected readonly inbox = signal<PendingItem[]>([]);
   protected readonly includeResolved = signal(false);
   protected readonly faqs = signal<FaqItem[]>([]);
-  protected readonly stats = signal<{ faqs: number; pending: number } | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly saving = signal(false);
 
@@ -58,6 +82,13 @@ export class Trainer implements OnInit {
   protected readonly editingId = signal<number | null>(null);
   protected readonly editingAnswer = signal('');
 
+  protected readonly selectedFaqId = signal<number | null>(null);
+  protected readonly selectedFaq = computed<FaqItem | null>(() => {
+    const id = this.selectedFaqId();
+    return id === null ? null : (this.faqById(id) ?? null);
+  });
+  private readonly faqDetails = viewChild.required<TemplateRef<unknown>>('faqDetails');
+
   protected readonly filteredFaqs = computed<FaqItem[]>(() => {
     const q = this.faqSearch().trim().toLowerCase();
     const status = this.statusFilter();
@@ -65,11 +96,8 @@ export class Trainer implements OnInit {
     if (!q && !this.showDuplicatesOnly()) return all;
     return all.filter((f) => {
       const matchesQuery =
-        !q ||
-        f.question.toLowerCase().includes(q) ||
-        f.answer.toLowerCase().includes(q);
-      const inDupGroup =
-        !this.showDuplicatesOnly() || this.isDuplicate(f, this.faqs());
+        !q || f.question.toLowerCase().includes(q) || f.answer.toLowerCase().includes(q);
+      const inDupGroup = !this.showDuplicatesOnly() || this.isDuplicate(f, this.faqs());
       return matchesQuery && inDupGroup;
     });
   });
@@ -120,8 +148,7 @@ export class Trainer implements OnInit {
     for (const [answerKey, items] of groups) {
       if (items.length < 2) continue;
       items.sort((a, b) => a.id - b.id);
-      const canonical =
-        items.find((f) => f.status === 'approved') ?? items[0];
+      const canonical = items.find((f) => f.status === 'approved') ?? items[0];
       out.push({
         answerKey,
         canonical,
@@ -135,10 +162,7 @@ export class Trainer implements OnInit {
   protected readonly faqIntentInfo = computed<
     Map<number, { canonicalId: number; variantCount: number; isAlias: boolean }>
   >(() => {
-    const map = new Map<
-      number,
-      { canonicalId: number; variantCount: number; isAlias: boolean }
-    >();
+    const map = new Map<number, { canonicalId: number; variantCount: number; isAlias: boolean }>();
     for (const g of this.intentGroups()) {
       const variantCount = g.aliases.length + 1;
       map.set(g.canonical.id, {
@@ -157,10 +181,17 @@ export class Trainer implements OnInit {
     return map;
   });
 
-  protected readonly pendingCount = computed(
-    () => this.inbox().filter((p) => !p.resolved).length,
-  );
+  protected readonly pendingCount = computed(() => this.inbox().filter((p) => !p.resolved).length);
   protected readonly faqCount = computed(() => this.faqs().length);
+  protected readonly engineFacts = computed<readonly EngineFact[]>(() => {
+    const trained = this.faqCount();
+    const pending = this.pendingCount();
+    return [
+      { label: 'Trained answers', value: String(trained) },
+      { label: 'Pending questions', value: String(pending) },
+      { label: 'Corpus items', value: String(trained + pending), note: 'trained + waiting' },
+    ];
+  });
 
   intentVariantCount(f: FaqItem): number {
     return this.faqIntentInfo().get(f.id)?.variantCount ?? 0;
@@ -204,7 +235,9 @@ export class Trainer implements OnInit {
   protected readonly faqMergeExtraMatches = signal<FaqSuggestion[]>([]);
 
   protected readonly uploading = signal(false);
-  protected readonly documents = signal<Array<{ source: string; chunks: number; created_at?: string }>>([]);
+  protected readonly documents = signal<
+    Array<{ source: string; chunks: number; created_at?: string }>
+  >([]);
   protected readonly deletingSource = signal<string | null>(null);
   protected readonly viewingSource = signal<string | null>(null);
   protected readonly viewerUrl = signal<string | null>(null);
@@ -291,15 +324,25 @@ export class Trainer implements OnInit {
   ngOnInit(): void {
     this.refresh();
     this.refreshDocuments();
+    this.route.queryParamMap.subscribe((params) => {
+      const teach = params.get('teach');
+      const answer = params.get('answer');
+      if (teach) {
+        this.tab.set('new');
+        this.newQuestion = teach;
+        this.newAnswer = answer ?? '';
+      }
+    });
   }
 
-  toggleSidebar() {
-    this.sidebarOpen.update((v) => !v);
+  ngOnDestroy(): void {
+    this.sidebar.clearDetails(SIDEBAR_OWNER);
   }
 
   setTab(t: Tab) {
     this.tab.set(t);
     this.error.set(null);
+    this.closeFaq();
   }
 
   setStatusFilter(s: StatusFilter) {
@@ -312,12 +355,12 @@ export class Trainer implements OnInit {
       error: (e: Error) => this.error.set(e.message),
     });
     this.api.listFaqs().subscribe({
-      next: (rows) => this.faqs.set(rows),
+      next: (rows) => {
+        this.faqs.set(rows);
+        const selected = this.selectedFaqId();
+        if (selected !== null && !rows.some((f) => f.id === selected)) this.closeFaq();
+      },
       error: (e: Error) => this.error.set(e.message),
-    });
-    this.api.stats().subscribe({
-      next: (s) => this.stats.set({ faqs: s.faqs, pending: s.pending }),
-      error: () => {},
     });
   }
 
@@ -578,16 +621,11 @@ export class Trainer implements OnInit {
     const preview = this.faqMergePreview();
     if (preview) for (const m of preview.matches) alreadyShown.add(m.faq_id);
     let pool = this.faqs().filter(
-      (f) =>
-        f.id !== target.id &&
-        !alreadySelected.has(f.id) &&
-        !alreadyShown.has(f.id),
+      (f) => f.id !== target.id && !alreadySelected.has(f.id) && !alreadyShown.has(f.id),
     );
     if (q) {
       pool = pool.filter(
-        (f) =>
-          f.question.toLowerCase().includes(q) ||
-          f.answer.toLowerCase().includes(q),
+        (f) => f.question.toLowerCase().includes(q) || f.answer.toLowerCase().includes(q),
       );
     }
     return pool.slice(0, 20);
@@ -612,9 +650,7 @@ export class Trainer implements OnInit {
   }
 
   removeExtraMatch(faqId: number) {
-    this.faqMergeExtraMatches.update((list) =>
-      list.filter((m) => m.faq_id !== faqId),
-    );
+    this.faqMergeExtraMatches.update((list) => list.filter((m) => m.faq_id !== faqId));
     this.faqMergeSelected.update((s) => {
       const next = new Set(s);
       next.delete(faqId);
@@ -742,6 +778,28 @@ export class Trainer implements OnInit {
     });
   }
 
+  openFaq(f: FaqItem) {
+    if (this.editingId() !== f.id) this.cancelEdit();
+    this.selectedFaqId.set(f.id);
+    this.sidebar.show({
+      owner: SIDEBAR_OWNER,
+      title: 'Trained answer',
+      subtitle: `Question and answer · #${f.id}`,
+      template: this.faqDetails(),
+    });
+  }
+
+  mergeFaq(f: FaqItem) {
+    this.setTab('merge');
+    this.pickFaqMergeTarget(f);
+  }
+
+  closeFaq() {
+    this.selectedFaqId.set(null);
+    this.cancelEdit();
+    this.sidebar.clearDetails(SIDEBAR_OWNER);
+  }
+
   startEdit(f: FaqItem) {
     this.editingId.set(f.id);
     this.editingAnswer.set(f.answer);
@@ -817,11 +875,18 @@ export class Trainer implements OnInit {
         this.api.deleteFaq(f.id).subscribe({
           next: () => {
             this.ui.success('Trained answer deleted.');
+            this.forgetFaqs([f]);
             this.refresh();
           },
           error: (e: Error) => this.ui.error(e.message),
         });
       });
+  }
+
+  private forgetFaqs(faqs: FaqItem[]): void {
+    const selected = this.selectedFaqId();
+    if (selected === null) return;
+    if (faqs.some((f) => f.id === selected)) this.closeFaq();
   }
 
   deleteFaqs(faqs: FaqItem[]) {
@@ -844,6 +909,7 @@ export class Trainer implements OnInit {
             next: () => {
               if (--remaining === 0) {
                 this.ui.success(`${faqs.length} trained answers removed.`);
+                this.forgetFaqs(faqs);
                 this.refresh();
               }
             },

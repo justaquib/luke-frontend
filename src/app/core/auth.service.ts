@@ -196,12 +196,19 @@ export class AuthService {
     const user = this._user();
     if (!user) return;
     if (user.is_systemadmin) {
-      this.router.navigate(['/tenants']);
+      this.router.navigate(['/dashboard/tenants']);
     } else if (user.role === 'trainer') {
-      this.router.navigate(['/trainer']);
+      this.router.navigate(['/dashboard/trainer']);
     } else {
       this.router.navigate(['/chat']);
     }
+  }
+
+  /** Remember the experience the user picked on the onboarding page. */
+  setRole(role: string): void {
+    try {
+      localStorage.setItem(ROLE_KEY, role);
+    } catch {}
   }
 
   logout(): void {

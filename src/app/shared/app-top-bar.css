@@ -1,0 +1,194 @@
+/* The top panel of every frame: the brand and navigation on the left, the
+   page and its scope in the middle, and the page action plus info, settings
+   and details controls on the right. It stays above the page while it
+   scrolls. */
+:host {
+  position: sticky;
+  top: 0;
+  z-index: 1060;
+  display: block;
+  height: var(--topbar-height, 44px);
+}
+
+.top-bar {
+  display: grid;
+  height: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.bar-side {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar-start {
+  justify-self: start;
+}
+
+.bar-end {
+  justify-self: end;
+  justify-content: flex-end;
+}
+
+.bar-center {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.page-name {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-dot {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.page-scope {
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.bar-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.brand {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px;
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.brand:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.brand-mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.brand-mark .mark-bg {
+  fill: var(--accent);
+}
+
+.brand-mark .mark-node {
+  fill: var(--bg);
+}
+
+.brand-mark .mark-link {
+  stroke: var(--bg);
+}
+
+.brand-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.frame-controls {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface-2);
+}
+
+.frame-btn {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.frame-btn:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.frame-btn.open {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.frame-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+@media (max-width: 680px) {
+  .top-bar {
+    gap: 8px;
+    padding: 0 8px;
+  }
+
+  .brand-name {
+    max-width: 64px;
+  }
+
+  .bar-side {
+    gap: 4px;
+  }
+
+  .bar-center {
+    gap: 0;
+  }
+
+  .page-dot,
+  .page-scope {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame-btn {
+    transition: none;
+  }
+}

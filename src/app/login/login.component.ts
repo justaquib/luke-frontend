@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth.service';
 import { UiService } from '../shared/ui.service';
+import { AppIcon } from '../shared/app-icon';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, AppIcon],
   templateUrl: './login.html',
-  styleUrl: './login.css',
+  styleUrls: ['../shared/auth.css'],
 })
 export class Login {
   private readonly auth = inject(AuthService);

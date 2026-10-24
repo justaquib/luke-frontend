@@ -1,0 +1,26 @@
+:host {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+.card-info-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.card-info-title {
+  min-width: 0;
+}
+
+.card-info-button {
+  flex: 0 0 auto;
+}
+
+.card-info-text {
+  max-width: 720px;
+  margin: 0;
+}

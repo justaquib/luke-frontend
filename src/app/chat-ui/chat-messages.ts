@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { AppPrefsService } from '../core/app-prefs.service';
 import { BrowserService } from '../core/browser.service';
+import { AppIcon } from '../shared/app-icon';
 import { ChatMessage } from './chat-message';
 import { ChatService } from './chat.service';
 import { ChatSessionService } from './chat-session.service';
@@ -17,12 +18,9 @@ import { ChatSessionService } from './chat-session.service';
 @Component({
   selector: 'app-chat-messages',
   standalone: true,
-  imports: [ChatMessage],
+  imports: [AppIcon, ChatMessage],
   templateUrl: './chat-messages.html',
   styleUrls: ['./styles/chat-messages.css', './styles/chat-bubble.css'],
-  host: {
-    '[class.train-on]': 'session.trainMode()',
-  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatMessages implements AfterViewChecked {

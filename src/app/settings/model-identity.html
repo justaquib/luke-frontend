@@ -1,0 +1,56 @@
+<section class="settings-card" aria-labelledby="settings-model-title">
+  <app-card-info
+    label="the model identity"
+    text="The name this model answers to everywhere in the workspace, and the version its ladder starts from. The starting version is the floor of the displayed level; approvals can still climb above it."
+  >
+    <h2 id="settings-model-title">Model identity</h2>
+  </app-card-info>
+
+  <form class="model-form" (submit)="$event.preventDefault(); save()">
+    <label class="model-field">
+      Model name
+      <input
+        type="text"
+        name="model-name"
+        maxlength="40"
+        autocomplete="off"
+        placeholder="Luke"
+        [value]="name()"
+        (input)="setName($any($event.target).value)"
+      />
+    </label>
+
+    <label class="model-field">
+      Starting version
+      <select
+        name="model-start-level"
+        [value]="startLevel()"
+        (change)="setStartLevel($any($event.target).value)"
+      >
+        @for (version of settings.versions(); track version.level) {
+          <option [value]="version.level">{{ version.title }} · {{ version.name }}</option>
+        }
+      </select>
+    </label>
+
+    <button type="submit" class="primary small" [disabled]="!canSave()">
+      <app-icon name="check" [size]="14" />
+      Save model
+    </button>
+  </form>
+
+  <p class="model-current">
+    Displayed version
+    <strong>{{ settings.level() ?? '—' }}</strong>
+    @if (settings.settings()?.start_level; as start) {
+      <span>· starts at {{ start }}</span>
+    }
+  </p>
+
+  @if (settings.error(); as message) {
+    <p class="model-error" role="alert">{{ message }}</p>
+    <button type="button" class="ghost small model-retry" (click)="settings.load(true)">
+      Retry reading the model
+    </button>
+  }
+</section>

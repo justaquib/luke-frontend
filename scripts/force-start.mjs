@@ -24,7 +24,11 @@ function killOnPort(port) {
     }
   } else {
     const lsofOut = run(`lsof -ti tcp:${port}`);
-    for (const pid of lsofOut.split('\n').map(s => s.trim()).filter(Boolean)) pids.add(pid);
+    for (const pid of lsofOut
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean))
+      pids.add(pid);
 
     const fuserOut = run(`fuser ${port}/tcp 2>/dev/null`);
     for (const pid of fuserOut.split(/\s+/).filter(Boolean)) pids.add(pid);
@@ -43,7 +47,10 @@ function killOnPort(port) {
       process.kill(Number(pid), 'SIGKILL');
       console.log(`Killed PID ${pid} on port ${port}.`);
     } catch (e) {
-      if (isWin) try { execSync(`taskkill /F /PID ${pid}`, { stdio: 'ignore' }); } catch {}
+      if (isWin)
+        try {
+          execSync(`taskkill /F /PID ${pid}`, { stdio: 'ignore' });
+        } catch {}
     }
   }
 
@@ -58,7 +65,9 @@ killOnPort(PORT);
 
 const child = spawn('npx', ['ng', 'serve', '--port', PORT], { stdio: 'inherit', shell: true });
 
-const shutdown = (signal) => { if (!child.killed) child.kill(signal); };
+const shutdown = (signal) => {
+  if (!child.killed) child.kill(signal);
+};
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 

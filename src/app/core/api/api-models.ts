@@ -143,3 +143,35 @@ export interface Invite {
   expires_at: string;
   used_at: string | null;
 }
+
+export interface CoachingAnswer {
+  text: string;
+  confidence: number;
+  grounded: boolean;
+  source: string;
+  grammar_notes: string[];
+}
+
+export interface CoachingScaffold {
+  suggestions: string[];
+  retry_context: string;
+  failure: string;
+}
+
+export interface CoachingTurn {
+  status: 'answered' | 'needs_correction' | 'escalated';
+  answer: CoachingAnswer | null;
+  scaffold: CoachingScaffold | null;
+}
+
+export interface CoachingSession {
+  id: string;
+  topic: string;
+  child_age_band: string;
+  status: string;
+  turns: number;
+  corrections_used: number;
+  scaffold_failures: number;
+  created_at: string;
+  updated_at: string;
+}

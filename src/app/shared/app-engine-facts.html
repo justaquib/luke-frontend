@@ -1,0 +1,11 @@
+<dl class="engine-facts" [attr.aria-label]="label()">
+  @for (fact of facts(); track fact.label) {
+    <div class="fact">
+      <dt>{{ fact.label }}</dt>
+      <dd [class]="fact.tone ?? ''">{{ fact.value }}</dd>
+      @if (fact.note) {
+        <small class="note">{{ fact.note }}</small>
+      }
+    </div>
+  }
+</dl>

@@ -1,0 +1,28 @@
+@if (tasks.tasks().length) {
+  <section class="task-strip" aria-label="Background tasks">
+    @for (task of tasks.tasks(); track task.key) {
+      <article class="task-item">
+        <div class="task-head">
+          <span class="task-dot" aria-hidden="true"></span>
+          <strong>{{ task.title }}</strong>
+          @if (task.percent !== null) {
+            <span class="task-share">{{ task.percent }}%</span>
+          }
+        </div>
+        @if (task.percent !== null) {
+          <div
+            class="task-meter"
+            role="progressbar"
+            [attr.aria-label]="task.title"
+            [attr.aria-valuenow]="task.percent"
+            aria-valuemin="0"
+            aria-valuemax="100"
+          >
+            <span [style.width.%]="task.percent"></span>
+          </div>
+        }
+        <p class="task-detail">{{ task.detail }}</p>
+      </article>
+    }
+  </section>
+}

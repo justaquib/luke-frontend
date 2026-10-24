@@ -1,0 +1,100 @@
+<app-shell>
+  <main class="coach-main">
+    <ng-template appPageInfoActions>
+      <div class="coach-controls">
+        <label class="coach-train">
+          <input type="checkbox" [checked]="trainMode()" (change)="toggleTrainMode()" />
+          <app-icon name="sliders" [size]="14" />
+          <span>Train mode</span>
+        </label>
+        <span
+          class="coach-status"
+          [class.open]="sessionStatus() === 'open'"
+          [class.needs]="sessionStatus() === 'needs_correction'"
+          [class.escalated]="sessionStatus() === 'escalated'"
+        >
+          <span class="dot"></span>
+          {{ statusLabel() }}
+        </span>
+      </div>
+    </ng-template>
+
+    <section class="coach-scroll" aria-live="polite">
+      <div class="coach-thread">
+        @if (messages().length === 0) {
+          <div class="coach-empty">
+            <p class="coach-label">Session</p>
+            <h2>Start the coaching</h2>
+            <p>Tell the coach how your child is doing, and it will answer from the lessons.</p>
+          </div>
+        } @else {
+          @for (message of messages(); track message.id) {
+            <div class="coach-row" [class.parent]="message.role === 'parent'">
+              <div class="coach-bubble" [class.coach]="message.role === 'coach'">
+                <p class="coach-text">{{ message.text }}</p>
+                @if (message.role === 'coach') {
+                  <p class="coach-meta">
+                    {{ message.source }} · confidence {{ message.confidence }}
+                  </p>
+                }
+              </div>
+            </div>
+          }
+        }
+
+        @if (isTyping()) {
+          <div class="coach-row coach">
+            <div class="coach-bubble typing" aria-label="The coach is writing">
+              <span class="coach-dot"></span>
+              <span class="coach-dot"></span>
+              <span class="coach-dot"></span>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    @if (scaffold(); as scaffold) {
+      <section class="coach-scaffold">
+        <p class="coach-label">Needs a better answer</p>
+        <h2 class="coach-scaffold-title">The coach can do better</h2>
+        <p class="coach-scaffold-failure">{{ scaffold.failure }}</p>
+        <ul class="coach-scaffold-list">
+          @for (suggestion of scaffold.suggestions; track $index) {
+            <li>
+              <button type="button" class="coach-scaffold-btn" (click)="pickSuggestion(suggestion)">
+                <app-icon name="pencil" [size]="14" />
+                {{ suggestion }}
+              </button>
+            </li>
+          }
+        </ul>
+        <p class="coach-scaffold-context">{{ scaffold.retry_context }}</p>
+      </section>
+    }
+
+    <footer class="coach-composer">
+      <div class="coach-composer-inner">
+        <textarea
+          class="coach-input"
+          rows="1"
+          [value]="draft()"
+          (input)="onDraft($any($event.target).value)"
+          (keydown)="onKeydown($event)"
+          [disabled]="isTyping()"
+          aria-label="Message the parenting coach"
+        ></textarea>
+        <button
+          type="button"
+          class="coach-send"
+          (click)="send()"
+          [disabled]="!draft().trim() || isTyping()"
+          aria-label="Send message"
+          title="Send message"
+        >
+          <app-icon name="send" [size]="16" />
+        </button>
+      </div>
+    </footer>
+  </main>
+</app-shell>

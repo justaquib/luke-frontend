@@ -4,8 +4,15 @@
       It measures as {{ measured() }}. A level only counts when you approve it, so the promotion
       waits for your word.
     </span>
-    <button type="button" (click)="approve.emit()" [disabled]="approving()">
-      Approve {{ measured() }}
+    <button
+      type="button"
+      class="primary small"
+      (click)="approve.emit()"
+      [disabled]="approving()"
+      [attr.aria-label]="'Approve ' + measured()"
+      [title]="'Approve ' + measured()"
+    >
+      <app-icon name="check" [size]="14" />
     </button>
   </div>
 }

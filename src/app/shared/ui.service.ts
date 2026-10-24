@@ -35,23 +35,23 @@ export class UiService {
     setTimeout(() => this.dismissToast(id), durationMs);
   }
 
-  success(message: string) {
+  success(message: string): void {
     this.toast(message, 'success');
   }
 
-  error(message: string) {
+  error(message: string): void {
     this.toast(message, 'error');
   }
 
-  info(message: string) {
+  info(message: string): void {
     this.toast(message, 'info');
   }
 
-  dismissToast(id: number) {
+  dismissToast(id: number): void {
     this._toasts.update((list) => list.filter((t) => t.id !== id));
   }
 
-  resolveConfirm(ok: boolean) {
+  resolveConfirm(ok: boolean): void {
     const req = this._confirm();
     if (!req) return;
     this._confirm.set(null);

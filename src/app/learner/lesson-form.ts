@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, input, model, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { AppIcon } from '../shared/app-icon';
 
 /** The ways a lesson can be written down. */
 export type LessonEntryMode = 'own_words' | 'formatted' | 'story';
@@ -13,7 +14,7 @@ export type LessonEntryMode = 'own_words' | 'formatted' | 'story';
 @Component({
   selector: 'app-lesson-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AppIcon],
   templateUrl: './lesson-form.html',
   styleUrls: ['./lesson-form.css', '../shared/controls.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

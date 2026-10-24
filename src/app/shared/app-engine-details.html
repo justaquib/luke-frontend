@@ -1,0 +1,20 @@
+<section class="engine-details" aria-label="Neural engine details">
+  <p class="engine-lead">
+    The model this workspace runs. These measurements come straight from the engine behind every
+    page.
+  </p>
+
+  <app-engine-facts [facts]="facts()" label="Neural engine state" />
+
+  @if (tasks.error(); as message) {
+    <p class="engine-note error" role="alert">The engine could not be read: {{ message }}</p>
+  } @else if (tasks.status() === 'loading' && !tasks.brain()) {
+    <p class="engine-note">Reading the engine…</p>
+  }
+
+  <a class="engine-link" routerLink="/dashboard/settings" (click)="sidebar.close()">
+    <app-icon name="sliders" [size]="15" />
+    <span>Model name and starting version</span>
+    <app-icon name="arrow-right" [size]="15" />
+  </a>
+</section>

@@ -15,7 +15,12 @@ interface GraphPoint {
   selector: 'app-reasoning-graph',
   standalone: true,
   template: `
-    <svg class="reasoning-graph" viewBox="0 0 700 340" role="img" aria-label="Nodes the assistant visited while answering">
+    <svg
+      class="reasoning-graph"
+      viewBox="0 0 700 340"
+      role="img"
+      aria-label="Nodes the assistant visited while answering"
+    >
       @for (edge of edges(); track edge.source + edge.target + edge.label) {
         <line
           class="graph-edge"
@@ -28,7 +33,9 @@ interface GraphPoint {
           class="graph-edge-label"
           [attr.x]="(point(edge.source).x + point(edge.target).x) / 2"
           [attr.y]="(point(edge.source).y + point(edge.target).y) / 2 - 5"
-        >{{ edge.label }}</text>
+        >
+          {{ edge.label }}
+        </text>
       }
       @for (node of nodes(); track node.id) {
         <g class="graph-node" [attr.data-type]="node.type">
@@ -41,24 +48,65 @@ interface GraphPoint {
             class="graph-node-label"
             [attr.x]="point(node.id).x"
             [attr.y]="point(node.id).y + radius(node) + 13"
-          >{{ truncate(node.label) }}</text>
+          >
+            {{ truncate(node.label) }}
+          </text>
         </g>
       }
     </svg>
   `,
   styles: [
     `
-      :host { display: block; }
-      .reasoning-graph { width: 100%; height: auto; overflow: visible; }
-      .graph-edge { stroke: rgba(148,163,184,.34); stroke-width: 1.2; stroke-dasharray: 4 4; }
-      .graph-edge-label { fill: #64748b; font-size: 9px; text-anchor: middle; }
-      .graph-node circle { fill: #1e293b; stroke: #818cf8; stroke-width: 1.6; }
-      .graph-node[data-type='question'] circle { fill: #312e81; stroke: #a5b4fc; stroke-width: 2.4; }
-      .graph-node[data-type='result'] circle { fill: #134e4a; stroke: #5eead4; stroke-width: 2.4; }
-      .graph-node[data-type='lesson'] circle { fill: #1e3a5f; stroke: #7dd3fc; }
-      .graph-node[data-type='trained_answer'] circle { fill: #14532d; stroke: #86efac; }
-      .graph-node[data-type='document'] circle { fill: #3b2f63; stroke: #d8b4fe; }
-      .graph-node-label { fill: #cbd5e1; font-size: 10px; text-anchor: middle; }
+      :host {
+        display: block;
+      }
+      .reasoning-graph {
+        width: 100%;
+        height: auto;
+        overflow: visible;
+      }
+      .graph-edge {
+        stroke: rgba(148, 163, 184, 0.34);
+        stroke-width: 1.2;
+        stroke-dasharray: 4 4;
+      }
+      .graph-edge-label {
+        fill: #64748b;
+        font-size: 9px;
+        text-anchor: middle;
+      }
+      .graph-node circle {
+        fill: #1e293b;
+        stroke: #818cf8;
+        stroke-width: 1.6;
+      }
+      .graph-node[data-type='question'] circle {
+        fill: #312e81;
+        stroke: #a5b4fc;
+        stroke-width: 2.4;
+      }
+      .graph-node[data-type='result'] circle {
+        fill: #134e4a;
+        stroke: #5eead4;
+        stroke-width: 2.4;
+      }
+      .graph-node[data-type='lesson'] circle {
+        fill: #1e3a5f;
+        stroke: #7dd3fc;
+      }
+      .graph-node[data-type='trained_answer'] circle {
+        fill: #14532d;
+        stroke: #86efac;
+      }
+      .graph-node[data-type='document'] circle {
+        fill: #3b2f63;
+        stroke: #d8b4fe;
+      }
+      .graph-node-label {
+        fill: #cbd5e1;
+        font-size: 10px;
+        text-anchor: middle;
+      }
     `,
   ],
 })

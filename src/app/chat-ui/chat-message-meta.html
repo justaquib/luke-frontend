@@ -1,22 +1,25 @@
 @if (message().source) {
-  <span class="source-tag" [class]="message().source ?? ''">
-    {{ sourceLabel() }}
-  </span>
+  <p class="provenance">
+    <span class="provenance-label">Source</span>
+    <span class="provenance-value" [class.pending]="message().source === 'pending'">
+      {{ sourceLabel() }}
+    </span>
+  </p>
 }
 @if (showIntentNote()) {
   <small class="intent-note">
-    → matched “{{ message().intent?.matched_question }}”
+    Matched “{{ message().intent?.matched_question }}”
     @if (hasDistance()) {
-      ({{ distanceText() }})
+      <span class="distance">· dist {{ distanceText() }}</span>
     }
   </small>
 }
 @if (showWikiNote()) {
   <small class="intent-note">
-    →
     <a [href]="stringValue('url')" target="_blank" rel="noopener">
       {{ stringValue('title') || 'source' }}
     </a>
+    <app-icon name="external" [size]="12" />
   </small>
 }
 @if (hasHits()) {
@@ -31,17 +34,10 @@
   </details>
 }
 @if (hasDisabledSources()) {
-  <small class="external-hint">
-    Enable {{ message().disabledExternalSources?.join(' and ') }} in Settings to get live answers.
+  <small class="source-hint">
+    Live answers are off.
+    <a routerLink="/dashboard/settings">
+      Enable {{ message().disabledExternalSources?.join(' and ') }} in Settings</a
+    >
   </small>
-}
-@if (canEdit()) {
-  <button
-    type="button"
-    class="edit-msg-btn"
-    (click)="service.startEditMessage(message())"
-    title="Correct answer"
-  >
-    <span class="material-icons icon-xs" aria-hidden="true">edit</span>
-  </button>
 }

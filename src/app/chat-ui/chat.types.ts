@@ -1,7 +1,26 @@
 import type { QueryHit } from '../core/api/api-models';
 
 export type ChatRole = 'user' | 'assistant' | 'system';
-export type ChatSource = 'faq' | 'docs' | 'pending' | 'intent' | 'weather' | 'wiki';
+export type ChatSource =
+  | 'faq'
+  | 'docs'
+  | 'pending'
+  | 'intent'
+  | 'weather'
+  | 'wiki'
+  | 'assistant_profile'
+  | 'dictionary'
+  | 'learner'
+  | 'lesson_cards'
+  | 'letters'
+  | 'not_learned'
+  | 'number_cards'
+  | 'sentence_examples'
+  | 'sentence_patterns'
+  | 'taught'
+  | 'trainer'
+  | 'word_cards'
+  | 'written';
 
 export interface ChatMessage {
   id: number;

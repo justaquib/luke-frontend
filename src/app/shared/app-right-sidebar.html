@@ -1,0 +1,80 @@
+@if (sidebar.isOpen()) {
+  <div class="sidebar-backdrop" (click)="sidebar.close()" aria-hidden="true"></div>
+  <aside
+    id="right-sidebar"
+    class="right-sidebar"
+    [class.expanded]="sidebar.isExpanded()"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="right-sidebar-title"
+  >
+    <header class="sidebar-head">
+      <div class="sidebar-heading">
+        <p class="sidebar-eyebrow">{{ eyebrow() }}</p>
+        <h2 id="right-sidebar-title">{{ title() }}</h2>
+        @if (subtitle(); as subtitle) {
+          <p class="sidebar-subtitle">{{ subtitle }}</p>
+        }
+      </div>
+      <div class="sidebar-tools">
+        <button
+          type="button"
+          class="sidebar-tool sidebar-expand"
+          (click)="sidebar.toggleExpanded()"
+          [attr.aria-label]="
+            sidebar.isExpanded() ? 'Make the sidebar compact' : 'Expand the sidebar'
+          "
+          [title]="sidebar.isExpanded() ? 'Make the sidebar compact' : 'Expand the sidebar'"
+        >
+          <app-icon [name]="sidebar.isExpanded() ? 'minimize' : 'maximize'" [size]="16" />
+        </button>
+        <button
+          #closeButton
+          type="button"
+          class="sidebar-tool"
+          (click)="sidebar.close()"
+          aria-label="Close the sidebar"
+          title="Close the sidebar"
+        >
+          <app-icon name="x" [size]="16" />
+        </button>
+      </div>
+    </header>
+
+    <div class="sidebar-body">
+      <div class="sidebar-content">
+        @if (infoMode()) {
+          <app-page-info />
+        } @else if (sidebar.details(); as details) {
+          <ng-container [ngTemplateOutlet]="details.template" />
+        }
+      </div>
+
+      @if (showTasks()) {
+        <section class="sidebar-tasks" aria-label="Background tasks">
+          @for (task of tasks.tasks(); track task.key) {
+            <article class="sidebar-task">
+              <div class="task-head">
+                <span class="task-dot" aria-hidden="true"></span>
+                <strong>{{ task.title }}</strong>
+              </div>
+              @if (task.percent !== null) {
+                <div
+                  class="task-meter"
+                  role="progressbar"
+                  [attr.aria-label]="task.title"
+                  [attr.aria-valuenow]="task.percent"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                >
+                  <span [style.width.%]="task.percent"></span>
+                </div>
+              }
+              <p class="task-detail">{{ task.detail }}</p>
+            </article>
+          }
+        </section>
+      }
+    </div>
+  </aside>
+}

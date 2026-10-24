@@ -1,4 +1,4 @@
-import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { AppPrefsService } from '../core/app-prefs.service';
 import { BrowserService } from '../core/browser.service';
 import { UiService } from '../shared/ui.service';
@@ -6,7 +6,6 @@ import type { ChatMessage, ChatSession } from './chat.types';
 
 const STORAGE_KEY = 'assistance.sessions.v1';
 const ACTIVE_KEY = 'assistance.active.v1';
-const TRAIN_KEY = 'assistance.trainmode.v1';
 
 function uid(): string {
   return Math.random().toString(36).slice(2, 10);
@@ -20,7 +19,6 @@ export class ChatSessionService {
 
   readonly sessions = signal<ChatSession[]>([]);
   readonly activeId = signal<string | null>(null);
-  readonly trainMode = signal(false);
 
   readonly active = computed<ChatSession>(() => {
     const id = this.activeId();
@@ -43,21 +41,6 @@ export class ChatSessionService {
     }
     effect(() => this.saveSessions(this.sessions()));
     effect(() => this.saveActive(this.activeId()));
-    effect(() => {
-      const id = this.activeId();
-      if (id) {
-        this.saveTrainMode(
-          id,
-          untracked(() => this.trainMode()),
-        );
-      }
-    });
-    effect(() => {
-      const id = this.activeId();
-      if (id) {
-        this.trainMode.set(this.loadTrainMode(id));
-      }
-    });
   }
 
   createSession(): ChatSession {
@@ -236,34 +219,6 @@ export class ChatSessionService {
       this.browser.removeLocal(ACTIVE_KEY);
     } else {
       this.browser.writeLocal(ACTIVE_KEY, id);
-    }
-  }
-
-  private loadTrainMode(chatId: string): boolean {
-    try {
-      const raw = this.browser.readSession(TRAIN_KEY);
-      if (!raw) {
-        return false;
-      }
-      const map = JSON.parse(raw) as Record<string, boolean>;
-      return !!map[chatId];
-    } catch {
-      return false;
-    }
-  }
-
-  private saveTrainMode(chatId: string, on: boolean): void {
-    try {
-      const raw = this.browser.readSession(TRAIN_KEY);
-      const map = (raw ? JSON.parse(raw) : {}) as Record<string, boolean>;
-      if (on) {
-        map[chatId] = true;
-      } else {
-        delete map[chatId];
-      }
-      this.browser.writeSession(TRAIN_KEY, JSON.stringify(map));
-    } catch {
-      // Train mode stays in memory when session storage is unavailable.
     }
   }
 }

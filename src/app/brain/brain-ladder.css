@@ -1,0 +1,123 @@
+:host {
+  display: block;
+}
+
+.panel {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  padding: 12px;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.level {
+  display: grid;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+.line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 32px;
+}
+
+strong {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.number {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.bar.small {
+  height: 2px;
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.rungs {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--border);
+}
+
+.rung {
+  display: grid;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.rung:last-child {
+  border-bottom: none;
+}
+
+.rung-name {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.rung.passed .rung-name {
+  color: var(--muted);
+}
+
+.rung .bar span {
+  background: var(--faint);
+}
+
+.rung.passed .bar span {
+  background: var(--accent);
+}
+
+.empty {
+  margin: 0;
+  color: var(--faint);
+  font-size: 13px;
+}

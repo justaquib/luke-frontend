@@ -20,7 +20,10 @@ describe('Trainer intent explorer', () => {
 
     const compiled = fixture.nativeElement as HTMLElement;
     const navItems = [...compiled.querySelectorAll('.nav-item')] as HTMLButtonElement[];
-    console.log('NAV ITEMS:', navItems.map((b) => b.textContent?.trim()));
+    console.log(
+      'NAV ITEMS:',
+      navItems.map((b) => b.textContent?.trim()),
+    );
     const intentButton = navItems.find((b) => b.textContent?.includes('Intent explorer'));
     console.log('INTENT BUTTON FOUND:', !!intentButton);
 
@@ -32,7 +35,10 @@ describe('Trainer intent explorer', () => {
     console.log('TITLE:', compiled.querySelector('.editable-title')?.textContent?.trim());
     console.log('SUBTITLE:', compiled.querySelector('.subtitle')?.textContent?.trim());
     console.log('EXPLORER CARDS:', compiled.querySelectorAll('.intent-explorer-card').length);
-    console.log('CARD HEADINGS:', [...compiled.querySelectorAll('.intent-explorer-card h3')].map((h) => h.textContent?.trim()));
+    console.log(
+      'CARD HEADINGS:',
+      [...compiled.querySelectorAll('.intent-explorer-card h3')].map((h) => h.textContent?.trim()),
+    );
 
     const http = TestBed.inject(HttpTestingController);
     http.match(() => true).forEach((req) => req.flush({} as any));

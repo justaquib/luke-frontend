@@ -8,25 +8,21 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AppIcon } from '../shared/app-icon';
 import { ChatService } from './chat.service';
 import { ChatSessionService } from './chat-session.service';
-import { ChatUiStore } from './chat-ui.store';
 
 @Component({
   selector: 'app-chat-header',
   standalone: true,
-  imports: [RouterLink],
+  imports: [AppIcon, RouterLink],
   templateUrl: './chat-header.html',
   styleUrl: './styles/chat-header.css',
-  host: {
-    '[class.train-on]': 'session.trainMode()',
-  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatHeader {
   protected readonly session = inject(ChatSessionService);
   protected readonly service = inject(ChatService);
-  protected readonly ui = inject(ChatUiStore);
 
   protected readonly titleEditing = signal(false);
   protected readonly titleDraft = signal('');
@@ -44,14 +40,6 @@ export class ChatHeader {
         });
       }
     });
-  }
-
-  toggleSidebar(): void {
-    this.ui.toggleSidebar();
-  }
-
-  toggleTrain(): void {
-    this.session.trainMode.update((value) => !value);
   }
 
   startEditTitle(): void {

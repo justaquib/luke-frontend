@@ -1,0 +1,22 @@
+/* The three product typefaces. Settings saves the choice and
+   AppearanceService applies it to the document root as data-font; every view
+   inherits --font-family-base from the body. Measurements keep --mono. */
+:root {
+  --font-family-sans:
+    'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica,
+    Arial, sans-serif;
+  --font-family-serif:
+    'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, 'Times New Roman',
+    serif;
+  --font-family-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  --font-family-base: var(--font-family-sans);
+  --font-family-icon: 'Material Symbols Outlined', 'Material Icons', sans-serif;
+}
+
+:root[data-font='serif'] {
+  --font-family-base: var(--font-family-serif);
+}
+
+:root[data-font='mono'] {
+  --font-family-base: var(--font-family-mono);
+}

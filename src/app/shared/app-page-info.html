@@ -1,0 +1,9 @@
+<section class="page-info" aria-label="Page information">
+  @if (info.actions(); as actions) {
+    <div class="page-info-actions">
+      <ng-container [ngTemplateOutlet]="actions" />
+    </div>
+  }
+
+  <app-engine-details />
+</section>

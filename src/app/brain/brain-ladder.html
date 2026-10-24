@@ -1,0 +1,83 @@
+<section class="panel" aria-labelledby="ladder-title">
+  <header class="panel-head">
+    <h2 id="ladder-title">Level ladder</h2>
+    <div class="panel-actions">
+      <button
+        type="button"
+        class="icon-btn"
+        (click)="test.emit()"
+        [disabled]="testing()"
+        [attr.aria-label]="testing() ? 'Testing the level' : 'Test my level'"
+        [title]="testing() ? 'Testing the level' : 'Test my level'"
+      >
+        <app-icon name="refresh" [size]="16" />
+      </button>
+      <button
+        type="button"
+        class="icon-btn"
+        (click)="open.set(!open())"
+        [attr.aria-expanded]="open()"
+        [attr.aria-label]="open() ? 'Collapse the ladder' : 'Expand the ladder'"
+        [title]="open() ? 'Collapse the ladder' : 'Expand the ladder'"
+      >
+        <app-icon [name]="open() ? 'chevron-up' : 'chevron-down'" [size]="16" />
+      </button>
+    </div>
+  </header>
+
+  @if (open()) {
+    @if (level(); as current) {
+      <div class="level">
+        <div class="line">
+          <strong>{{ current.title }}</strong>
+          @if (share(); as value) {
+            <span class="number">{{ value }}% of {{ current.max_level }}</span>
+          } @else {
+            <span class="number">not measured yet</span>
+          }
+        </div>
+        <div
+          class="bar"
+          role="img"
+          [attr.aria-label]="'Level ' + current.level + ' on a scale to ' + current.max_level"
+        >
+          <span [style.width.%]="share() ?? 0"></span>
+        </div>
+        <p class="hint">{{ current.description }}</p>
+        <p class="hint">
+          @if (current.next_level) {
+            Next is {{ current.next_level }} — {{ current.next_requirement }}
+          } @else {
+            It has reached the top of the scale.
+          }
+        </p>
+      </div>
+
+      <app-level-approval
+        [measured]="current.measured_level"
+        [approving]="approving()"
+        [ready]="current.approval_ready"
+        (approve)="approve.emit()"
+      />
+
+      <ul class="rungs">
+        @for (rung of current.rungs; track rung.rung) {
+          <li class="rung" [class.passed]="state(rung) === 'passed'">
+            <div class="line">
+              <span class="rung-name"
+                >{{ current.model_name }} {{ rung.rung }} · {{ name(rung.rung) }}</span
+              >
+              <span class="number">{{ rung.passed }} of {{ rung.probes }}</span>
+            </div>
+            <div class="bar small">
+              <span [style.width.%]="rung.rate * 100"></span>
+            </div>
+            <p class="hint">{{ hint(rung) }}</p>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty">The ladder has not been read yet.</p>
+    }
+  }
+</section>

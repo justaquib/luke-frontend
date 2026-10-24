@@ -1,0 +1,110 @@
+.test-start-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.test-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.quiz-progress {
+  display: block;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.quiz-feedback {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--bad);
+  border-radius: 6px;
+  background: var(--bad-soft);
+  color: var(--bad);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.quiz-feedback.correct {
+  border-color: var(--ok);
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.learner-answer {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.learner-answer > small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.learner-answer > strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.learner-answer > p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.answer-score-actions,
+.stage-score-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.stage-score-actions {
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.stage-score-actions p {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.test-history {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.test-history summary {
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.test-history ol {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.test-history li strong {
+  color: var(--text);
+  font-weight: 600;
+}

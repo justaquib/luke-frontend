@@ -45,9 +45,9 @@ export function rungState(rung: LadderRung, level: string): RungState {
 }
 
 /** What the trainer is told about the rung. */
-export function rungHint(rung: LadderRung, level: string): string {
+export function rungHint(rung: LadderRung, level: string, modelName = 'The model'): string {
   if (rungState(rung, level) === 'ahead') {
-    return `It clears this test on its own, but Luke is still at ${level}. The rung below has to be passed first.`;
+    return `It clears this test on its own, but ${modelName} is still at ${level}. The rung below has to be passed first.`;
   }
   return rung.test ?? '';
 }

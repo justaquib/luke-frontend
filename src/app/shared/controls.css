@@ -1,52 +1,175 @@
 /* The buttons the dashboard views share. A view includes this file beside
    its own styles, so a primary action looks the same everywhere it is used. */
 
+.primary,
+.ghost {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary:focus-visible,
+.ghost:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .primary {
-  background: #6366f1;
-  color: #fff;
-  border: 0;
-  padding: 0.45rem 0.9rem;
-  font-weight: 500;
-  font-size: 0.88rem;
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: var(--bg);
 }
 
 .primary:hover:not(:disabled) {
-  background: #4f46e5;
-}
-
-.primary.small {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.78rem;
-}
-
-.primary.xsmall {
-  padding: 0.18rem 0.5rem;
-  font-size: 0.72rem;
-  border-radius: 6px;
+  background: var(--text);
 }
 
 .ghost {
+  border: 1px solid var(--border);
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #cbd5e1;
-  padding: 0.4rem 0.8rem;
-  font-weight: 500;
-  font-size: 0.85rem;
+  color: var(--text);
 }
 
 .ghost:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #f8fafc;
+  border-color: var(--accent-line);
+  background: var(--surface-2);
+  color: var(--text);
 }
 
+.primary.small,
 .ghost.small {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.78rem;
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
 }
 
+.primary.xsmall,
 .ghost.xsmall {
-  padding: 0.18rem 0.5rem;
-  font-size: 0.72rem;
+  min-height: 24px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
+.primary:disabled,
+.ghost:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* An action whose name lives in its aria-label and title rather than a
+   visible label: square, so a row of actions stays compact. */
+.primary.icon-only,
+.ghost.icon-only,
+.danger.icon-only {
+  width: 32px;
+  min-width: 32px;
+  padding: 0;
+}
+
+.primary.icon-only.small,
+.ghost.icon-only.small,
+.danger.icon-only.small {
+  width: 28px;
+  min-width: 28px;
+}
+
+.primary.icon-only.xsmall,
+.ghost.icon-only.xsmall,
+.danger.icon-only.xsmall {
+  width: 24px;
+  min-width: 24px;
+}
+
+/* A group of mutually exclusive choices, such as the appearance settings.
+   The radio stays in the page for the keyboard and for assistive technology;
+   the label is the visible card. */
+.choice-group {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.choice-group legend {
+  padding: 0;
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.choice {
+  position: relative;
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
   border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.choice:hover {
+  border-color: var(--accent-line);
+  color: var(--text);
+}
+
+.choice.selected {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.choice:has(input:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.choice input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* A typeface choice shows its own letterform, so the preview and the page
+   use the same family token. */
+.font-sample {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.font-sample[data-font='sans'] {
+  font-family: var(--font-family-sans);
+}
+
+.font-sample[data-font='serif'] {
+  font-family: var(--font-family-serif);
+}
+
+.font-sample[data-font='mono'] {
+  font-family: var(--font-family-mono);
 }

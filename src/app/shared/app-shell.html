@@ -1,2 +1,5 @@
-<app-sidebar [open]="open()" [class.sidebar-collapsed]="!open()" (toggled)="toggled.emit()" />
-<ng-content />
+<app-top-bar />
+<app-sidebar />
+<div class="shell-content"><ng-content /></div>
+<div class="sidebar-scrim" role="presentation" (click)="design.closeSidebar()"></div>
+<app-right-sidebar />

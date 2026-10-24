@@ -2,7 +2,7 @@ import { Injectable, signal, effect } from '@angular/core';
 
 const USER_KEY = 'assistance.username.v1';
 const BOT_KEY = 'assistance.botname.v1';
-const DEFAULTS = { user: 'You', bot: 'Assistance' };
+const DEFAULTS = { user: 'You', bot: 'Luke' };
 
 @Injectable({ providedIn: 'root' })
 export class AppPrefsService {

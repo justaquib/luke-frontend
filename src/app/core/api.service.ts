@@ -1,11 +1,31 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, type HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, catchError, throwError } from 'rxjs';
+import { catchError, throwError, type Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import type {
+  FaqItem,
+  FaqMergePreview,
+  FaqMergeResult,
+  IngestResponse,
+  IntentItem,
+  IntentSuggestions,
+  Invite,
+  MergePreview,
+  MergeResult,
+  PendingItem,
+  QueryResponse,
+  StatsResponse,
+  Tenant,
+} from './api/api.types';
 import { AuthService } from './auth.service';
 
+export * from './api/api.types';
+
+/**
+ * The learner and trainer pages read a few dynamic response bags whose shape
+ * is still being settled; they keep the loose aliases until that work lands.
+ */
 export type KnowledgeGraph = any;
-export type LanguageBrainState = any;
 export type LanguageModelState = any;
 export type LanguageDictionaryEntry = any;
 export type LanguagePreviewResponse = any;
@@ -15,149 +35,6 @@ export type QueryReasoning = any;
 export type ReasoningEdge = any;
 export type ReasoningNode = any;
 export type FaqItem2 = any;
-
-/** One entry of the level ladder, from the seed 0.0.0 up to 0.1.0. */
-export interface ModelLevelEntry {
-  level: string;
-  name: string;
-  description: string;
-  reference: string;
-}
-
-/** One rung of the ladder, measured by its probes. */
-export interface ModelLevelRung {
-  rung: string;
-  probes: number;
-  passed: number;
-  rate: number;
-  test?: string;
-  detail?: string;
-  passes?: { question: string; expected: string; form: string; answered?: string }[];
-  failures?: { question: string; expected: string; form: string; answered?: string }[];
-}
-
-/** How much material the brain has taken in, on its own human scale. */
-export interface ModelTrainingVolume {
-  title: string;
-  detail: string;
-  items: number;
-  stages: { title: string; items: number; detail: string; reached: boolean; current: boolean }[];
-  next_stage: { title: string; items: number } | null;
-}
-
-/** What the brain reads under the tested requests. */
-export interface ModelProbe {
-  question: string;
-  answered?: boolean;
-  correct?: boolean;
-  source?: string;
-  answered_text?: string;
-}
-
-/** The level the brain has reached, measured and approved separately. */
-export interface ModelLevel {
-  level: string;
-  measured_level: string;
-  approval_ready: boolean;
-  level_value: number;
-  name: string;
-  title: string;
-  description: string;
-  reference: string;
-  next_level: string | null;
-  next_requirement: string;
-  capabilities: { key: string; name: string; ready: boolean; detail: string }[];
-  max_level: string;
-  ladder_size: number;
-  levels: ModelLevelEntry[];
-  training_volume: ModelTrainingVolume;
-  rungs: ModelLevelRung[];
-  next_steps: {
-    action: string;
-    title: string;
-    detail: string;
-    link?: string;
-    link_label?: string;
-  }[];
-  coverage: {
-    documents: number;
-    chunks: number;
-    trained_answers: number;
-    lessons: number;
-    passed_grades: number;
-    current_stage: string;
-  };
-  generality: number;
-  generality_cap: number | null;
-  generality_probes: ModelProbe[];
-  instruction_following: number;
-  instruction_probes: ModelProbe[];
-  instruction_total: number;
-  instruction_measured: boolean;
-  frontier_level: number;
-  frontier_title: string;
-  frontier_note: string;
-  model_name: string;
-}
-
-/** The words the answering model can write with, one page at a time. */
-export interface LanguageWordPage {
-  words: string[];
-  total: number;
-  offset: number;
-  limit: number;
-  has_more: boolean;
-}
-
-/** One lesson in a group of lessons that repeat each other. */
-export interface DuplicateLessonCard {
-  id: string;
-  question: string;
-  answer: string;
-  subject: string;
-  subjects: string[];
-  grade_id: string;
-  confidence: number;
-  created_at?: string | null;
-}
-
-/** A group of lessons that repeat each other. */
-export interface DuplicateGroup {
-  kind: 'same_question' | 'same_answer' | 'similar';
-  label: string;
-  detail: string;
-  key: string;
-  cards: DuplicateLessonCard[];
-}
-
-/** The lessons that repeat each other, and how many there are. */
-export interface DuplicateLessons {
-  groups: DuplicateGroup[];
-  total_questions: number;
-  duplicate_count: number;
-}
-
-/** What the brain knows about itself, with the level it has reached. */
-export interface LanguageBrainResponse {
-  state: LanguageBrainState;
-  model_level: ModelLevel;
-  sentence?: string | null;
-  training?: boolean;
-}
-
-/** The result of running the level tests again. */
-export interface LanguageLevelTest {
-  state: LanguageBrainState;
-  rungs: ModelLevelRung[];
-  instruction: {
-    score: number;
-    passed: number;
-    total: number;
-    measured: boolean;
-  };
-  passed: number;
-  total: number;
-}
 
 /** The answer a grade test run gives back. */
 export interface LanguageTestStart {
@@ -175,162 +52,6 @@ export interface LanguageTestState {
 export interface LanguageDictionaryLearn {
   state: LanguageModelState;
   entry: LanguageDictionaryEntry;
-}
-
-/** The sentence the learner built from the given words. */
-export interface LanguageSentence {
-  sentence: string | null;
-}
-
-/** What the assistant has stored: the files, the numbers and the size on disk. */
-export interface StoreSummary {
-  documents: { source: string; chunks: number; created_at?: string | null }[];
-  totals: {
-    files: number;
-    chunks: number;
-    answers: number;
-    pending: number;
-    lessons: number;
-    vocabulary: number;
-  };
-  model: {
-    name: string;
-    level: number;
-    title: string;
-    vocabulary: number;
-    parameters: number;
-    trained: boolean;
-    steps: number;
-    loss: number | null;
-    corpus_sentences: number;
-    corpus_tokens: number;
-  };
-  disk: {
-    learner_bytes: number;
-    vector_store_bytes: number;
-    uploads_bytes: number;
-  };
-}
-
-export interface QueryHit {
-  text: string;
-  metadata: { source: string };
-  distance: number | null;
-}
-
-export interface QueryResponse {
-  question: string;
-  source: 'faq' | 'docs' | 'pending' | 'intent' | 'weather' | 'wiki';
-  answer: string;
-  hits: QueryHit[];
-  entities: { text: string; label: string }[];
-  pending_id: number | null;
-  intent?: {
-    matched_question?: string;
-    matched_faq_id?: number;
-    distance?: number;
-    answer?: string;
-  } | null;
-  app?: Record<string, unknown> | null;
-  disabled_external_sources?: string[] | null;
-}
-
-export interface MergeMatch {
-  pending_id: number;
-  question: string;
-  occurrences: number;
-  distance: number;
-}
-
-export interface MergePreview {
-  canonical_id: number;
-  canonical_question: string;
-  answer: string;
-  matches: MergeMatch[];
-}
-
-export interface MergeResult {
-  canonical_faq_id: number;
-  created: number;
-  resolved: number;
-}
-
-export interface IntentItem {
-  id: number;
-  name: string;
-  response_template: string;
-  faq_id: number | null;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface FaqSuggestion {
-  faq_id: number;
-  question: string;
-  answer: string;
-  status: string;
-  distance: number;
-}
-
-export interface PendingSuggestionItem {
-  pending_id: number;
-  question: string;
-  occurrences: number;
-  distance: number;
-}
-
-export interface IntentSuggestions {
-  query: string;
-  faqs: FaqSuggestion[];
-  pending: PendingSuggestionItem[];
-}
-
-export interface FaqMergePreview {
-  canonical_id: number;
-  canonical_question: string;
-  canonical_answer: string;
-  matches: FaqSuggestion[];
-}
-
-export interface FaqMergeResult {
-  canonical_faq_id: number;
-  absorbed: number;
-  recreated: number;
-}
-
-export interface IngestRequest {
-  source: string;
-  text: string;
-}
-
-export interface IngestResponse {
-  source: string;
-  chunks: number;
-  start_id: number | null;
-}
-
-export interface StatsResponse {
-  chunks: number;
-  faqs: number;
-  pending: number;
-}
-
-export interface FaqItem {
-  id: number;
-  question: string;
-  answer: string;
-  status: 'pending' | 'approved' | 'declined' | 'duplicate';
-  created_at: string;
-  updated_at: string;
-}
-
-export interface PendingItem {
-  id: number;
-  question: string;
-  occurrences: number;
-  resolved: boolean;
-  created_at: string;
-  last_seen_at: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -361,7 +82,7 @@ export class ApiService {
     if (opts?.location) body['location'] = opts.location;
     return this.http
       .post<QueryResponse>(`${this.base}/query`, body, { headers: this.authHeaders() })
-      .pipe(catchError((err) => this.handleError(err)));
+      .pipe(catchError((err: HttpErrorResponse) => this.handleError(err)));
   }
 
   ingest(source: string, text: string): Observable<IngestResponse> {
@@ -371,7 +92,7 @@ export class ApiService {
         { source, text },
         { headers: this.authHeaders() },
       )
-      .pipe(catchError((err) => this.handleError(err)));
+      .pipe(catchError((err: HttpErrorResponse) => this.handleError(err)));
   }
 
   stats(): Observable<StatsResponse> {
@@ -386,25 +107,25 @@ export class ApiService {
   createFaq(question: string, answer: string): Observable<FaqItem> {
     return this.http
       .post<FaqItem>(`${this.base}/faq`, { question, answer }, { headers: this.authHeaders() })
-      .pipe(catchError((err) => this.handleError(err)));
+      .pipe(catchError((err: HttpErrorResponse) => this.handleError(err)));
   }
 
   updateFaq(id: number, answer: string): Observable<FaqItem> {
     return this.http
       .patch<FaqItem>(`${this.base}/faq/${id}`, { answer }, { headers: this.authHeaders() })
-      .pipe(catchError((err) => this.handleError(err)));
+      .pipe(catchError((err: HttpErrorResponse) => this.handleError(err)));
   }
 
   setFaqStatus(id: number, status: FaqItem['status']): Observable<FaqItem> {
     return this.http
       .patch<FaqItem>(`${this.base}/faq/${id}/status`, { status }, { headers: this.authHeaders() })
-      .pipe(catchError((err) => this.handleError(err)));
+      .pipe(catchError((err: HttpErrorResponse) => this.handleError(err)));
   }
 
   deleteFaq(id: number): Observable<{ deleted: number }> {
     return this.http
       .delete<{ deleted: number }>(`${this.base}/faq/${id}`, { headers: this.authHeaders() })
-      .pipe(catchError((err) => this.handleError(err)));
+      .pipe(catchError((err: HttpErrorResponse) => this.handleError(err)));
   }
 
   listInbox(resolved = false): Observable<PendingItem[]> {
@@ -420,19 +141,19 @@ export class ApiService {
         { answer },
         { headers: this.authHeaders() },
       )
-      .pipe(catchError((err) => this.handleError(err)));
+      .pipe(catchError((err: HttpErrorResponse) => this.handleError(err)));
   }
 
   logPending(question: string): Observable<PendingItem> {
     return this.http
       .post<PendingItem>(`${this.base}/faq/log`, { question }, { headers: this.authHeaders() })
-      .pipe(catchError((err) => this.handleError(err)));
+      .pipe(catchError((err: HttpErrorResponse) => this.handleError(err)));
   }
 
   deletePending(id: number): Observable<{ deleted: number }> {
     return this.http
       .delete<{ deleted: number }>(`${this.base}/faq/inbox/${id}`, { headers: this.authHeaders() })
-      .pipe(catchError((err) => this.handleError(err)));
+      .pipe(catchError((err: HttpErrorResponse) => this.handleError(err)));
   }
 
   previewMerge(pendingId: number): Observable<MergePreview> {
@@ -567,31 +288,14 @@ export class ApiService {
 
   private handleError(err: HttpErrorResponse): Observable<never> {
     let message = 'Could not reach the assistance backend.';
+    const detail: unknown = (err.error as { detail?: unknown } | null)?.detail;
     if (err.status === 0) {
       message += ' Is the API running on ' + this.base + '?';
-    } else if (err.error?.detail) {
-      message = err.error.detail;
+    } else if (typeof detail === 'string' && detail) {
+      message = detail;
     } else {
       message += ` (HTTP ${err.status})`;
     }
     return throwError(() => new Error(message));
   }
-}
-
-export interface Tenant {
-  id: number;
-  name: string;
-  slug: string;
-  created_at: string;
-}
-
-export interface Invite {
-  id: number;
-  tenant_id: number;
-  email: string;
-  role: string;
-  token: string;
-  expires_at: string;
-  used_at: string | null;
-  created_at: string;
 }

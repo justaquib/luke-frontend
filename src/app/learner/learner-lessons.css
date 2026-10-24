@@ -1,0 +1,247 @@
+.curriculum-stages {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+}
+
+.school-grade-list {
+  max-height: 390px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.curriculum-stage {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+}
+
+.curriculum-stage:not(:disabled) {
+  cursor: pointer;
+}
+
+.curriculum-stage:hover:not(:disabled) {
+  border-color: var(--accent-line);
+}
+
+.curriculum-stage:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.curriculum-stage:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.curriculum-stage.current,
+.curriculum-stage.selected {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+
+.curriculum-stage-number {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.curriculum-stage.completed .curriculum-stage-number {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.curriculum-stage > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.curriculum-stage strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.curriculum-stage small,
+.curriculum-stage-count {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.curriculum-stage-count {
+  white-space: nowrap;
+}
+
+.lesson-list-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.lesson-topic-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.lesson-topic-filter select {
+  max-width: min(48vw, 240px);
+  min-height: 28px;
+  padding: 0 26px 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.lesson-subject-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+}
+
+.lesson-subject-card {
+  display: grid;
+  align-content: start;
+  gap: 0;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.lesson-subject-card > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+.lesson-subject-card > header h4 {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.lesson-subject-card > header span {
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.lesson-question-answer {
+  display: grid;
+  gap: 4px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.lesson-question-label,
+.lesson-answer-label,
+.lesson-question-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.lesson-question-label {
+  align-items: center;
+  justify-content: space-between;
+  min-height: 22px;
+}
+
+.lesson-question-content {
+  align-items: center;
+  gap: 6px;
+}
+
+.lesson-question-content > strong,
+.lesson-answer-label > strong {
+  display: grid;
+  flex: 0 0 16px;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.lesson-question-label .lesson-kind {
+  min-width: 0;
+}
+
+.lesson-question-text {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.lesson-answer-label > span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.lesson-topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.lesson-topic-tag {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 700px) {
+  .curriculum-stages {
+    grid-template-columns: 1fr;
+  }
+
+  .curriculum-stage {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .curriculum-stage-count {
+    grid-column: 2;
+  }
+}

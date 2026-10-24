@@ -1,4 +1,4 @@
-/* The text of one message, the buttons under it and the correction box. */
+/* The text of one message and the actions under it. */
 .msg-text {
   margin: 0;
   white-space: pre-wrap;
@@ -7,168 +7,15 @@
 
 .msg-meta {
   display: block;
-  margin-top: 0.3rem;
-  font-size: 0.7rem;
-}
-
-.msg-meta small {
-  opacity: 0.6;
-}
-
-.icon-xs {
-  font-size: 1rem;
-  line-height: 1;
+  margin-top: 6px;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
 }
 
 .message-actions {
   display: flex;
-  gap: 0.4rem;
-  margin-top: 0.5rem;
-}
-
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.7);
-  color: #4b5563;
-  border-radius: 6px;
-  cursor: pointer;
-  transition:
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.action-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(0, 0, 0, 0.15);
-}
-
-.action-btn.like:hover:not(:disabled) {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.4);
-  color: #047857;
-}
-
-.action-btn.dislike:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.35);
-  color: #b91c1c;
-}
-
-:host(.train-on) .action-btn {
-  background: rgba(30, 41, 59, 0.7);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: #cbd5e1;
-}
-
-:host(.train-on) .action-btn:hover:not(:disabled) {
-  background: rgba(30, 41, 59, 0.95);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-:host(.train-on) .action-btn.like:hover:not(:disabled) {
-  background: rgba(16, 185, 129, 0.2);
-  border-color: rgba(16, 185, 129, 0.5);
-  color: #6ee7b7;
-}
-
-:host(.train-on) .action-btn.dislike:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.18);
-  border-color: rgba(239, 68, 68, 0.45);
-  color: #fca5a5;
-}
-
-.edit-textarea {
-  width: 100%;
-  min-height: 4.5rem;
-  font: inherit;
-  line-height: 1.4;
-  padding: 0.5rem 0.7rem;
-  border: 1px solid #6366f1;
-  border-radius: 8px;
-  background: white;
-  color: #111827;
-  resize: vertical;
-}
-
-:host(.train-on) .edit-textarea {
-  background: #0f172a;
-  color: #e2e8f0;
-  border-color: #a5b4fc;
-}
-
-.correction-box {
-  display: grid;
-  gap: 0.4rem;
-  margin-top: 0.6rem;
-  padding: 0.7rem 0.8rem;
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  border-radius: 9px;
-  background: rgba(120, 53, 15, 0.12);
-}
-
-.correction-label {
-  color: #fcd34d;
-  font-size: 0.74rem;
-  font-weight: 650;
-}
-
-.correction-textarea {
-  width: 100%;
-  min-height: 4.5rem;
-  padding: 0.5rem 0.7rem;
-  border: 1px solid rgba(251, 191, 36, 0.45);
-  border-radius: 8px;
-  background: rgba(15, 23, 42, 0.75);
-  color: #e2e8f0;
-  font: inherit;
-  line-height: 1.4;
-  resize: vertical;
-}
-
-.correction-textarea:focus-visible {
-  outline: 2px solid #fcd34d;
-  outline-offset: 1px;
-}
-
-button.primary {
-  background: #4f46e5;
-  color: white;
-  border: 0;
-  border-radius: 8px;
-  padding: 0.45rem 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-button.primary.small {
-  padding: 0.35rem 0.7rem;
-  font-size: 0.8rem;
-}
-
-button.ghost {
-  background: transparent;
-  border: 1px solid #d1d5db;
-  color: inherit;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  padding: 0.35rem 0.7rem;
-}
-
-button.ghost.small {
-  padding: 0.35rem 0.7rem;
-  font-size: 0.8rem;
-}
-
-:host(.train-on) button.ghost {
-  border-color: rgba(255, 255, 255, 0.12);
-  color: #cbd5e1;
+  gap: 6px;
+  margin-top: 6px;
 }

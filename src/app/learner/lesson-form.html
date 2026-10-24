@@ -27,6 +27,7 @@
       [attr.aria-pressed]="mode() === 'own_words'"
       (click)="mode.set('own_words')"
     >
+      <app-icon name="pencil" [size]="14" />
       Write one answer in my own words
     </button>
     <button
@@ -35,6 +36,7 @@
       [attr.aria-pressed]="mode() === 'formatted'"
       (click)="mode.set('formatted')"
     >
+      <app-icon name="file" [size]="14" />
       Paste Q: / A: lesson pairs
     </button>
     <button
@@ -43,6 +45,7 @@
       [attr.aria-pressed]="mode() === 'story'"
       (click)="mode.set('story')"
     >
+      <app-icon name="book" [size]="14" />
       Add a story, lesson or topic
     </button>
   </div>
@@ -112,12 +115,14 @@
       >Lessons stay in this tenant’s local learner file and count toward this grade. Duplicates are
       skipped automatically.</small
     >
-    <button type="submit" class="primary" [disabled]="saving() || !canSubmit()">
-      @if (saving()) {
-        Learning…
-      } @else {
-        Add lesson
-      }
+    <button
+      type="submit"
+      class="primary icon-only"
+      [attr.aria-label]="saving() ? 'Adding the lesson' : 'Add the lesson'"
+      [title]="saving() ? 'Adding the lesson' : 'Add the lesson'"
+      [disabled]="saving() || !canSubmit()"
+    >
+      <app-icon name="plus" [size]="14" />
     </button>
   </div>
 </form>

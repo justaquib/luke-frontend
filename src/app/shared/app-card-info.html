@@ -1,0 +1,16 @@
+<div class="card-info-heading">
+  <div class="card-info-title"><ng-content /></div>
+  <button
+    type="button"
+    class="ghost xsmall icon-only card-info-button"
+    (click)="show()"
+    aria-haspopup="dialog"
+    [attr.aria-label]="actionLabel()"
+    [title]="actionLabel()"
+  >
+    <app-icon name="info" [size]="14" />
+  </button>
+</div>
+<app-modal [open]="open()" [title]="'About ' + label()" (closed)="hide()">
+  <p class="card-info-text">{{ text() }}</p>
+</app-modal>

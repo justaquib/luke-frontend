@@ -13,9 +13,7 @@ describe('authGuard', () => {
   it('lets the server render the page so a refresh keeps the page', () => {
     TestBed.configureTestingModule({ providers: [{ provide: PLATFORM_ID, useValue: 'server' }] });
 
-    const result = TestBed.runInInjectionContext(() =>
-      authGuard({} as never, {} as never),
-    );
+    const result = TestBed.runInInjectionContext(() => authGuard({} as never, {} as never));
 
     expect(result).toBe(true);
   });
@@ -23,9 +21,7 @@ describe('authGuard', () => {
   it('sends a browser that is not signed in to the login page', () => {
     TestBed.configureTestingModule({ providers: [{ provide: PLATFORM_ID, useValue: 'browser' }] });
 
-    const result = TestBed.runInInjectionContext(() =>
-      authGuard({} as never, {} as never),
-    );
+    const result = TestBed.runInInjectionContext(() => authGuard({} as never, {} as never));
 
     expect(result).toBeInstanceOf(UrlTree);
     expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/login');

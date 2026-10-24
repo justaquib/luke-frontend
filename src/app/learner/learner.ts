@@ -1,12 +1,37 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  PLATFORM_ID,
+  TemplateRef,
+  computed,
+  effect,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ApiService, DuplicateGroup, DuplicateLessonCard, DuplicateLessons, LanguageDictionaryEntry, LanguageModelState, LanguagePreviewResponse, LanguageTest, LanguageTestFinishResult, QueryReasoning } from '../core/api.service';
+import {
+  ApiService,
+  DuplicateGroup,
+  DuplicateLessonCard,
+  DuplicateLessons,
+  LanguageDictionaryEntry,
+  LanguageModelState,
+  LanguagePreviewResponse,
+  LanguageTest,
+  LanguageTestFinishResult,
+  QueryReasoning,
+} from '../core/api.service';
 import { LanguageModelApiService, LessonKind } from '../core/api/language-model-api.service';
+import { LearnerDetails, type LearnerDetailsModel } from './learner-details';
 import { LessonEntryMode, LessonForm } from './lesson-form';
-import { AppPageHeader } from '../shared/app-page-header';
+import { AppCardInfo } from '../shared/app-card-info';
+import { AppIcon } from '../shared/app-icon';
 import { AppShell } from '../shared/app-shell';
+import { RightSidebarService } from '../shared/right-sidebar.service';
 import { UiService } from '../shared/ui.service';
 
 function canonicalLessonSubject(value: string): string {
@@ -57,6 +82,27 @@ function lessonTopics(lesson: { subject?: string; subjects?: string[] }): string
   return cleaned.length ? cleaned : ['General'];
 }
 
+interface LearnerLessonGroup {
+  subject: string;
+  lessons: LanguageModelState['lesson_cards'];
+}
+
+/** The lessons of one grade, filed under every topic they belong to. */
+function lessonsBySubjectFor(
+  state: LanguageModelState | null,
+  stageId: string,
+): LearnerLessonGroup[] {
+  if (!state) return [];
+  const groups = new Map<string, LanguageModelState['lesson_cards']>();
+  for (const lesson of state.lesson_cards) {
+    if ((lesson.grade_id ?? 'nursery') !== stageId) continue;
+    for (const topic of lessonTopics(lesson)) {
+      groups.set(topic, [...(groups.get(topic) ?? []), lesson]);
+    }
+  }
+  return [...groups.entries()].map(([subject, lessons]) => ({ subject, lessons }));
+}
+
 interface LearnerSearchResult {
   key: string;
   kind: 'lesson' | 'starter' | 'trainer';
@@ -75,9 +121,21 @@ interface LearnerSearchResult {
 @Component({
   selector: 'app-learner',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppShell, AppPageHeader, LessonForm],
+  imports: [CommonModule, FormsModule, AppShell, AppIcon, AppCardInfo, LessonForm, LearnerDetails],
   templateUrl: './learner.html',
-  styleUrls: ['./learner.css', '../shared/controls.css'],
+  styleUrls: [
+    './learner.css',
+    './learner-navigation.css',
+    './learner-forms.css',
+    './learner-lessons.css',
+    './learner-chat.css',
+    './learner-tests.css',
+    './learner-search.css',
+    './learner-knowledge.css',
+    './learner-overlays.css',
+    './learner-drawer.css',
+    '../shared/controls.css',
+  ],
 })
 export class Learner implements OnInit {
   private readonly api = inject(ApiService);
@@ -85,10 +143,14 @@ export class Learner implements OnInit {
   private readonly ui = inject(UiService);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly sidebar = inject(RightSidebarService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly learnerDetails = viewChild<TemplateRef<unknown>>('learnerDetails');
 
-  protected readonly sidebarOpen = signal(true);
   protected readonly languageModelState = signal<LanguageModelState | null>(null);
-  protected readonly learnerTab = signal<'overview' | 'lessons' | 'tests' | 'knowledge' | 'expressions'>('overview');
+  protected readonly learnerTab = signal<
+    'overview' | 'lessons' | 'tests' | 'knowledge' | 'expressions'
+  >('overview');
   protected readonly languageLessonDraft = signal('');
   protected readonly selectedLessonSubject = signal('');
   protected readonly editingLearnerLessonId = signal<string | null>(null);
@@ -96,12 +158,16 @@ export class Learner implements OnInit {
   protected readonly editingLearnerLessonQuestion = signal('');
   protected readonly editingLearnerLessonSubject = signal('');
   protected readonly savingLearnerLessonId = signal<string | null>(null);
-  protected readonly learnerLessonDeletePrompt = signal<{ id: string; question: string } | null>(null);
+  protected readonly learnerLessonDeletePrompt = signal<{ id: string; question: string } | null>(
+    null,
+  );
   protected readonly deletingLearnerLessonId = signal<string | null>(null);
   protected readonly editingTrainerAnswerId = signal<number | null>(null);
   protected readonly editingTrainerAnswerDraft = signal('');
   protected readonly savingTrainerAnswerId = signal<number | null>(null);
-  protected readonly trainerAnswerDeletePrompt = signal<{ id: number; question: string } | null>(null);
+  protected readonly trainerAnswerDeletePrompt = signal<{ id: number; question: string } | null>(
+    null,
+  );
   protected readonly deletingTrainerAnswerId = signal<number | null>(null);
   protected readonly lessonEntryMode = signal<LessonEntryMode>('own_words');
   protected readonly lessonSubjectDraft = signal('Language');
@@ -113,12 +179,21 @@ export class Learner implements OnInit {
   protected readonly languageTest = signal<LanguageTest | null>(null);
   protected readonly languageTestQuestion = signal('');
   protected readonly languageTestResult = signal<LanguageTestFinishResult['result'] | null>(null);
-  protected readonly languageTestKind = signal<'trainer' | 'mock' | 'exam'>('trainer');
   protected readonly languageTestBusy = signal(false);
   protected readonly learnerChatDraft = signal('');
-  protected readonly learnerChatMessages = signal<Array<{ question: string; answer: string; source: LanguagePreviewResponse['source']; reasoning?: QueryReasoning | null }>>([]);
+  protected readonly learnerChatMessages = signal<
+    Array<{
+      question: string;
+      answer: string;
+      source: LanguagePreviewResponse['source'];
+      reasoning?: QueryReasoning | null;
+    }>
+  >([]);
   protected readonly learnerChatBusy = signal(false);
-  protected readonly learnerMatchPrompt = signal<{ question: string; candidates: NonNullable<LanguagePreviewResponse['candidates']> } | null>(null);
+  protected readonly learnerMatchPrompt = signal<{
+    question: string;
+    candidates: NonNullable<LanguagePreviewResponse['candidates']>;
+  } | null>(null);
   protected readonly dictionaryWordDraft = signal('');
   protected readonly dictionaryWordEntry = signal<LanguageDictionaryEntry | null>(null);
   protected readonly dictionaryWordLoading = signal(false);
@@ -154,51 +229,79 @@ export class Learner implements OnInit {
   protected readonly calculationResult = signal<string | null>(null);
   protected readonly practiceBusy = signal(false);
   protected readonly languageGenerationLoading = signal(false);
-  protected readonly selectedLanguageStage = computed(() =>
-    this.languageModelState()?.stages.find((stage: any) => stage.id === this.languageTeachingStage()) ?? null,
+  protected readonly selectedLanguageStage = computed(
+    () =>
+      this.languageModelState()?.stages.find(
+        (stage: any) => stage.id === this.languageTeachingStage(),
+      ) ?? null,
   );
-  protected readonly languageLessonsBySubject = computed(() => {
-    const state = this.languageModelState();
-    if (!state) return [];
-    const groups = new Map<string, LanguageModelState['lesson_cards']>();
-    for (const lesson of state.lesson_cards) {
-      if ((lesson.grade_id ?? 'nursery') !== this.languageTeachingStage()) continue;
-      // A lesson can belong to more than one topic, so it is filed under each.
-      for (const topic of lessonTopics(lesson)) {
-        groups.set(topic, [...(groups.get(topic) ?? []), lesson]);
-      }
-    }
-    return [...groups.entries()].map(([subject, lessons]) => ({ subject, lessons }));
+  protected readonly lessonCardInfo = computed(() => {
+    const description = this.selectedLanguageStage()?.description ?? '';
+    return `${description} Add question and answer lessons, or a story, a lesson or a topic, to teach facts and concepts.`.trim();
   });
+  protected readonly languageLessonsBySubject = computed(() =>
+    lessonsBySubjectFor(this.languageModelState(), this.languageTeachingStage()),
+  );
   protected readonly languageLessonSubjects = computed(() => {
     const suggested = (this.selectedLanguageStage()?.subjects ?? []).map(canonicalLessonSubject);
     const taught = this.languageLessonsBySubject().map((group) => group.subject);
     return [...new Set([...suggested, ...taught])];
   });
-  protected readonly activeLessonSubject = computed(() => {
-    const groups = this.languageLessonsBySubject();
-    const selected = this.selectedLessonSubject();
-    return groups.some((group) => group.subject === selected)
-      ? selected
-      : groups[0]?.subject ?? this.languageLessonSubjects()[0] ?? '';
-  });
-  protected readonly visibleLessonGroups = computed(() => {
-    const selected = this.activeLessonSubject();
-    return this.languageLessonsBySubject().filter((group) => group.subject === selected);
-  });
-  protected readonly visibleLessonCount = computed(() =>
-    this.visibleLessonGroups().reduce((count, group) => count + group.lessons.length, 0),
-  );
   protected readonly languageLessonTotal = computed(() =>
     this.languageLessonsBySubject().reduce((total, group) => total + group.lessons.length, 0),
   );
+  protected readonly languageBrowseStage = signal('nursery');
+  protected readonly browseLessonSubject = signal('');
+  protected readonly knowledgeTab = signal<'search' | 'grades' | 'learned'>('search');
+  protected readonly learnerLessonTotal = computed(
+    () => (this.languageModelState()?.lesson_cards ?? []).length,
+  );
+  protected readonly sidebarSubtitle = computed(() => {
+    const model = this.languageModelState() as LearnerDetailsModel | null;
+    return model ? `${model.model_name} · ${model.stage}` : 'Reading the learner…';
+  });
+  protected readonly learnerLearnedTotals = computed(() => {
+    const state = this.languageModelState();
+    return {
+      starterLessons: (state?.lesson_cards ?? []).filter((lesson: any) => lesson.kind !== 'trainer')
+        .length,
+      ownLessons: (state?.lesson_cards ?? []).filter((lesson: any) => lesson.kind === 'trainer')
+        .length,
+      wordCards: state?.word_cards?.length ?? 0,
+      trainerAnswers: state?.trainer_answers?.length ?? 0,
+      sentenceExamples: state?.example_total ?? state?.examples?.length ?? 0,
+    };
+  });
+  protected readonly browseLessonsBySubject = computed(() =>
+    lessonsBySubjectFor(this.languageModelState(), this.languageBrowseStage()),
+  );
+  protected readonly browseLessonCount = computed(() =>
+    this.browseLessonsBySubject().reduce((total, group) => total + group.lessons.length, 0),
+  );
+  protected readonly activeBrowseSubject = computed(() => {
+    const groups = this.browseLessonsBySubject();
+    const selected = this.browseLessonSubject();
+    return groups.some((group) => group.subject === selected)
+      ? selected
+      : (groups[0]?.subject ?? '');
+  });
+  protected readonly visibleBrowseGroups = computed(() => {
+    const selected = this.activeBrowseSubject();
+    return this.browseLessonsBySubject().filter((group) => group.subject === selected);
+  });
   protected readonly learnerOwnLessons = computed(() =>
-    (this.languageModelState()?.lesson_cards ?? []).filter((lesson: any) => lesson.kind === 'trainer'),
+    (this.languageModelState()?.lesson_cards ?? []).filter(
+      (lesson: any) => lesson.kind === 'trainer',
+    ),
   );
   protected readonly learnerStarterLessons = computed(() =>
-    (this.languageModelState()?.lesson_cards ?? []).filter((lesson: any) => lesson.kind !== 'trainer'),
+    (this.languageModelState()?.lesson_cards ?? []).filter(
+      (lesson: any) => lesson.kind !== 'trainer',
+    ),
   );
-  protected readonly learnerStarterLessonCount = computed(() => this.learnerStarterLessons().length);
+  protected readonly learnerStarterLessonCount = computed(
+    () => this.learnerStarterLessons().length,
+  );
   protected readonly learnerSearch = signal('');
   protected readonly searchEditKey = signal<string | null>(null);
   protected readonly searchEditQuestion = signal('');
@@ -274,7 +377,13 @@ export class Learner implements OnInit {
         this.setLanguageModelState(state);
         if (state.current_stage_id !== 'complete') {
           this.languageTeachingStage.set(state.current_stage_id);
-          if (firstLoad) this.lessonSubjectDraft.set(state.stages.find((stage: any) => stage.id === state.current_stage_id)?.subjects[0] ?? 'General');
+          if (firstLoad) {
+            this.languageBrowseStage.set(state.current_stage_id);
+            this.lessonSubjectDraft.set(
+              state.stages.find((stage: any) => stage.id === state.current_stage_id)?.subjects[0] ??
+                'General',
+            );
+          }
         }
         this.languageTest.set(state.active_test);
         this.languageModelLoading.set(false);
@@ -342,7 +451,9 @@ export class Learner implements OnInit {
         this.languageLessonSaving.set(false);
         this.loadDuplicates();
         const added = state.added_lessons ?? 0;
-        this.ui.success(`Added ${added} lesson${added === 1 ? '' : 's'} to ${this.selectedLanguageStage()?.title ?? stage}.`);
+        this.ui.success(
+          `Added ${added} lesson${added === 1 ? '' : 's'} to ${this.selectedLanguageStage()?.title ?? stage}.`,
+        );
       },
       error: (error: Error) => {
         this.languageModelError.set(error.message);
@@ -372,18 +483,26 @@ export class Learner implements OnInit {
     const subject = this.editingLearnerLessonSubject().trim();
     if (!answer || this.savingLearnerLessonId()) return;
     this.savingLearnerLessonId.set(id);
-    this.languageApi.updateLanguageLessonAnswer(id, answer, question || undefined, undefined, subject || undefined).subscribe({
-      next: (state: any) => {
-        this.setLanguageModelState(state);
-        this.cancelEditLearnerLesson();
-        this.savingLearnerLessonId.set(null);
-        this.ui.success('Learner answer updated.');
-      },
-      error: (error: Error) => {
-        this.languageModelError.set(error.message);
-        this.savingLearnerLessonId.set(null);
-      },
-    });
+    this.languageApi
+      .updateLanguageLessonAnswer(
+        id,
+        answer,
+        question || undefined,
+        undefined,
+        subject || undefined,
+      )
+      .subscribe({
+        next: (state: any) => {
+          this.setLanguageModelState(state);
+          this.cancelEditLearnerLesson();
+          this.savingLearnerLessonId.set(null);
+          this.ui.success('Learner answer updated.');
+        },
+        error: (error: Error) => {
+          this.languageModelError.set(error.message);
+          this.savingLearnerLessonId.set(null);
+        },
+      });
   }
 
   confirmRemoveLearnerLesson() {
@@ -478,18 +597,20 @@ export class Learner implements OnInit {
     this.savingSearchKey.set(result.key);
     const confidence = Math.round(this.searchEditConfidence() * 100) / 100;
     if (result.kind === 'lesson' && result.lessonId) {
-      this.languageApi.updateLanguageLessonAnswer(result.lessonId, answer, question, confidence).subscribe({
-        next: (state: any) => {
-          this.setLanguageModelState(state);
-          this.cancelEditSearchResult();
-          this.savingSearchKey.set(null);
-          this.ui.success('Lesson question and answer updated.');
-        },
-        error: (error: Error) => {
-          this.languageModelError.set(error.message);
-          this.savingSearchKey.set(null);
-        },
-      });
+      this.languageApi
+        .updateLanguageLessonAnswer(result.lessonId, answer, question, confidence)
+        .subscribe({
+          next: (state: any) => {
+            this.setLanguageModelState(state);
+            this.cancelEditSearchResult();
+            this.savingSearchKey.set(null);
+            this.ui.success('Lesson question and answer updated.');
+          },
+          error: (error: Error) => {
+            this.languageModelError.set(error.message);
+            this.savingSearchKey.set(null);
+          },
+        });
       return;
     }
     if (result.kind === 'trainer' && result.faqId !== undefined) {
@@ -519,16 +640,11 @@ export class Learner implements OnInit {
   }
 
   focusLessonInGrade(result: LearnerSearchResult) {
-    const state = this.languageModelState();
-    if (!state) return;
-    if (result.grade && !this.isLanguageStageLocked(result.grade, state)) {
-      this.languageTeachingStage.set(result.grade);
-    }
-    if (result.subject) {
-      this.selectedLessonSubject.set(result.subject);
-      this.lessonSubjectDraft.set(result.subject);
-    }
-    this.learnerTab.set('lessons');
+    if (!this.languageModelState()) return;
+    if (result.grade) this.languageBrowseStage.set(result.grade);
+    if (result.subject) this.browseLessonSubject.set(result.subject);
+    this.knowledgeTab.set('grades');
+    this.learnerTab.set('knowledge');
   }
 
   askLanguageLearner() {
@@ -545,7 +661,17 @@ export class Learner implements OnInit {
         if (result.needs_clarification && result.candidates?.length) {
           this.learnerMatchPrompt.set({ question, candidates: result.candidates });
         } else {
-          this.learnerChatMessages.update((messages) => [...messages, { question, answer: result.answer, source: result.source, reasoning: result.reasoning ?? null }].slice(-30));
+          this.learnerChatMessages.update((messages) =>
+            [
+              ...messages,
+              {
+                question,
+                answer: result.answer,
+                source: result.source,
+                reasoning: result.reasoning ?? null,
+              },
+            ].slice(-30),
+          );
         }
         this.learnerChatDraft.set('');
         this.learnerChatBusy.set(false);
@@ -557,10 +683,17 @@ export class Learner implements OnInit {
     });
   }
 
-  chooseLearnerTrainerAnswer(candidate: NonNullable<LanguagePreviewResponse['candidates']>[number]) {
+  chooseLearnerTrainerAnswer(
+    candidate: NonNullable<LanguagePreviewResponse['candidates']>[number],
+  ) {
     const prompt = this.learnerMatchPrompt();
     if (!prompt) return;
-    this.learnerChatMessages.update((messages) => [...messages, { question: prompt.question, answer: candidate.answer, source: 'trainer' }].slice(-30));
+    this.learnerChatMessages.update((messages) =>
+      [
+        ...messages,
+        { question: prompt.question, answer: candidate.answer, source: 'trainer' },
+      ].slice(-30),
+    );
     this.learnerMatchPrompt.set(null);
   }
 
@@ -573,25 +706,33 @@ export class Learner implements OnInit {
 
   reviewSimilarQuestionsInTrainer() {
     this.learnerMatchPrompt.set(null);
-    void this.router.navigate(['/trainer'], { queryParams: { tab: 'merge' } });
+    void this.router.navigate(['/dashboard/trainer'], { queryParams: { tab: 'merge' } });
   }
 
   learnerAnswerSourceLabel(source: LanguagePreviewResponse['source']): string {
     const labels: Record<string, string> = {
-      letters: 'Letter learning',
-      word_cards: 'Learned word',
-      lesson_cards: 'Lesson knowledge',
-      trainer: 'Trainer-approved answer',
+      assistant_profile: 'Assistant profile',
       dictionary: 'Offline dictionary',
-      sentence_patterns: 'Learned sentence patterns',
-      sentence_examples: 'Learned sentence examples',
+      faq: 'Trainer-approved answer',
+      learner: 'Learner curriculum',
+      lesson_cards: 'Lesson knowledge',
+      letters: 'Letter learning',
       not_learned: 'Not learned yet',
+      number_cards: 'Number cards',
+      sentence_examples: 'Learned sentence examples',
+      sentence_patterns: 'Learned sentence patterns',
+      taught: 'Taught lesson',
+      trainer: 'Trainer-approved answer',
+      word_cards: 'Learned word',
+      written: 'Written from a lesson',
     };
     return labels[source] ?? 'Learner knowledge';
   }
 
   languageStageTitle(stageId: string): string {
-    return this.languageModelState()?.stages.find((stage: any) => stage.id === stageId)?.title ?? stageId;
+    return (
+      this.languageModelState()?.stages.find((stage: any) => stage.id === stageId)?.title ?? stageId
+    );
   }
 
   isLanguageStageLocked(stageId: string, state: LanguageModelState): boolean {
@@ -609,7 +750,9 @@ export class Learner implements OnInit {
       this.lessonQuestionDraft.set('');
       this.lessonAnswerDraft.set('');
       this.selectedLessonSubject.set('');
-      this.lessonSubjectDraft.set(state.stages.find((stage: any) => stage.id === stageId)?.subjects[0] ?? 'General');
+      this.lessonSubjectDraft.set(
+        state.stages.find((stage: any) => stage.id === stageId)?.subjects[0] ?? 'General',
+      );
     }
   }
 
@@ -617,22 +760,51 @@ export class Learner implements OnInit {
     this.selectedLessonSubject.set(subject);
   }
 
+  setBrowseGrade(stageId: string): void {
+    this.languageBrowseStage.set(stageId);
+    this.browseLessonSubject.set('');
+  }
+
+  setBrowseSubject(subject: string): void {
+    this.browseLessonSubject.set(subject);
+  }
+
+  /** Open what it knows and re-read the saved material so it is never stale. */
+  openKnowledge(): void {
+    this.learnerTab.set('knowledge');
+    this.refreshLearnerMaterial();
+  }
+
+  setKnowledgeTab(tab: 'search' | 'grades' | 'learned'): void {
+    this.knowledgeTab.set(tab);
+    this.refreshLearnerMaterial();
+  }
+
+  private refreshLearnerMaterial(): void {
+    this.refreshLanguageModel();
+    this.loadDuplicates();
+  }
+
   startLanguageTest(kind: 'trainer' | 'mock' | 'exam' = 'trainer') {
     if (this.languageTestBusy()) return;
     this.languageTestBusy.set(true);
     this.languageModelError.set(null);
     this.languageTestResult.set(null);
-    this.languageTestKind.set(kind);
     this.languageTestQuestion.set('');
     this.languageApi.startLanguageTest(this.languageTeachingStage(), kind).subscribe({
       next: (result: any) => {
         this.setLanguageModelState(result.state);
         this.languageTest.set(result.state.active_test);
-        if (result.state.active_test) this.languageTeachingStage.set(result.state.active_test.stage);
+        if (result.state.active_test)
+          this.languageTeachingStage.set(result.state.active_test.stage);
         this.languageTestBusy.set(false);
-        if (!result.state.active_test) this.ui.info(result.message || 'All learning stages are passed.');
+        if (!result.state.active_test)
+          this.ui.info(result.message || 'All learning stages are passed.');
       },
-      error: (error: Error) => { this.languageModelError.set(error.message); this.languageTestBusy.set(false); },
+      error: (error: Error) => {
+        this.languageModelError.set(error.message);
+        this.languageTestBusy.set(false);
+      },
     });
   }
 
@@ -648,7 +820,10 @@ export class Learner implements OnInit {
         this.languageTestQuestion.set('');
         this.languageTestBusy.set(false);
       },
-      error: (error: Error) => { this.languageModelError.set(error.message); this.languageTestBusy.set(false); },
+      error: (error: Error) => {
+        this.languageModelError.set(error.message);
+        this.languageTestBusy.set(false);
+      },
     });
   }
 
@@ -661,7 +836,10 @@ export class Learner implements OnInit {
         this.languageTest.set(result.state.active_test);
         this.languageTestBusy.set(false);
       },
-      error: (error: Error) => { this.languageModelError.set(error.message); this.languageTestBusy.set(false); },
+      error: (error: Error) => {
+        this.languageModelError.set(error.message);
+        this.languageTestBusy.set(false);
+      },
     });
   }
 
@@ -674,14 +852,54 @@ export class Learner implements OnInit {
         this.languageTest.set(null);
         this.languageTestResult.set(result.result);
         this.languageTestBusy.set(false);
-        if (result.result.passed && result.result.stage === result.state.current_stage_id && result.state.current_stage_id !== 'complete') {
+        if (result.result.passed && result.state.current_stage_id !== 'complete') {
+          // Passing opens the next grade, so the form and the grade cards
+          // follow the learner there instead of staying on the passed one.
           this.languageTeachingStage.set(result.state.current_stage_id);
-          this.lessonSubjectDraft.set(result.state.stages.find((stage: any) => stage.id === result.state.current_stage_id)?.subjects[0] ?? 'General');
+          this.lessonSubjectDraft.set(
+            result.state.stages.find((stage: any) => stage.id === result.state.current_stage_id)
+              ?.subjects[0] ?? 'General',
+          );
         }
-        this.ui.info(result.result.passed ? `Stage passed. ${result.state.stage} is unlocked.` : 'This stage needs more learning. It remains open for another lesson or test.');
+        this.ui.info(this.testResultMessage(result.result));
       },
-      error: (error: Error) => { this.languageModelError.set(error.message); this.languageTestBusy.set(false); },
+      error: (error: Error) => {
+        this.languageModelError.set(error.message);
+        this.languageTestBusy.set(false);
+      },
     });
+  }
+
+  /** The kind of test, named the way the backend decides it. */
+  testKindLabel(kind: string | undefined | null): string {
+    if (kind === 'mock') return 'Mock test';
+    if (kind === 'exam') return 'Final exam';
+    return 'Trainer-led test';
+  }
+
+  /** What the measured result means, worded for the test that produced it. */
+  testResultMessage(result: {
+    kind?: string;
+    stage: string;
+    passed: boolean;
+    questions_asked: number;
+    answers_passed: number;
+    required_pass_rate?: number | null;
+  }): string {
+    const stage = this.languageStageTitle(result.stage);
+    const score = `You scored ${result.answers_passed} of ${result.questions_asked} answers as passed.`;
+    if (result.kind === 'mock') {
+      return `${stage} mock test complete. ${score} A mock is practice and never moves the grade.`;
+    }
+    if (result.kind === 'exam') {
+      const required = Math.round((result.required_pass_rate ?? 0.8) * 100);
+      return result.passed
+        ? `${stage} final exam passed. ${score} The required ${required}% was met and the next grade is now open.`
+        : `${stage} final exam not passed. ${score} The final exam requires ${required}%. Teach or review the material, then take it again.`;
+    }
+    return result.passed
+      ? `${stage} passed. ${score} The next grade is now open.`
+      : `${stage} needs more learning. ${score} Teach or review the material, then take the grade test again.`;
   }
 
   lookupDictionaryWord() {
@@ -696,7 +914,10 @@ export class Learner implements OnInit {
         this.dictionaryDefinitionIndex.set(0);
         this.dictionaryWordLoading.set(false);
       },
-      error: (error: Error) => { this.languageModelError.set(error.message); this.dictionaryWordLoading.set(false); },
+      error: (error: Error) => {
+        this.languageModelError.set(error.message);
+        this.dictionaryWordLoading.set(false);
+      },
     });
   }
 
@@ -706,20 +927,21 @@ export class Learner implements OnInit {
     const meaning = entry.definitions?.[this.dictionaryDefinitionIndex()];
     if (!meaning) return;
     this.dictionaryWordSaving.set(true);
-    this.languageApi.learnDictionaryWord(entry.word, meaning, this.languageTeachingStage()).subscribe({
-      next: (result: any) => {
-        this.setLanguageModelState(result.state);
-        this.dictionaryWordEntry.set(result.entry);
-        this.dictionaryWordSaving.set(false);
-        this.ui.success(`Learned “${result.entry.word}” from the offline dictionary.`);
-      },
-      error: (error: Error) => {
-        this.languageModelError.set(error.message);
-        this.dictionaryWordSaving.set(false);
-      },
-    });
+    this.languageApi
+      .learnDictionaryWord(entry.word, meaning, this.languageTeachingStage())
+      .subscribe({
+        next: (result: any) => {
+          this.setLanguageModelState(result.state);
+          this.dictionaryWordEntry.set(result.entry);
+          this.dictionaryWordSaving.set(false);
+          this.ui.success(`Learned “${result.entry.word}” from the offline dictionary.`);
+        },
+        error: (error: Error) => {
+          this.languageModelError.set(error.message);
+          this.dictionaryWordSaving.set(false);
+        },
+      });
   }
-
 
   checkNextWords() {
     this.refreshLanguageModel(this.languagePrefix().trim());
@@ -731,39 +953,54 @@ export class Learner implements OnInit {
     this.generatedLanguageSentence.set(null);
     const draft = this.languageSentenceWord().trim();
     const words = draft
-      ? draft.split(/[\s,]+/).map((word: any) => word.trim()).filter((word: any) => word.length > 0)
+      ? draft
+          .split(/[\s,]+/)
+          .map((word: any) => word.trim())
+          .filter((word: any) => word.length > 0)
       : [];
-    this.languageApi.generateLanguageSentence(words.length === 1 ? words[0] : undefined, words).subscribe({
-      next: (result: any) => {
-        this.generatedLanguageSentence.set(result.sentence ?? 'The model has not learned enough sentence patterns yet. Add more lessons first.');
-        this.languageGenerationLoading.set(false);
-      },
-      error: (error: Error) => {
-        this.languageModelError.set(error.message);
-        this.languageGenerationLoading.set(false);
-      },
-    });
+    this.languageApi
+      .generateLanguageSentence(words.length === 1 ? words[0] : undefined, words)
+      .subscribe({
+        next: (result: any) => {
+          this.generatedLanguageSentence.set(
+            result.sentence ??
+              'The model has not learned enough sentence patterns yet. Add more lessons first.',
+          );
+          this.languageGenerationLoading.set(false);
+        },
+        error: (error: Error) => {
+          this.languageModelError.set(error.message);
+          this.languageGenerationLoading.set(false);
+        },
+      });
   }
-
 
   buildSentenceFromWords() {
     if (this.practiceBusy()) return;
     const draft = this.sentenceWordsDraft().trim();
     if (!draft) return;
-    const words = draft.split(/[\s,]+/).map((word: any) => word.trim()).filter((word: any) => word.length > 0);
+    const words = draft
+      .split(/[\s,]+/)
+      .map((word: any) => word.trim())
+      .filter((word: any) => word.length > 0);
     if (!words.length) return;
     this.practiceBusy.set(true);
     this.sentenceResult.set(null);
-    this.languageApi.generateLanguageSentence(words.length === 1 ? words[0] : undefined, words).subscribe({
-      next: (result: any) => {
-        this.sentenceResult.set(result.sentence ?? 'The learner could not build a sentence from those words yet. Try a word it has learned.');
-        this.practiceBusy.set(false);
-      },
-      error: (error: Error) => {
-        this.languageModelError.set(error.message);
-        this.practiceBusy.set(false);
-      },
-    });
+    this.languageApi
+      .generateLanguageSentence(words.length === 1 ? words[0] : undefined, words)
+      .subscribe({
+        next: (result: any) => {
+          this.sentenceResult.set(
+            result.sentence ??
+              'The learner could not build a sentence from those words yet. Try a word it has learned.',
+          );
+          this.practiceBusy.set(false);
+        },
+        error: (error: Error) => {
+          this.languageModelError.set(error.message);
+          this.practiceBusy.set(false);
+        },
+      });
   }
 
   runCalculation() {
@@ -784,16 +1021,27 @@ export class Learner implements OnInit {
     });
   }
 
+  constructor() {
+    // The summary belongs to the page's details panel, so the header toggle
+    // opens it with the learner's own numbers instead of an empty frame.
+    effect(() => {
+      const template = this.learnerDetails();
+      if (!template) return;
+      this.sidebar.setDetails({
+        owner: 'learner',
+        title: 'Language Learner',
+        subtitle: this.sidebarSubtitle(),
+        template,
+      });
+    });
+    this.destroyRef.onDestroy(() => this.sidebar.clearDetails('learner'));
+  }
+
   ngOnInit(): void {
     // The server has no session, so the lessons are read in the browser.
     if (!isPlatformBrowser(this.platformId)) return;
     this.refreshLanguageModel();
     this.loadDuplicates();
-  }
-
-  /** Fold the shared navigation away and show it again. */
-  toggleSidebar(): void {
-    this.sidebarOpen.update((open) => !open);
   }
 
   /** Read the lessons that repeat each other. */
@@ -920,18 +1168,20 @@ export class Learner implements OnInit {
       return;
     }
     this.busyDuplicateId.set(id);
-    this.languageApi.updateLanguageLessonAnswer(id, answer, question, undefined, subject || undefined).subscribe({
-      next: (state: any) => {
-        this.setLanguageModelState(state);
-        this.busyDuplicateId.set(null);
-        this.cancelDuplicateEdit();
-        this.loadDuplicates();
-        this.ui.success('The lesson was improved.');
-      },
-      error: (error: Error) => {
-        this.busyDuplicateId.set(null);
-        this.ui.error(error.message);
-      },
-    });
+    this.languageApi
+      .updateLanguageLessonAnswer(id, answer, question, undefined, subject || undefined)
+      .subscribe({
+        next: (state: any) => {
+          this.setLanguageModelState(state);
+          this.busyDuplicateId.set(null);
+          this.cancelDuplicateEdit();
+          this.loadDuplicates();
+          this.ui.success('The lesson was improved.');
+        },
+        error: (error: Error) => {
+          this.busyDuplicateId.set(null);
+          this.ui.error(error.message);
+        },
+      });
   }
 }

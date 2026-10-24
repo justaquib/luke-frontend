@@ -3,7 +3,7 @@
   background: linear-gradient(180deg, #fafafe 0%, #ffffff 60%, #fafafe 100%);
   color: #0f172a;
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-family-base);
 }
 .landing {
   max-width: 1180px;

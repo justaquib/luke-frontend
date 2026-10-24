@@ -17,8 +17,20 @@ export const VOICE_LANGUAGES_KEY = 'assistance.voice.enabledLanguages.v2';
 export const VOICE_MODEL_OPTIONS: VoiceModelOption[] = [
   { value: 'en', label: 'English', model: 'en_US-lessac-medium', language: 'en', gender: 'female' },
   { value: 'hi', label: 'हिन्दी', model: 'hi_IN-pratham-medium', language: 'hi', gender: 'female' },
-  { value: 'ur-female', label: 'اردو · Female', model: 'ur_PK-aegis_female-medium', language: 'ur', gender: 'female' },
-  { value: 'ur-male', label: 'اردو · Male', model: 'ur_PK-fasih-medium-model', language: 'ur', gender: 'male' },
+  {
+    value: 'ur-female',
+    label: 'اردو · Female',
+    model: 'ur_PK-aegis_female-medium',
+    language: 'ur',
+    gender: 'female',
+  },
+  {
+    value: 'ur-male',
+    label: 'اردو · Male',
+    model: 'ur_PK-fasih-medium-model',
+    language: 'ur',
+    gender: 'male',
+  },
 ];
 
 export function voiceModelValue(language: VoiceLanguage, gender: VoiceGender): string {
@@ -35,14 +47,18 @@ export function voiceModelLabel(value: string): string {
   return option ? `${option.label} · ${option.model}` : 'voice';
 }
 
-export function availableVoiceModels(entries: { value: string; cached: boolean }[]): VoiceModelOption[] {
+export function availableVoiceModels(
+  entries: { value: string; cached: boolean }[],
+): VoiceModelOption[] {
   const installed = new Set(entries.filter((entry) => entry.cached).map((entry) => entry.value));
   return VOICE_MODEL_OPTIONS.filter((option) => installed.has(option.value));
 }
 
 export function loadEnabledVoiceLanguages(): VoiceLanguageFlags {
   try {
-    const value = JSON.parse(localStorage.getItem(VOICE_LANGUAGES_KEY) ?? '{}') as Partial<VoiceLanguageFlags>;
+    const value = JSON.parse(
+      localStorage.getItem(VOICE_LANGUAGES_KEY) ?? '{}',
+    ) as Partial<VoiceLanguageFlags>;
     const result = { en: value.en !== false, hi: value.hi !== false, ur: value.ur !== false };
     return result.en || result.hi || result.ur ? result : { en: true, hi: false, ur: false };
   } catch {

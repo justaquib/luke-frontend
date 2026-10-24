@@ -1,0 +1,75 @@
+<section class="panel" aria-labelledby="engine-title">
+  <header class="panel-head">
+    <h2 id="engine-title">Engine</h2>
+    <span class="status">
+      <span class="dot" [class]="statusClass()" aria-hidden="true"></span>
+      {{ status() }}
+    </span>
+  </header>
+
+  <dl class="rows">
+    <div class="row">
+      <dt>Answer model</dt>
+      <dd>{{ engine()?.answer?.trained ? 'trained' : 'not trained' }}</dd>
+    </div>
+    <div class="row">
+      <dt>Word model</dt>
+      <dd>{{ engine()?.words?.backend ?? 'untrained' }}</dd>
+    </div>
+    <div class="row">
+      <dt>Device</dt>
+      <dd>{{ engine()?.device ?? '—' }}</dd>
+    </div>
+    <div class="row">
+      <dt>Torch</dt>
+      <dd>{{ engine()?.torch ?? '—' }}</dd>
+    </div>
+    <div class="row">
+      <dt>Checkpoint</dt>
+      <dd>{{ checkpoint() }}</dd>
+    </div>
+    <div class="row">
+      <dt>Weights</dt>
+      <dd class="text">{{ weights() }}</dd>
+    </div>
+    <div class="row">
+      <dt>Last trained</dt>
+      <dd>
+        @if (lastTrained(); as at) {
+          {{ at * 1000 | date: 'yyyy-MM-dd HH:mm' }}
+        } @else {
+          never
+        }
+      </dd>
+    </div>
+    <div class="row">
+      <dt>Corpus</dt>
+      <dd class="text">{{ corpus() }}</dd>
+    </div>
+    <div class="row">
+      <dt>Backend</dt>
+      <dd class="text">{{ engine()?.words?.backend_reason ?? 'Not measured yet' }}</dd>
+    </div>
+  </dl>
+
+  @if (training()) {
+    <div class="training" aria-live="polite">
+      <div class="row">
+        <dt>Progress</dt>
+        <dd>{{ steps() }}</dd>
+      </div>
+      <div class="row">
+        <dt>Last check</dt>
+        <dd>{{ loss(progress()?.loss) }}</dd>
+      </div>
+      <ul class="stages">
+        @for (stage of progress()?.stages ?? []; track stage.key) {
+          <li [class]="stage.status">
+            <span class="mark" aria-hidden="true">{{ mark(stage.status) }}</span>
+            {{ stage.label }}
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</section>

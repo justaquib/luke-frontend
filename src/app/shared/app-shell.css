@@ -1,19 +1,169 @@
 :host {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-columns: var(--sidebar-width, 240px) minmax(0, 1fr);
+  grid-template-rows: var(--topbar-height) minmax(0, 1fr);
   width: 100%;
-  min-height: 100vh;
-  background: #0f172a;
+  min-height: var(--app-vh);
+  background: var(--bg);
   transition: grid-template-columns 0.2s ease;
 }
 
-:host(.sidebar-collapsed) { grid-template-columns: 60px minmax(0, 1fr); }
-:host(.aside-open) { grid-template-columns: 240px minmax(0, 1fr) 300px; }
-:host(.aside-open.sidebar-collapsed) { grid-template-columns: 60px minmax(0, 1fr) 300px; }
+app-top-bar {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  min-width: 0;
+}
 
+:host(.sidebar-closed) {
+  grid-template-columns: 0 minmax(0, 1fr);
+}
+
+:host([data-sidebar-side='right']) {
+  grid-template-columns: minmax(0, 1fr) var(--sidebar-width, 240px);
+}
+
+:host([data-sidebar-side='right'].sidebar-closed) {
+  grid-template-columns: minmax(0, 1fr) 0;
+}
+
+.shell-content {
+  display: contents;
+}
+
+app-sidebar {
+  grid-row: 2;
+  grid-column: 1;
+  min-width: 0;
+}
+
+:host([data-sidebar-side='right']) app-sidebar {
+  grid-column: 2;
+}
+
+.shell-content > * {
+  grid-row: 2;
+  grid-column: 2;
+  min-width: 0;
+}
+
+:host([data-sidebar-side='right']) .shell-content > * {
+  grid-column: 1;
+}
+
+.sidebar-scrim {
+  display: none;
+}
+
+/* A floating sidebar leaves the page at full width and slides over it. */
+:host([data-sidebar-mode='overlay']),
+:host([data-sidebar-mode='full']) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+:host([data-sidebar-mode='overlay']) .shell-content > *,
+:host([data-sidebar-mode='full']) .shell-content > * {
+  grid-column: 1;
+}
+
+:host([data-sidebar-mode='overlay']) app-sidebar,
+:host([data-sidebar-mode='full']) app-sidebar {
+  position: fixed;
+  top: var(--topbar-height);
+  left: 0;
+  z-index: 1050;
+  width: var(--sidebar-width, 240px);
+  height: calc(var(--app-vh) - var(--topbar-height));
+  transition: transform 0.2s ease;
+}
+
+:host([data-sidebar-mode='overlay'][data-sidebar-side='right']) app-sidebar {
+  right: 0;
+  left: auto;
+}
+
+:host([data-sidebar-mode='full']) app-sidebar {
+  width: 100%;
+}
+
+:host([data-sidebar-mode='overlay'].sidebar-closed) app-sidebar,
+:host([data-sidebar-mode='full'].sidebar-closed) app-sidebar {
+  transform: translateX(-100%);
+}
+
+:host([data-sidebar-mode='overlay'][data-sidebar-side='right'].sidebar-closed) app-sidebar {
+  transform: translateX(100%);
+}
+
+:host([data-sidebar-mode='overlay'].sidebar-open) .sidebar-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 1040;
+  display: block;
+  background: var(--overlay);
+}
+
+/* Below 680px the navigation always floats over the page, so it can open
+   instead of being pinned to a 60px rail that hid its labels. */
 @media (max-width: 680px) {
+  /* The closed state outranks the bare host, so it repeats here to keep the
+     page in the single column on a narrow screen. */
   :host,
-  :host(.sidebar-collapsed),
-  :host(.aside-open),
-  :host(.aside-open.sidebar-collapsed) { grid-template-columns: 60px minmax(0, 1fr); }
+  :host(.sidebar-closed),
+  :host([data-sidebar-side='right']),
+  :host([data-sidebar-side='right'].sidebar-closed),
+  :host([data-sidebar-mode='overlay']),
+  :host([data-sidebar-mode='full']) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .shell-content > * {
+    grid-column: 1;
+  }
+
+  app-sidebar {
+    position: fixed;
+    top: var(--topbar-height);
+    left: 0;
+    z-index: 1050;
+    width: min(var(--sidebar-width, 240px), calc(var(--app-vw) - 48px));
+    height: calc(var(--app-vh) - var(--topbar-height));
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+
+  :host([data-sidebar-side='right']) app-sidebar {
+    right: 0;
+    left: auto;
+  }
+
+  :host([data-sidebar-side='right'].sidebar-closed) app-sidebar {
+    transform: translateX(100%);
+  }
+
+  :host([data-sidebar-mode='full']) app-sidebar {
+    width: 100%;
+  }
+
+  :host(.sidebar-open:not([data-sidebar-side='right'])) app-sidebar {
+    transform: none;
+  }
+
+  :host(.sidebar-open[data-sidebar-side='right']) app-sidebar {
+    transform: none;
+  }
+
+  :host(.sidebar-open) .sidebar-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    display: block;
+    background: var(--overlay);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host,
+  app-sidebar {
+    transition: none;
+  }
 }

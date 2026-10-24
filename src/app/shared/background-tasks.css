@@ -1,0 +1,56 @@
+/* A running task reads the same in the primary sidebar and in the details
+   panel: one title, a measured share, and the step the engine is on. */
+.task-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.task-dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--warn);
+}
+
+.task-head strong {
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-share {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.task-meter {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.task-meter span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.task-detail {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+}

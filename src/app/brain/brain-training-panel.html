@@ -1,19 +1,4 @@
-<aside class="training-panel" aria-label="What the brain trains from">
-  <div class="training-panel-head">
-    <span class="metric-label">TRAINING SOURCES</span>
-    <button
-      type="button"
-      class="icon-btn"
-      (click)="closed.emit()"
-      aria-label="Close the training sources"
-    >
-      <span aria-hidden="true">×</span>
-    </button>
-  </div>
-  <p class="training-panel-note">
-    Everything the brain learns from, and what it does with it. The report is read from the same
-    material the training uses.
-  </p>
+<div class="training-panel" aria-label="What the brain trains from">
   @if (progress(); as progress) {
     <div class="training-progress" role="status">
       @if (training()) {
@@ -28,7 +13,15 @@
             [class.stage-done]="stage.status === 'done'"
             [class.stage-working]="stage.status === 'working'"
           >
-            <span class="stage-mark" aria-hidden="true">{{ markFor(stage.status) }}</span>
+            <span class="stage-mark" aria-hidden="true">
+              @if (stage.status === 'done') {
+                <app-icon name="check" [size]="14" />
+              } @else if (stage.status === 'working') {
+                <app-icon name="play" [size]="14" />
+              } @else {
+                <span class="stage-dot"></span>
+              }
+            </span>
             {{ stage.label }}
           </li>
         }
@@ -40,24 +33,9 @@
         <span class="training-result">{{ resultFor(progress) }}</span>
       }
     </div>
-  } @else {
-    @if (training()) {
-      <div class="training-live" role="status">
-        <span class="training-live-dot" aria-hidden="true"></span>
-        <strong>Training in progress</strong>
-        <span class="training-live-numbers">
-          {{ live()?.vocabulary ?? 0 }} words &middot; loss
-          {{ live()?.transformer?.loss ?? '—' }} &middot;
-          {{ live()?.transformer?.steps ?? 0 }} steps
-        </span>
-      </div>
-    }
   }
-  @if (loading()) {
-    <p class="training-status" role="status">Reading the material&hellip;</p>
-  }
-  @if (error(); as message) {
-    <p class="training-status" role="alert">{{ message }}</p>
+  @if (notice(); as message) {
+    <p class="training-status" [attr.role]="error() ? 'alert' : 'status'">{{ message }}</p>
   }
   @if (report(); as sources) {
     <div class="training-totals">
@@ -92,8 +70,17 @@
         </li>
       }
     </ol>
-    <button type="button" class="training-refresh" (click)="load()" [disabled]="loading()">
-      {{ loading() ? 'Reading…' : 'Read it again' }}
+    <button
+      type="button"
+      class="icon-btn"
+      (click)="load()"
+      [disabled]="loading()"
+      [attr.aria-label]="
+        loading() ? 'Reading the training sources' : 'Read the training sources again'
+      "
+      [title]="loading() ? 'Reading the training sources' : 'Read the training sources again'"
+    >
+      <app-icon name="refresh" [size]="16" />
     </button>
   }
-</aside>
+</div>

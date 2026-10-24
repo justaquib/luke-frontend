@@ -68,8 +68,8 @@ describe('AuthService', () => {
   it('keeps the page the user wanted, and goes back to it', () => {
     const auth = TestBed.inject(AuthService);
 
-    auth.rememberPage('/brain');
+    auth.rememberPage('/dashboard/brain');
 
-    expect(auth.returnUrl()).toBe('/brain');
+    expect(auth.returnUrl()).toBe('/dashboard/brain');
   });
 });

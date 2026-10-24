@@ -1,0 +1,124 @@
+.grade-qa-total {
+  display: inline-flex;
+  min-height: 28px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.language-inline-form {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.language-inline-form button {
+  flex: 0 0 auto;
+}
+
+.language-inline-form input,
+.language-learning-card form textarea,
+.lesson-answer-edit input,
+.lesson-answer-edit textarea,
+.learned-answer-content textarea,
+.learner-search-content textarea,
+.duplicate-card input,
+.duplicate-card textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.language-inline-form input {
+  width: auto;
+  flex: 1 1 auto;
+}
+
+.language-learning-card form textarea,
+.lesson-answer-edit textarea,
+.learned-answer-content textarea,
+.learner-search-content textarea,
+.duplicate-card textarea {
+  resize: vertical;
+}
+
+.language-inline-form input:focus-visible,
+.language-learning-card form textarea:focus-visible,
+.lesson-answer-edit input:focus-visible,
+.lesson-answer-edit textarea:focus-visible,
+.learned-answer-content textarea:focus-visible,
+.learner-search-content textarea:focus-visible,
+.duplicate-card input:focus-visible,
+.duplicate-card textarea:focus-visible,
+.lesson-topic-filter select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.lesson-answer-edit {
+  display: grid;
+  gap: 4px;
+}
+
+.lesson-answer-edit label {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.lesson-icon-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.lesson-icon-btn {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.lesson-icon-btn:hover {
+  border-color: var(--accent-line);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.lesson-icon-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.lesson-icon-btn.remove {
+  color: var(--bad);
+}
+
+.lesson-icon-btn.remove:hover {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+  color: var(--bad);
+}

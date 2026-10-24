@@ -1,266 +1,22 @@
-<div
-  class="shell train-on"
-  [class.sidebar-collapsed]="!sidebarOpen()"
->
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      @if (sidebarOpen()) {
-        <a class="brand" routerLink="/" title="Back to home">
-          <span class="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 32 32" width="22" height="22">
-              <defs>
-                <linearGradient id="tr-g" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stop-color="#6366f1" />
-                  <stop offset="1" stop-color="#a855f7" />
-                </linearGradient>
-              </defs>
-              <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#tr-g)" />
-              <path
-                d="M9 12c0-1.5 1-3 3-3h8c2 0 3 1.5 3 3v6c0 1.5-1 3-3 3h-5l-3 3v-3h-0c-2 0-3-1.5-3-3z"
-                fill="#fff"
-                opacity="0.96"
-              />
-              <circle cx="13" cy="15" r="1.2" fill="#6366f1" />
-              <circle cx="17" cy="15" r="1.2" fill="#6366f1" />
-              <circle cx="21" cy="15" r="1.2" fill="#6366f1" />
-            </svg>
-          </span>
-          <span class="brand-name">{{ prefs.botName() }} · Trainer</span>
-        </a>
-      }
-    </div>
-
-    <nav class="nav-list gap-2!">
-      <button
-        type="button"
-        class="nav-item nav-item-primary"
-        [class.active]="tab() === 'new'"
-        (click)="setTab('new')"
-        [attr.aria-current]="tab() === 'new' ? 'page' : null"
-      >
-        <span class="nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="18" height="18">
-            <path
-              d="M12 5v14M5 12h14"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            />
-          </svg>
-        </span>
-        @if (sidebarOpen()) { <span class="nav-label">New Q&amp;A</span> }
-      </button>
-      <button
-        type="button"
-        class="nav-item"
-        [class.active]="tab() === 'inbox'"
-        (click)="setTab('inbox')"
-        [attr.aria-current]="tab() === 'inbox' ? 'page' : null"
-      >
-        <span class="nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="18" height="18">
-            <path
-              d="M3 6.5A2.5 2.5 0 0 1 5.5 4h13A2.5 2.5 0 0 1 21 6.5v9A2.5 2.5 0 0 1 18.5 18H8l-4 4v-4H5.5A2.5 2.5 0 0 1 3 15.5z"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M7 9h10M7 12h7"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            />
-          </svg>
-        </span>
-        @if (sidebarOpen()) { <span class="nav-label">Inbox</span> }
-        @if (sidebarOpen() && pendingCount() > 0) {
-          <span class="nav-badge">{{ pendingCount() }}</span>
-        }
-      </button>
-      <button
-        type="button"
-        class="nav-item"
-        [class.active]="tab() === 'faqs'"
-        (click)="setTab('faqs')"
-        [attr.aria-current]="tab() === 'faqs' ? 'page' : null"
-      >
-        <span class="nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="18" height="18">
-            <path
-              d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v11A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5z"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-            />
-            <path
-              d="M8 9h8M8 12h8M8 15h5"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            />
-          </svg>
-        </span>
-        @if (sidebarOpen()) { <span class="nav-label">Trained</span> }
-        @if (sidebarOpen() && faqCount() > 0) {
-          <span class="nav-badge">{{ faqCount() }}</span>
-        }
-      </button>
-      <button
-        type="button"
-        class="nav-item"
-        [class.active]="tab() === 'merge'"
-        (click)="setTab('merge')"
-        [attr.aria-current]="tab() === 'merge' ? 'page' : null"
-      >
-        <span class="nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="18" height="18">
-            <path
-              d="M7 7l-3 3 3 3M17 7l3 3-3 3M14 4l-4 16"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </span>
-        @if (sidebarOpen()) { <span class="nav-label">Merge</span> }
-        @if (sidebarOpen() && intentGroups().length > 0) {
-          <span class="nav-badge">{{ intentGroups().length }}</span>
-        }
-      </button>
-      <button
-        type="button"
-        class="nav-item"
-        [class.active]="tab() === 'documents'"
-        (click)="setTab('documents'); refreshDocuments()"
-        [attr.aria-current]="tab() === 'documents' ? 'page' : null"
-      >
-        <span class="nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="18" height="18">
-            <path
-              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M14 2v6h6M16 13H8M16 17H8M10 9H8"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </span>
-        @if (sidebarOpen()) { <span class="nav-label">Documents</span> }
-      </button>
-    <a class="nav-item" routerLink="/learner">
-      <span class="nav-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-      @if (sidebarOpen()) { <span class="nav-label">Language Learner</span> }
-    </a>
-    <a class="nav-item" routerLink="/brain">
-      <span class="nav-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M9 3a3 3 0 0 0-3 3v1a3 3 0 0 0-3 3 3 3 0 0 0 3 3v1a3 3 0 0 0 3 3M15 3a3 3 0 0 1 3 3v1a3 3 0 0 1 3 3 3 3 0 0 1-3 3v1a3 3 0 0 1-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-      @if (sidebarOpen()) { <span class="nav-label">Assistance Brain</span> }
-    </a>
-    <a class="nav-item" routerLink="/settings">
-      <span class="nav-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </span>
-      @if (sidebarOpen()) { <span class="nav-label">Settings</span> }
-    </a>
-    </nav>
-
-    <div class="upload-section">
-      <label class="upload-label">
-        <input
-          type="file"
-          accept=".csv,.xlsx,.xls,.docx,.doc,.pdf,.txt"
-          (change)="uploadDocument($event)"
-          [disabled]="uploading()"
-        />
-        <span class="upload-btn">
-          @if (uploading()) { Uploading… } @else { Upload file }
-        </span>
-        <span class="upload-hint">csv, xlsx, docx, doc, pdf, txt</span>
-      </label>
-    </div>
-
-    <div class="sidebar-footer">
-      @if (sidebarOpen()) {
-        <a class="back-link" routerLink="/chat">
-          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-            <path
-              d="M15 18l-6-6 6-6"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          Back to chat
-        </a>
-      }
-    </div>
-  </aside>
-
+<app-shell>
   <main class="trainer-area">
-    <header class="trainer-header">
-      <button
-        type="button"
-        class="icon-btn sidebar-toggle"
-        (click)="toggleSidebar()"
-        [attr.aria-label]="sidebarOpen() ? 'Hide sidebar' : 'Show sidebar'"
-        [attr.aria-expanded]="sidebarOpen()"
-        title="Toggle sidebar"
-      >
-        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-          <path
-            d="M3 6h18M3 12h18M3 18h18"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+    <ng-template appPageInfoActions>
+      <div class="header-controls">
+        <label
+          class="upload"
+          [attr.title]="uploading() ? 'Uploading the document' : 'Upload a document'"
+        >
+          <input
+            type="file"
+            accept=".csv,.xlsx,.xls,.docx,.doc,.pdf,.txt"
+            (change)="uploadDocument($event)"
+            [attr.aria-label]="uploading() ? 'Uploading the document' : 'Upload a document'"
+            [disabled]="uploading()"
           />
-        </svg>
-      </button>
-      <div class="title-wrap">
-        <h1 class="editable-title">
-          @switch (tab()) {
-            @case ('inbox') { Inbox }
-            @case ('faqs') { Trained answers }
-            @case ('merge') { Merge intents }
-            @case ('new') { New Q&A }
-          }
-        </h1>
-        <p class="subtitle">
-          @switch (tab()) {
-            @case ('inbox') { Teach the assistant by answering pending questions. }
-            @case ('faqs') { Review, edit and approve trained answers. }
-            @case ('merge') { Group paraphrases into one canonical intent. }
-            @case ('new') { Add a brand-new Q&A pair to the knowledge base. }
-          }
-        </p>
-      </div>
-      <div class="header-actions">
-        @if (stats(); as s) {
-          <span class="badge faq" [title]="s.faqs + ' trained FAQs'">{{ s.faqs }} trained</span>
-          <span class="badge pending" [title]="s.pending + ' pending questions'">{{ s.pending }} pending</span>
-        }
+          <span class="icon-only">
+            <app-icon name="upload" [size]="14" />
+          </span>
+        </label>
         <button
           type="button"
           class="icon-btn"
@@ -268,19 +24,81 @@
           aria-label="Refresh"
           title="Refresh"
         >
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-            <path
-              d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5M20 12a8 8 0 0 1-14 5l-2-2M4 20v-5h5"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+          <app-icon name="refresh" [size]="16" />
         </button>
       </div>
-    </header>
+    </ng-template>
+
+    @if (engineFacts(); as facts) {
+      <div class="facts-row">
+        <app-engine-facts [facts]="facts" label="Training corpus state" />
+      </div>
+    }
+
+    <nav class="tool-tabs" aria-label="Training tools">
+      <button
+        type="button"
+        class="tool-tab"
+        [class.active]="tab() === 'new'"
+        (click)="setTab('new')"
+        [attr.aria-current]="tab() === 'new' ? 'page' : null"
+      >
+        <app-icon name="plus" [size]="14" />
+        New Q&amp;A
+      </button>
+      <button
+        type="button"
+        class="tool-tab"
+        [class.active]="tab() === 'inbox'"
+        (click)="setTab('inbox')"
+        [attr.aria-current]="tab() === 'inbox' ? 'page' : null"
+      >
+        <app-icon name="inbox" [size]="14" />
+        Inbox
+        @if (pendingCount() > 0) {
+          <span class="tab-count">{{ pendingCount() }}</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="tool-tab"
+        [class.active]="tab() === 'faqs'"
+        (click)="setTab('faqs')"
+        [attr.aria-current]="tab() === 'faqs' ? 'page' : null"
+      >
+        <app-icon name="book" [size]="14" />
+        Trained
+        @if (faqCount() > 0) {
+          <span class="tab-count">{{ faqCount() }}</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="tool-tab"
+        [class.active]="tab() === 'merge'"
+        (click)="setTab('merge')"
+        [attr.aria-current]="tab() === 'merge' ? 'page' : null"
+      >
+        <app-icon name="merge" [size]="14" />
+        Merge
+        @if (intentGroups().length > 0) {
+          <span class="tab-count">{{ intentGroups().length }}</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="tool-tab"
+        [class.active]="tab() === 'documents'"
+        (click)="setTab('documents'); refreshDocuments()"
+        [attr.aria-current]="tab() === 'documents' ? 'page' : null"
+      >
+        <app-icon name="file" [size]="14" />
+        Documents
+        @if (documents().length > 0) {
+          <span class="tab-count">{{ documents().length }}</span>
+        }
+      </button>
+    </nav>
 
     <section class="trainer-content">
       @switch (tab()) {
@@ -290,15 +108,20 @@
               type="button"
               class="dup-toggle"
               [class.on]="includeResolved()"
+              [attr.aria-pressed]="includeResolved()"
               (click)="toggleIncludeResolved()"
             >
-              @if (includeResolved()) { ◉ Show answered } @else { ○ Show answered }
+              <app-icon name="eye" [size]="14" />
+              Show answered
             </button>
             <span class="meta">{{ pendingCount() }} pending · {{ inbox().length }} total</span>
           </div>
 
           @if (inbox().length === 0) {
-            <p class="empty">No pending questions. Good job — the assistant has answers for everything asked so far.</p>
+            <p class="empty">
+              No pending questions. Good job — the assistant has answers for everything asked so
+              far.
+            </p>
           } @else {
             <ul class="list">
               @for (p of inbox(); track p.id) {
@@ -322,38 +145,49 @@
                     <div class="actions">
                       <button
                         type="button"
-                        class="primary"
+                        class="primary icon-only"
+                        [attr.aria-label]="saving() ? 'Saving and training' : 'Save and train'"
+                        [title]="saving() ? 'Saving and training' : 'Save and train'"
                         [disabled]="saving()"
                         (click)="saveAnswer(p)"
                       >
-                        Save & train
-                      </button>
-                      <button type="button" class="ghost" (click)="dismiss(p)">
-                        Skip
+                        <app-icon name="check" [size]="14" />
                       </button>
                       <button
                         type="button"
-                        class="ghost"
+                        class="ghost icon-only"
+                        (click)="dismiss(p)"
+                        aria-label="Skip this question"
+                        title="Skip this question"
+                      >
+                        <app-icon name="arrow-right" [size]="14" />
+                      </button>
+                      <button
+                        type="button"
+                        class="ghost icon-only"
+                        [attr.aria-label]="mergeRowOpen(p) ? 'Cancel merging' : 'Merge duplicates'"
+                        [title]="mergeRowOpen(p) ? 'Cancel merging' : 'Merge duplicates'"
                         (click)="toggleMergeRow(p)"
                         [disabled]="isMerging(p)"
                       >
-                        @if (mergeRowOpen(p)) { Cancel merge } @else { Merge duplicates }
+                        <app-icon name="merge" [size]="14" />
                       </button>
                       <button
                         type="button"
-                        class="danger"
+                        class="danger icon-only"
                         (click)="deletePending(p)"
+                        aria-label="Remove this question from the inbox"
                         title="Remove this question from the inbox"
                       >
-                        Delete
+                        <app-icon name="trash" [size]="14" />
                       </button>
                     </div>
 
                     @if (mergeRowOpen(p)) {
                       <div class="merge-panel">
                         <p class="hint">
-                          Pick which similar pending questions this canonical answer should also cover.
-                          They'll be created as pending FAQs pointing at the same answer.
+                          Pick which similar pending questions this canonical answer should also
+                          cover. They'll be created as pending FAQs pointing at the same answer.
                         </p>
                         @if (mergeMatchesFor(p).length === 0) {
                           <p class="empty">No close matches found in the inbox.</p>
@@ -369,13 +203,16 @@
                                   />
                                   <span class="merge-q">{{ mm.question }}</span>
                                 </label>
-                                <span class="meta">asked {{ mm.occurrences }}× · dist {{ mm.distance.toFixed(2) }}</span>
+                                <span class="meta"
+                                  >asked {{ mm.occurrences }}× · dist
+                                  {{ mm.distance.toFixed(2) }}</span
+                                >
                               </li>
                             }
                           </ul>
                         }
                         <label class="merge-answer">
-                          <span>Answer for all of these</span>
+                          <span class="field-label">Answer for all of these</span>
                           <textarea
                             rows="2"
                             [value]="mergeAnswer()[p.id] || ''"
@@ -386,19 +223,25 @@
                         <div class="actions">
                           <button
                             type="button"
-                            class="primary"
+                            class="primary icon-only"
+                            [attr.aria-label]="
+                              isMerging(p) ? 'Merging and training' : 'Merge and train'
+                            "
+                            [title]="isMerging(p) ? 'Merging and training' : 'Merge and train'"
                             [disabled]="isMerging(p)"
                             (click)="commitMergeRow(p)"
                           >
-                            @if (isMerging(p)) { Merging… } @else { Merge & train }
+                            <app-icon name="merge" [size]="14" />
                           </button>
                           <button
                             type="button"
-                            class="ghost"
+                            class="ghost icon-only"
                             (click)="cancelMergeRow(p)"
+                            aria-label="Cancel the merge"
+                            title="Cancel the merge"
                             [disabled]="isMerging(p)"
                           >
-                            Cancel
+                            <app-icon name="x" [size]="14" />
                           </button>
                         </div>
                       </div>
@@ -407,11 +250,12 @@
                     <div class="actions">
                       <button
                         type="button"
-                        class="danger"
+                        class="danger icon-only"
                         (click)="deletePending(p)"
+                        aria-label="Remove this answered question from the inbox"
                         title="Remove this answered question from the inbox"
                       >
-                        Delete
+                        <app-icon name="trash" [size]="14" />
                       </button>
                     </div>
                   }
@@ -427,40 +271,50 @@
               type="button"
               class="status-pill"
               [class.active]="statusFilter() === 'all'"
+              [attr.aria-pressed]="statusFilter() === 'all'"
               (click)="setStatusFilter('all')"
             >
+              <app-icon name="sliders" [size]="14" />
               All <span class="count">{{ statusCounts().all }}</span>
             </button>
             <button
               type="button"
               class="status-pill pending"
               [class.active]="statusFilter() === 'pending'"
+              [attr.aria-pressed]="statusFilter() === 'pending'"
               (click)="setStatusFilter('pending')"
             >
+              <app-icon name="inbox" [size]="14" />
               Pending <span class="count">{{ statusCounts().pending }}</span>
             </button>
             <button
               type="button"
               class="status-pill approved"
               [class.active]="statusFilter() === 'approved'"
+              [attr.aria-pressed]="statusFilter() === 'approved'"
               (click)="setStatusFilter('approved')"
             >
+              <app-icon name="check" [size]="14" />
               Approved <span class="count">{{ statusCounts().approved }}</span>
             </button>
             <button
               type="button"
               class="status-pill declined"
               [class.active]="statusFilter() === 'declined'"
+              [attr.aria-pressed]="statusFilter() === 'declined'"
               (click)="setStatusFilter('declined')"
             >
+              <app-icon name="x" [size]="14" />
               Declined <span class="count">{{ statusCounts().declined }}</span>
             </button>
             <button
               type="button"
               class="status-pill duplicate"
               [class.active]="statusFilter() === 'duplicate'"
+              [attr.aria-pressed]="statusFilter() === 'duplicate'"
               (click)="setStatusFilter('duplicate')"
             >
+              <app-icon name="copy" [size]="14" />
               Duplicate <span class="count">{{ statusCounts().duplicate }}</span>
             </button>
           </div>
@@ -478,17 +332,21 @@
               type="button"
               class="dup-toggle"
               [class.on]="showDuplicatesOnly()"
+              [attr.aria-pressed]="showDuplicatesOnly()"
               (click)="toggleDuplicates()"
             >
-              @if (showDuplicatesOnly()) { ◉ Duplicates only } @else { ○ Duplicates only }
+              <app-icon name="copy" [size]="14" />
+              Duplicates only
             </button>
             <button
               type="button"
-              class="ghost small"
+              class="ghost small icon-only"
               (click)="clearSearch()"
+              aria-label="Clear the filters"
+              title="Clear the filters"
               [disabled]="!faqSearch() && !showDuplicatesOnly() && statusFilter() === 'all'"
             >
-              Clear
+              <app-icon name="x" [size]="14" />
             </button>
           </div>
 
@@ -508,10 +366,12 @@
                       </div>
                       <button
                         type="button"
-                        class="danger small"
+                        class="danger small icon-only"
                         (click)="deleteFaqs(g.items)"
+                        aria-label="Delete every copy in this group"
+                        title="Delete every copy in this group"
                       >
-                        Delete all
+                        <app-icon name="trash" [size]="14" />
                       </button>
                     </div>
                     <ul class="dup-list">
@@ -522,10 +382,12 @@
                           <span class="dup-answer">{{ f.answer }}</span>
                           <button
                             type="button"
-                            class="danger small"
+                            class="danger small icon-only"
                             (click)="deleteFaq(f)"
+                            aria-label="Delete this answer"
+                            title="Delete this answer"
                           >
-                            Delete
+                            <app-icon name="trash" [size]="14" />
                           </button>
                         </li>
                       }
@@ -545,133 +407,46 @@
               }
             </p>
           } @else {
-            <p class="result-count">
-              Showing {{ filteredFaqs().length }} of {{ faqs().length }}
-            </p>
-            <ul class="list">
+            <p class="result-count">Showing {{ filteredFaqs().length }} of {{ faqs().length }}</p>
+            <ul class="list faq-list">
               @for (f of filteredFaqs(); track trackFaq($index, f)) {
-                <li
-                  class="card faq-card"
-                  [class.intent-canonical]="isIntentCanonical(f)"
-                  [class.intent-alias]="isIntentAlias(f)"
-                >
-                  <div class="row">
-                    <div class="row-text">
-                      <strong class="q">{{ f.question }}</strong>
+                <li>
+                  <button
+                    type="button"
+                    class="faq-row"
+                    [class.intent-canonical]="isIntentCanonical(f)"
+                    [class.intent-alias]="isIntentAlias(f)"
+                    [class.selected]="selectedFaqId() === f.id"
+                    (click)="openFaq(f)"
+                    [attr.aria-label]="'Open the details of: ' + f.question"
+                    title="Open the details in the sidebar"
+                  >
+                    <span class="q">{{ f.question }}</span>
+                    <span class="faq-row-meta">
                       <span class="status-tag {{ f.status }}">{{ f.status }}</span>
                       @if (isIntentCanonical(f)) {
                         <span
                           class="merge-badge canonical"
-                          [title]="'This is the canonical FAQ for an intent with ' + intentVariantCount(f) + ' variants'"
+                          [title]="
+                            'This is the canonical FAQ for an intent with ' +
+                            intentVariantCount(f) +
+                            ' variants'
+                          "
                         >
-                          ⇆ Merged · {{ intentVariantCount(f) }} variants
+                          Merged · {{ intentVariantCount(f) }}
                         </span>
                       } @else if (isIntentAlias(f)) {
                         <span
                           class="merge-badge alias"
                           [title]="'Alias of canonical FAQ #' + intentCanonicalId(f)"
                         >
-                          ⇆ Alias · of #{{ intentCanonicalId(f) }}
+                          Alias · #{{ intentCanonicalId(f) }}
                         </span>
                       }
-                    </div>
-                    <div class="row-actions">
-                      @if (f.status !== 'approved') {
-                        <button
-                          type="button"
-                          class="approve small"
-                          (click)="approve(f)"
-                          title="Send this answer to the chat"
-                        >
-                          ✓ Approve
-                        </button>
-                      }
-                      @if (f.status !== 'declined') {
-                        <button
-                          type="button"
-                          class="decline small"
-                          (click)="decline(f)"
-                          title="Hide from chat"
-                        >
-                          ✕ Decline
-                        </button>
-                      }
-                      @if (f.status !== 'duplicate') {
-                        <button
-                          type="button"
-                          class="ghost small"
-                          (click)="markDuplicate(f)"
-                          title="Mark as duplicate of another"
-                        >
-                          ⎘ Duplicate
-                        </button>
-                      }
-                      <button
-                        type="button"
-                        class="ghost small"
-                        (click)="setTab('merge'); pickFaqMergeTarget(f)"
-                        title="Merge this FAQ into another, or absorb related ones"
-                      >
-                        ⇆ Merge
-                      </button>
-                      <button
-                        type="button"
-                        class="danger small"
-                        (click)="deleteFaq(f)"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-
-                  @if (editingId() === f.id) {
-                    <textarea
-                      rows="3"
-                      class="edit-textarea"
-                      [value]="editingAnswer()"
-                      (input)="editingAnswer.set($any($event.target).value)"
-                    ></textarea>
-                    <div class="actions">
-                      <button
-                        type="button"
-                        class="primary small"
-                        [disabled]="saving()"
-                        (click)="saveEdit(f)"
-                      >
-                        Save
-                      </button>
-                      <button
-                        type="button"
-                        class="ghost small"
-                        (click)="cancelEdit()"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  } @else {
-                    <p class="a">{{ f.answer }}</p>
-                    @if (isIntentAlias(f)) {
-                      <p class="alias-hint">
-                        Alias of canonical
-                        @if (faqById(intentCanonicalId(f)!); as canonical) {
-                          <strong>“{{ canonical.question }}”</strong>
-                          <span class="meta">#{{ canonical.id }}</span>
-                        } @else {
-                          <strong>#{{ intentCanonicalId(f) }}</strong>
-                        }
-                      </p>
-                    }
-                    <div class="card-footer">
-                      <button
-                        type="button"
-                        class="ghost small"
-                        (click)="startEdit(f)"
-                      >
-                        ✎ Edit
-                      </button>
-                      <span class="meta">id #{{ f.id }} · updated {{ f.updated_at | date: 'short' }}</span>
-                    </div>
-                  }
+                      <span class="meta">#{{ f.id }}</span>
+                    </span>
+                    <app-icon class="row-open-icon" name="arrow-right" [size]="14" />
+                  </button>
                 </li>
               }
             </ul>
@@ -682,8 +457,8 @@
           <div class="card merge-search-card">
             <h3>Find related questions to merge</h3>
             <p class="hint">
-              Type a question. The assistant will scan trained FAQs and the pending
-              inbox and surface anything close enough to be the same intent.
+              Type a question. The assistant will scan trained FAQs and the pending inbox and
+              surface anything close enough to be the same intent.
             </p>
             <div class="search-row">
               <input
@@ -697,15 +472,23 @@
               />
               <button
                 type="button"
-                class="primary small"
+                class="primary small icon-only"
+                [attr.aria-label]="mergeLoading() ? 'Searching for matches' : 'Find matches'"
+                [title]="mergeLoading() ? 'Searching for matches' : 'Find matches'"
                 [disabled]="mergeLoading() || !mergeQuery().trim()"
                 (click)="runIntentSuggestions()"
               >
-                @if (mergeLoading()) { Searching… } @else { Find matches }
+                <app-icon name="search" [size]="14" />
               </button>
               @if (mergeSuggestions()) {
-                <button type="button" class="ghost small" (click)="clearMergeSuggestions()">
-                  Clear
+                <button
+                  type="button"
+                  class="ghost small icon-only"
+                  (click)="clearMergeSuggestions()"
+                  aria-label="Clear the search"
+                  title="Clear the search"
+                >
+                  <app-icon name="x" [size]="14" />
                 </button>
               }
             </div>
@@ -732,11 +515,13 @@
                             <div class="row-actions">
                               <button
                                 type="button"
-                                class="primary small"
+                                class="primary small icon-only"
                                 (click)="pickFaqMergeTarget(faqById(f.faq_id)!)"
+                                aria-label="Merge into this answer"
+                                title="Merge into this answer"
                                 [disabled]="!faqById(f.faq_id)"
                               >
-                                Merge into this →
+                                <app-icon name="merge" [size]="14" />
                               </button>
                             </div>
                           </div>
@@ -761,16 +546,23 @@
                           <div class="row">
                             <div class="row-text">
                               <strong class="q">{{ pp.question }}</strong>
-                              <span class="meta">asked {{ pp.occurrences }}× · dist {{ pp.distance.toFixed(2) }}</span>
+                              <span class="meta"
+                                >asked {{ pp.occurrences }}× · dist
+                                {{ pp.distance.toFixed(2) }}</span
+                              >
                             </div>
                             <div class="row-actions">
                               <button
                                 type="button"
-                                class="ghost small"
-                                (click)="setTab('inbox'); toggleMergeRow(pendingById(pp.pending_id)!)"
+                                class="ghost small icon-only"
+                                (click)="
+                                  setTab('inbox'); toggleMergeRow(pendingById(pp.pending_id)!)
+                                "
+                                aria-label="Open in the inbox"
+                                title="Open in the inbox"
                                 [disabled]="!pendingById(pp.pending_id)"
                               >
-                                Open in Inbox
+                                <app-icon name="inbox" [size]="14" />
                               </button>
                             </div>
                           </div>
@@ -791,7 +583,15 @@
                   <span class="status-tag {{ target.status }}">{{ target.status }}</span>
                   <span class="meta">canonical id #{{ target.id }}</span>
                 </div>
-                <button type="button" class="ghost small" (click)="cancelFaqMerge()">Cancel</button>
+                <button
+                  type="button"
+                  class="ghost small icon-only"
+                  (click)="cancelFaqMerge()"
+                  aria-label="Cancel the merge"
+                  title="Cancel the merge"
+                >
+                  <app-icon name="x" [size]="14" />
+                </button>
               </header>
               <p class="a">{{ target.answer }}</p>
 
@@ -809,7 +609,9 @@
                 </div>
 
                 @if (preview.matches.length === 0) {
-                  <p class="empty">No other FAQ is close to this one. Use the search above to add specific ones.</p>
+                  <p class="empty">
+                    No other FAQ is close to this one. Use the search above to add specific ones.
+                  </p>
                 } @else {
                   <ul class="merge-faq-list">
                     @for (m of preview.matches; track m.faq_id) {
@@ -848,11 +650,12 @@
                           <span class="status-tag small {{ m.status }}">{{ m.status }}</span>
                           <button
                             type="button"
-                            class="ghost xsmall"
+                            class="ghost xsmall icon-only"
                             (click)="removeExtraMatch(m.faq_id)"
-                            aria-label="Remove from merge"
+                            aria-label="Remove from the merge"
+                            title="Remove from the merge"
                           >
-                            Remove
+                            <app-icon name="x" [size]="14" />
                           </button>
                         </span>
                       </li>
@@ -870,13 +673,17 @@
                         <li class="merge-faq-row">
                           <span class="merge-q">{{ cand.question }}</span>
                           <span class="meta">
-                            <span class="status-tag small {{ cand.status }}">{{ cand.status }}</span>
+                            <span class="status-tag small {{ cand.status }}">{{
+                              cand.status
+                            }}</span>
                             <button
                               type="button"
-                              class="primary xsmall"
+                              class="primary xsmall icon-only"
                               (click)="addFaqMergeCandidate(cand)"
+                              aria-label="Add this answer to the merge"
+                              title="Add this answer to the merge"
                             >
-                              + Add
+                              <app-icon name="plus" [size]="14" />
                             </button>
                           </span>
                         </li>
@@ -887,7 +694,7 @@
               }
 
               <label class="merge-answer">
-                <span>Answer (overrides canonical if changed)</span>
+                <span class="field-label">Answer (overrides canonical if changed)</span>
                 <textarea
                   rows="3"
                   [value]="faqMergeAnswer()"
@@ -897,25 +704,35 @@
               <div class="actions">
                 <button
                   type="button"
-                  class="primary"
+                  class="primary icon-only"
+                  [attr.aria-label]="
+                    faqMergeBusy()
+                      ? 'Merging and re-training aliases'
+                      : 'Merge and re-train aliases'
+                  "
+                  [title]="
+                    faqMergeBusy()
+                      ? 'Merging and re-training aliases'
+                      : 'Merge and re-train aliases'
+                  "
                   [disabled]="faqMergeBusy()"
                   (click)="commitFaqMerge()"
                 >
-                  @if (faqMergeBusy()) { Merging… } @else { Merge & re-train aliases }
+                  <app-icon name="merge" [size]="14" />
                 </button>
               </div>
               <p class="hint">
-                Selected FAQs will be deleted and re-created as pending FAQs pointing
-                at the same answer, so each original phrasing remains searchable while
-                the canonical answer lives on this row.
+                Selected FAQs will be deleted and re-created as pending FAQs pointing at the same
+                answer, so each original phrasing remains searchable while the canonical answer
+                lives on this row.
               </p>
             </div>
           }
 
           <h3>Existing intent groups</h3>
           <p class="hint">
-            Groups of FAQs that already share the same answer. Each group is one
-            intent that the assistant can answer in many ways.
+            Groups of FAQs that already share the same answer. Each group is one intent that the
+            assistant can answer in many ways.
           </p>
           @if (intentGroups().length === 0) {
             <p class="empty">No merged intents yet. Use the search above to start grouping FAQs.</p>
@@ -926,16 +743,22 @@
                   <header class="intent-group-header">
                     <div>
                       <strong class="q">{{ g.canonical.question }}</strong>
-                      <span class="status-tag {{ g.canonical.status }}">{{ g.canonical.status }}</span>
-                      <span class="meta">canonical #{{ g.canonical.id }} · {{ g.aliases.length + 1 }} variants</span>
+                      <span class="status-tag {{ g.canonical.status }}">{{
+                        g.canonical.status
+                      }}</span>
+                      <span class="meta"
+                        >canonical #{{ g.canonical.id }} · {{ g.aliases.length + 1 }} variants</span
+                      >
                     </div>
                     <div class="row-actions">
                       <button
                         type="button"
-                        class="ghost small"
+                        class="ghost small icon-only"
                         (click)="pickFaqMergeTarget(g.canonical)"
+                        aria-label="Refine this intent group"
+                        title="Refine this intent group"
                       >
-                        Refine
+                        <app-icon name="pencil" [size]="14" />
                       </button>
                     </div>
                   </header>
@@ -958,11 +781,11 @@
         @case ('new') {
           <div class="card">
             <p class="hint">
-              New answers start as <strong>pending</strong>. Switch to the <em>Trained</em>
-              tab and approve them to make them available in chat.
+              New answers start as <strong>pending</strong>. Switch to the
+              <strong>Trained</strong> tab and approve them to make them available in chat.
             </p>
             <label>
-              <span>Question</span>
+              <span class="field-label">Question</span>
               <input
                 type="text"
                 [(ngModel)]="newQuestion"
@@ -970,7 +793,7 @@
               />
             </label>
             <label>
-              <span>Answer</span>
+              <span class="field-label">Answer</span>
               <textarea
                 rows="4"
                 [(ngModel)]="newAnswer"
@@ -980,19 +803,23 @@
             <div class="actions">
               <button
                 type="button"
-                class="ghost"
+                class="ghost icon-only"
                 [disabled]="!newQuestion.trim()"
                 (click)="checkNewForMerge()"
+                aria-label="Check for similar intents"
+                title="Check for similar intents"
               >
-                Check for similar intents
+                <app-icon name="search" [size]="14" />
               </button>
               <button
                 type="button"
-                class="primary"
+                class="primary icon-only"
+                [attr.aria-label]="saving() ? 'Saving the pending answer' : 'Save as pending'"
+                [title]="saving() ? 'Saving the pending answer' : 'Save as pending'"
                 [disabled]="saving()"
                 (click)="createFaq()"
               >
-                Save (pending)
+                <app-icon name="check" [size]="14" />
               </button>
             </div>
 
@@ -1017,11 +844,13 @@
                           <div class="row-actions">
                             <button
                               type="button"
-                              class="primary small"
+                              class="primary small icon-only"
                               [disabled]="!faqById(f.faq_id) || saving()"
                               (click)="mergeNewIntoFaq(f)"
+                              aria-label="Merge into this answer"
+                              title="Merge into this answer"
                             >
-                              Merge into this →
+                              <app-icon name="merge" [size]="14" />
                             </button>
                           </div>
                         </div>
@@ -1033,15 +862,19 @@
                         <div class="row">
                           <div class="row-text">
                             <strong class="q">{{ pp.question }}</strong>
-                            <span class="meta">asked {{ pp.occurrences }}× · dist {{ pp.distance.toFixed(2) }}</span>
+                            <span class="meta"
+                              >asked {{ pp.occurrences }}× · dist {{ pp.distance.toFixed(2) }}</span
+                            >
                           </div>
                           <div class="row-actions">
                             <button
                               type="button"
-                              class="ghost small"
+                              class="ghost small icon-only"
                               (click)="setTab('inbox')"
+                              aria-label="Open in the inbox"
+                              title="Open in the inbox"
                             >
-                              Open in Inbox
+                              <app-icon name="inbox" [size]="14" />
                             </button>
                           </div>
                         </div>
@@ -1050,8 +883,14 @@
                   </ul>
                 }
                 <div class="actions">
-                  <button type="button" class="ghost" (click)="newMergeSuggestions.set(null)">
-                    Dismiss
+                  <button
+                    type="button"
+                    class="ghost icon-only"
+                    (click)="newMergeSuggestions.set(null)"
+                    aria-label="Dismiss the similar intents"
+                    title="Dismiss the similar intents"
+                  >
+                    <app-icon name="x" [size]="14" />
                   </button>
                 </div>
               </div>
@@ -1060,45 +899,34 @@
         }
         @case ('documents') {
           <div class="toolbar">
-            <label class="upload-label toolbar-upload">
+            <label
+              class="upload-label toolbar-upload"
+              [attr.title]="uploading() ? 'Uploading the document' : 'Upload a document'"
+            >
               <input
                 type="file"
                 accept=".csv,.xlsx,.xls,.docx,.doc,.pdf,.txt"
                 (change)="uploadDocument($event)"
+                [attr.aria-label]="uploading() ? 'Uploading the document' : 'Upload a document'"
                 [disabled]="uploading()"
               />
-              <span class="upload-btn">
-                @if (uploading()) { Uploading… } @else { Upload file }
+              <span class="upload-btn icon-only">
+                <app-icon name="upload" [size]="14" />
               </span>
             </label>
             <span class="meta">csv, xlsx, docx, doc, pdf, txt</span>
           </div>
 
           @if (documents().length === 0) {
-            <p class="empty">No documents uploaded yet. Upload a file to let the assistant answer from it.</p>
+            <p class="empty">
+              No documents uploaded yet. Upload a file to let the assistant answer from it.
+            </p>
           } @else {
             <div class="documents-grid">
               @for (doc of documents(); track doc.source) {
                 <div class="doc-card">
                   <div class="doc-icon">
-                    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
-                      <path
-                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                      <path
-                        d="M14 2v6h6M16 13H8M16 17H8M10 9H8"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.8"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                      />
-                    </svg>
+                    <app-icon name="file" [size]="18" />
                   </div>
                   <div class="doc-body">
                     <div class="doc-name" title="{{ doc.source }}">{{ doc.source }}</div>
@@ -1107,26 +935,40 @@
                   <div class="doc-actions">
                     <button
                       type="button"
-                      class="ghost small"
+                      class="ghost small icon-only"
                       (click)="viewDocument(doc.source)"
+                      aria-label="View the document"
+                      title="View the document"
                       [disabled]="viewingSource() === doc.source"
                     >
-                      View
+                      <app-icon name="eye" [size]="14" />
                     </button>
                     <button
                       type="button"
-                      class="ghost small"
+                      class="ghost small icon-only"
                       (click)="downloadDocument(doc.source)"
+                      aria-label="Download the document"
+                      title="Download the document"
                     >
-                      Download
+                      <app-icon name="download" [size]="14" />
                     </button>
                     <button
                       type="button"
-                      class="danger small"
+                      class="danger small icon-only"
                       (click)="deleteDocument(doc.source)"
+                      [attr.aria-label]="
+                        deletingSource() === doc.source
+                          ? 'Removing the document'
+                          : 'Remove the document'
+                      "
+                      [title]="
+                        deletingSource() === doc.source
+                          ? 'Removing the document'
+                          : 'Remove the document'
+                      "
                       [disabled]="deletingSource() === doc.source"
                     >
-                      @if (deletingSource() === doc.source) { Removing… } @else { Remove }
+                      <app-icon name="trash" [size]="14" />
                     </button>
                   </div>
                 </div>
@@ -1143,11 +985,23 @@
           <div class="viewer-header">
             <strong>{{ viewingSource() }}</strong>
             <div class="viewer-actions">
-              <button type="button" class="ghost small" (click)="downloadDocument(viewingSource()!)">Download</button>
-              <button type="button" class="icon-btn" (click)="closeViewer()" aria-label="Close viewer">
-                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                  <path d="M18 6L6 18M6 6l12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                </svg>
+              <button
+                type="button"
+                class="ghost small icon-only"
+                (click)="downloadDocument(viewingSource()!)"
+                aria-label="Download the document"
+                title="Download the document"
+              >
+                <app-icon name="download" [size]="14" />
+              </button>
+              <button
+                type="button"
+                class="icon-btn"
+                (click)="closeViewer()"
+                aria-label="Close viewer"
+                title="Close viewer"
+              >
+                <app-icon name="x" [size]="16" />
               </button>
             </div>
           </div>
@@ -1158,4 +1012,149 @@
       </div>
     }
   </main>
-</div>
+
+  <ng-template #faqDetails>
+    @if (selectedFaq(); as f) {
+      <article class="faq-detail">
+        <p class="detail-question">{{ f.question }}</p>
+        <div class="row-meta">
+          <span class="status-tag {{ f.status }}">{{ f.status }}</span>
+          @if (isIntentCanonical(f)) {
+            <span
+              class="merge-badge canonical"
+              [title]="'Canonical FAQ for an intent with ' + intentVariantCount(f) + ' variants'"
+            >
+              Merged · {{ intentVariantCount(f) }}
+            </span>
+          } @else if (isIntentAlias(f)) {
+            <span
+              class="merge-badge alias"
+              [title]="'Alias of canonical FAQ #' + intentCanonicalId(f)"
+            >
+              Alias · #{{ intentCanonicalId(f) }}
+            </span>
+          }
+          <span class="meta">id #{{ f.id }} · updated {{ f.updated_at | date: 'short' }}</span>
+        </div>
+
+        @if (isIntentAlias(f)) {
+          <p class="alias-hint">
+            Alias of canonical
+            @if (faqById(intentCanonicalId(f)!); as canonical) {
+              <strong>“{{ canonical.question }}”</strong>
+              <span class="meta">#{{ canonical.id }}</span>
+            } @else {
+              <strong>#{{ intentCanonicalId(f) }}</strong>
+            }
+          </p>
+        }
+
+        <section class="detail-section">
+          <h3>Answer</h3>
+          @if (editingId() === f.id) {
+            <textarea
+              rows="6"
+              class="edit-textarea"
+              [value]="editingAnswer()"
+              (input)="editingAnswer.set($any($event.target).value)"
+              aria-label="Edit the answer"
+            ></textarea>
+            <div class="actions">
+              <button
+                type="button"
+                class="primary small icon-only"
+                [attr.aria-label]="saving() ? 'Saving the answer' : 'Save the answer'"
+                [title]="saving() ? 'Saving the answer' : 'Save the answer'"
+                [disabled]="saving()"
+                (click)="saveEdit(f)"
+              >
+                <app-icon name="check" [size]="14" />
+              </button>
+              <button
+                type="button"
+                class="ghost small icon-only"
+                (click)="cancelEdit()"
+                aria-label="Cancel editing the answer"
+                title="Cancel editing the answer"
+              >
+                <app-icon name="x" [size]="14" />
+              </button>
+            </div>
+          } @else {
+            <p class="a">{{ f.answer }}</p>
+          }
+        </section>
+
+        <section class="detail-section">
+          <h3>Actions</h3>
+          <div class="detail-actions">
+            @if (editingId() !== f.id) {
+              <button
+                type="button"
+                class="ghost small icon-only"
+                (click)="startEdit(f)"
+                aria-label="Edit the answer"
+                title="Edit the answer"
+              >
+                <app-icon name="pencil" [size]="14" />
+              </button>
+            }
+            @if (f.status !== 'approved') {
+              <button
+                type="button"
+                class="approve small icon-only"
+                (click)="approve(f)"
+                aria-label="Approve this answer for the chat"
+                title="Approve this answer for the chat"
+              >
+                <app-icon name="check" [size]="14" />
+              </button>
+            }
+            @if (f.status !== 'declined') {
+              <button
+                type="button"
+                class="decline small icon-only"
+                (click)="decline(f)"
+                aria-label="Decline this answer and hide it from chat"
+                title="Decline this answer and hide it from chat"
+              >
+                <app-icon name="x" [size]="14" />
+              </button>
+            }
+            @if (f.status !== 'duplicate') {
+              <button
+                type="button"
+                class="ghost small icon-only"
+                (click)="markDuplicate(f)"
+                aria-label="Mark as a duplicate"
+                title="Mark as a duplicate"
+              >
+                <app-icon name="copy" [size]="14" />
+              </button>
+            }
+            <button
+              type="button"
+              class="ghost small icon-only"
+              (click)="mergeFaq(f)"
+              aria-label="Merge this answer with related ones"
+              title="Merge this answer with related ones"
+            >
+              <app-icon name="merge" [size]="14" />
+            </button>
+            <button
+              type="button"
+              class="danger small icon-only"
+              (click)="deleteFaq(f)"
+              aria-label="Delete this answer"
+              title="Delete this answer"
+            >
+              <app-icon name="trash" [size]="14" />
+            </button>
+          </div>
+        </section>
+      </article>
+    } @else {
+      <p class="empty">This answer is no longer in the list.</p>
+    }
+  </ng-template>
+</app-shell>

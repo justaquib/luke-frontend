@@ -15,9 +15,8 @@
     (click)="send()"
     [disabled]="!draft().trim() || service.isTyping()"
     aria-label="Send message"
+    title="Send message"
   >
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-      <path d="M3 11.5 21 3l-8.5 18-2-7.5L3 11.5z" fill="currentColor" />
-    </svg>
+    <app-icon name="send" [size]="16" />
   </button>
 </footer>

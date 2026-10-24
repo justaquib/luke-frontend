@@ -5,59 +5,9 @@
   [class.system]="message().role === 'system'"
 >
   <div class="bubble">
-    @if (session.trainMode() && service.editingId() === message().id) {
-      <textarea
-        class="edit-textarea"
-        [value]="service.editingText()"
-        (input)="service.editingText.set($any($event.target).value)"
-        rows="3"
-        aria-label="Correct answer"
-      ></textarea>
-      <div class="message-actions">
-        <button type="button" class="primary small" (click)="service.saveEditMessage(message())">
-          Save
-        </button>
-        <button type="button" class="ghost small" (click)="service.cancelEditMessage()">
-          Cancel
-        </button>
-      </div>
-    } @else {
-      <p class="msg-text">{{ message().text }}</p>
+    <p class="msg-text">{{ message().text }}</p>
 
-      @if (session.trainMode()) {
-        <app-chat-message-meta [message]="message()" />
-      }
-
-      @if (service.correctionId() === message().id) {
-        <div class="correction-box">
-          <label class="correction-label" for="correction-{{ message().id }}">
-            Give the right answer, and the assistant will learn it
-          </label>
-          <textarea
-            id="correction-{{ message().id }}"
-            class="correction-textarea"
-            [value]="service.correctionDraft()"
-            (input)="service.correctionDraft.set($any($event.target).value)"
-            rows="3"
-            maxlength="1200"
-            placeholder="Write the answer that should have been given."
-          ></textarea>
-          <div class="message-actions">
-            <button
-              type="button"
-              class="primary small"
-              (click)="service.sendCorrection(message())"
-              [disabled]="!service.correctionDraft().trim()"
-            >
-              Teach it
-            </button>
-            <button type="button" class="ghost small" (click)="service.cancelCorrection()">
-              Cancel
-            </button>
-          </div>
-        </div>
-      }
-    }
+    <app-chat-message-meta [message]="message()" />
 
     <div class="msg-meta">
       <small>{{ formatTime(message().timestamp) }}</small>
@@ -68,31 +18,31 @@
     <div class="message-actions">
       <button
         type="button"
-        class="action-btn"
+        class="ghost icon-only small"
         (click)="service.copyMessage(message())"
-        title="Copy"
+        title="Copy answer"
         aria-label="Copy answer"
       >
-        <span class="material-icons icon-xs" aria-hidden="true">content_copy</span>
+        <app-icon name="copy" [size]="14" />
       </button>
       @if (canRate()) {
         <button
           type="button"
-          class="action-btn like"
+          class="ghost icon-only small"
           (click)="service.likeMessage(message())"
           title="Good answer"
-          aria-label="Like"
+          aria-label="Good answer"
         >
-          <span class="material-symbols-outlined icon-xs" aria-hidden="true">thumb_up</span>
+          <app-icon name="thumb-up" [size]="14" />
         </button>
         <button
           type="button"
-          class="action-btn dislike"
+          class="ghost icon-only small"
           (click)="service.dislikeMessage(message())"
-          title="Wrong answer — give the right one"
+          title="Wrong answer"
           aria-label="Wrong answer"
         >
-          <span class="material-symbols-outlined icon-xs" aria-hidden="true">thumb_down</span>
+          <app-icon name="thumb-down" [size]="14" />
         </button>
       }
     </div>

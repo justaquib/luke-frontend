@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
-import { ChatService } from './chat.service';
-import { ChatSessionService } from './chat-session.service';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { AppIcon } from '../shared/app-icon';
 import type { ChatMessage, ChatSource } from './chat.types';
 
 const SOURCE_LABELS: Record<ChatSource, string> = {
@@ -10,21 +10,30 @@ const SOURCE_LABELS: Record<ChatSource, string> = {
   intent: 'Intent match',
   weather: 'Weather',
   wiki: 'Wikipedia',
+  assistant_profile: 'Assistant profile',
+  dictionary: 'Offline dictionary',
+  learner: 'Curriculum',
+  lesson_cards: 'Lesson',
+  letters: 'Letters',
+  not_learned: 'Not learned',
+  number_cards: 'Number cards',
+  sentence_examples: 'Sentence examples',
+  sentence_patterns: 'Sentence patterns',
+  taught: 'Taught lesson',
+  trainer: 'Trained',
+  word_cards: 'Word meanings',
+  written: 'Written answer',
 };
 
 @Component({
   selector: 'app-chat-message-meta',
   standalone: true,
+  imports: [AppIcon, RouterLink],
   templateUrl: './chat-message-meta.html',
   styleUrl: './styles/chat-message-meta.css',
-  host: {
-    '[class.train-on]': 'session.trainMode()',
-  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatMessageMeta {
-  protected readonly service = inject(ChatService);
-  protected readonly session = inject(ChatSessionService);
   readonly message = input.required<ChatMessage>();
 
   protected sourceLabel(): string | null {
@@ -47,17 +56,6 @@ export class ChatMessageMeta {
 
   protected hasDisabledSources(): boolean {
     return !!this.message().disabledExternalSources?.length;
-  }
-
-  protected canEdit(): boolean {
-    const message = this.message();
-    return (
-      message.role === 'assistant' &&
-      message.source !== 'faq' &&
-      message.source !== 'weather' &&
-      message.source !== 'wiki' &&
-      !message.disabledExternalSources?.length
-    );
   }
 
   protected stringValue(key: string): string {

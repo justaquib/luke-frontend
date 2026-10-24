@@ -1,48 +1,137 @@
-import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  PLATFORM_ID,
+  computed,
+  inject,
+  signal,
+  type OnInit,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../environments/environment';
-import { ApiService, StoreSummary } from '../core/api.service';
-import { LanguageModelApiService } from '../core/api/language-model-api.service';
-import { AppPrefsService } from '../core/app-prefs.service';
-import { AuthService } from '../core/auth.service';
+import { ApiService } from '../core/api.service';
+import {
+  AppearanceService,
+  type ColorMode,
+  type FontChoice,
+  type TextSize,
+} from '../core/appearance.service';
+import { PaletteService } from '../core/palette.service';
 import { IntegrationsService } from '../core/integrations.service';
+import { ModelSettingsService } from '../core/model-settings.service';
 import { UiService } from '../shared/ui.service';
+import { AppCardInfo } from '../shared/app-card-info';
+import { AppEngineFacts, type EngineFact, type FactTone } from '../shared/app-engine-facts';
+import { AppShell } from '../shared/app-shell';
+import { AppIcon, type IconName } from '../shared/app-icon';
+import { ModelIdentity } from './model-identity';
+
+interface ModeChoice {
+  value: ColorMode;
+  label: string;
+  icon: IconName;
+}
+
+interface SizeChoice {
+  value: TextSize;
+  label: string;
+}
+
+interface FontOption {
+  value: FontChoice;
+  label: string;
+}
 
 /**
- * The settings of the whole product: the connection to the backend, the
- * places to teach, the live sources, and what the store holds.
+ * The settings of the whole product: the connection to the backend and the
+ * live sources the assistant may fall back to. What the brain has learned and
+ * what the store holds lives on the Brain page.
  */
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [AppShell, AppIcon, AppCardInfo, AppEngineFacts, ModelIdentity],
   templateUrl: './settings.html',
-  styleUrl: './settings.css',
+  styleUrls: ['./settings.css', '../shared/controls.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Settings implements OnInit {
   private readonly api = inject(ApiService);
-  private readonly languageApi = inject(LanguageModelApiService);
-  private readonly auth = inject(AuthService);
   private readonly ui = inject(UiService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   protected readonly integrations = inject(IntegrationsService);
-  private readonly prefs = inject(AppPrefsService);
-  private readonly platformId = inject(PLATFORM_ID);
-  protected readonly botName = this.prefs.botName;
+  protected readonly appearance = inject(AppearanceService);
+  protected readonly paletteService = inject(PaletteService);
+  protected readonly modelSettings = inject(ModelSettingsService);
   protected readonly backendUrl = environment.apiUrl;
   protected readonly backendStatus = signal<'unknown' | 'online' | 'offline'>('unknown');
-  protected readonly store = signal<StoreSummary | null>(null);
-  protected readonly loading = signal(false);
-  protected readonly error = signal<string | null>(null);
 
-  protected readonly isSystemAdmin = computed(() => !!this.auth.user()?.is_systemadmin);
+  protected readonly colorModes: readonly ModeChoice[] = [
+    { value: 'system', label: 'System', icon: 'monitor' },
+    { value: 'light', label: 'Light', icon: 'sun' },
+    { value: 'dark', label: 'Dark', icon: 'moon' },
+  ];
+  protected readonly textSizes: readonly SizeChoice[] = [
+    { value: 'medium', label: 'Medium' },
+    { value: 'large', label: 'Large' },
+  ];
+  protected readonly fonts: readonly FontOption[] = [
+    { value: 'sans', label: 'Sans' },
+    { value: 'serif', label: 'Serif' },
+    { value: 'mono', label: 'Mono' },
+  ];
+
+  protected readonly connectionLabel = computed(() => {
+    switch (this.backendStatus()) {
+      case 'online':
+        return 'Connected';
+      case 'offline':
+        return 'Offline';
+      case 'unknown':
+        return 'Connecting…';
+    }
+  });
+
+  protected readonly enabledSources = computed(
+    () => Number(this.integrations.weatherEnabled()) + Number(this.integrations.wikiEnabled()),
+  );
+
+  protected readonly facts = computed<readonly EngineFact[]>(() => {
+    const theme = this.paletteService.find(this.appearance.palette())?.name ?? '—';
+    const size =
+      this.textSizes.find((choice) => choice.value === this.appearance.textSize())?.label ?? '—';
+    const font = this.fonts.find((choice) => choice.value === this.appearance.font())?.label ?? '—';
+    return [
+      {
+        label: 'Connection',
+        value: this.connectionLabel(),
+        tone: this.connectionTone(),
+      },
+      {
+        label: 'Model',
+        value: this.modelSettings.name(),
+        note: this.modelSettings.level()
+          ? `version ${this.modelSettings.level()}`
+          : 'reading the model…',
+      },
+      {
+        label: 'Live sources',
+        value: `${this.enabledSources()}/2`,
+        note: 'weather and Wikipedia',
+      },
+      {
+        label: 'Appearance',
+        value: theme,
+        note: `${size} text · ${font} type`,
+      },
+    ];
+  });
 
   ngOnInit(): void {
-    // The server has no session, so the numbers are read in the browser.
+    // The server has no session, so the connection is checked in the browser.
     if (!isPlatformBrowser(this.platformId)) return;
     this.checkBackend();
-    this.loadStore();
   }
 
   protected locationLabel(): string | null {
@@ -71,19 +160,6 @@ export class Settings implements OnInit {
     });
   }
 
-  protected bytes(value: number | undefined): string {
-    const size = value ?? 0;
-    if (size < 1024) return `${size} B`;
-    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-  }
-
-  protected parameters(value: number | undefined): string {
-    const count = value ?? 0;
-    if (count < 1000) return `${count}`;
-    return `${(count / 1000000).toFixed(2)}M`;
-  }
-
   private checkBackend(): void {
     this.api.health().subscribe({
       next: () => this.backendStatus.set('online'),
@@ -91,22 +167,14 @@ export class Settings implements OnInit {
     });
   }
 
-  protected refresh(): void {
-    this.loadStore();
-  }
-
-  private loadStore(): void {
-    this.loading.set(true);
-    this.error.set(null);
-    this.languageApi.storeSummary().subscribe({
-      next: (summary: StoreSummary) => {
-        this.store.set(summary);
-        this.loading.set(false);
-      },
-      error: (err: Error) => {
-        this.error.set(err.message);
-        this.loading.set(false);
-      },
-    });
+  private connectionTone(): FactTone | undefined {
+    switch (this.backendStatus()) {
+      case 'online':
+        return 'ok';
+      case 'offline':
+        return 'bad';
+      case 'unknown':
+        return undefined;
+    }
   }
 }

@@ -1,8 +1,9 @@
 <div class="messages" #scrollAnchor>
   @if (session.active().messages.length === 0) {
     <div class="empty-state">
-      <h2>Start a conversation</h2>
-      <p>Ask {{ prefs.botName() }} anything — type a message below and press Enter.</p>
+      <p class="empty-label">Neural engine</p>
+      <h2>Ask {{ prefs.botName() }} anything</h2>
+      <p>Answers combine the trained word model with retrieved corpus passages.</p>
     </div>
   } @else {
     @for (message of session.active().messages; track message.id) {
@@ -26,9 +27,9 @@
     type="button"
     class="jump-to-bottom"
     (click)="jumpToBottom()"
-    aria-label="Scroll to bottom"
+    aria-label="Scroll to latest message"
     title="Scroll to latest message"
   >
-    ↓ Jump to latest
+    <app-icon name="chevron-down" [size]="14" />
   </button>
 }

@@ -1,36 +1,26 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../core/auth.service';
-import { UiService } from '../shared/ui.service';
-
-const ROLE_KEY = 'assistance.role.v1';
+import { AppIcon } from '../shared/app-icon';
 
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [CommonModule],
+  imports: [AppIcon],
   templateUrl: './onboarding.html',
-  styleUrl: './onboarding.css',
+  styleUrls: ['../shared/auth.css'],
 })
 export class Onboarding {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly ui = inject(UiService);
 
   chooseTrainer() {
-    this.saveRole('trainer');
-    this.router.navigate(['/trainer']);
+    this.auth.setRole('trainer');
+    this.router.navigate(['/dashboard/trainer']);
   }
 
   chooseChat() {
-    this.saveRole('chat');
+    this.auth.setRole('chat');
     this.router.navigate(['/chat']);
-  }
-
-  private saveRole(role: string) {
-    try {
-      localStorage.setItem(ROLE_KEY, role);
-    } catch {}
   }
 }

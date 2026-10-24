@@ -1,0 +1,82 @@
+<header class="top-bar">
+  <div class="bar-side bar-start">
+    <a class="brand" routerLink="/chat" title="Go to chat" (click)="design.handleNavigation()">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="20" height="20">
+          <rect class="mark-bg" x="2" y="2" width="28" height="28" rx="8" />
+          <path class="mark-link" d="M11 11h10M11 11l5 10 5-10" fill="none" stroke-width="1.6" />
+          <circle class="mark-node" cx="11" cy="11" r="2.2" />
+          <circle class="mark-node" cx="21" cy="11" r="2.2" />
+          <circle class="mark-node" cx="16" cy="21" r="2.2" />
+        </svg>
+      </span>
+      <span class="brand-name">{{ botName() }}</span>
+    </a>
+
+    <div class="frame-controls" role="group" aria-label="Navigation">
+      <button
+        type="button"
+        class="frame-btn nav-btn"
+        (click)="design.toggleSidebar()"
+        [attr.aria-controls]="navControls()"
+        [attr.aria-expanded]="design.sidebarOpen()"
+        [attr.aria-label]="navLabel()"
+        [title]="navLabel()"
+      >
+        <app-icon name="sidebar-left" [size]="16" />
+      </button>
+    </div>
+  </div>
+
+  <div class="bar-center">
+    <span class="page-name">{{ info.page().name }}</span>
+    <span class="page-dot" aria-hidden="true"></span>
+    <span class="page-scope">{{ info.page().scope }}</span>
+  </div>
+
+  <div class="bar-side bar-end">
+    @if (info.topActions(); as actions) {
+      <div class="bar-actions">
+        <ng-container [ngTemplateOutlet]="actions" />
+      </div>
+    }
+    <div class="frame-controls" role="group" aria-label="Page controls">
+      <button
+        type="button"
+        class="frame-btn info-btn"
+        [class.open]="infoOpen()"
+        (click)="sidebar.toggleInfo()"
+        aria-controls="right-sidebar"
+        [attr.aria-expanded]="infoOpen()"
+        [attr.aria-label]="infoLabel()"
+        [title]="infoLabel()"
+      >
+        <app-icon name="info" [size]="15" />
+      </button>
+
+      <a
+        class="frame-btn settings-btn"
+        routerLink="/dashboard/settings"
+        (click)="design.handleNavigation()"
+        aria-label="Open settings"
+        title="Open settings"
+        [attr.aria-current]="settingsOpen() ? 'page' : null"
+      >
+        <app-icon name="sliders" [size]="15" />
+      </a>
+
+      <button
+        type="button"
+        class="frame-btn details-btn"
+        [class.open]="sidebar.isOpen()"
+        (click)="sidebar.toggle()"
+        aria-controls="right-sidebar"
+        [attr.aria-expanded]="sidebar.isOpen()"
+        [attr.aria-label]="detailsLabel()"
+        [title]="detailsLabel()"
+      >
+        <app-icon name="sidebar" [size]="16" />
+      </button>
+    </div>
+  </div>
+</header>

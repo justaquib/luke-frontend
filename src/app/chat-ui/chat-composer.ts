@@ -2,22 +2,19 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import type { QueryOptions } from '../core/api/chat-api.service';
 import { AppPrefsService } from '../core/app-prefs.service';
 import { IntegrationsService } from '../core/integrations.service';
+import { AppIcon } from '../shared/app-icon';
 import { ChatService } from './chat.service';
-import { ChatSessionService } from './chat-session.service';
 
 @Component({
   selector: 'app-chat-composer',
   standalone: true,
+  imports: [AppIcon],
   templateUrl: './chat-composer.html',
   styleUrl: './styles/chat-composer.css',
-  host: {
-    '[class.train-on]': 'session.trainMode()',
-  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatComposer {
   protected readonly service = inject(ChatService);
-  protected readonly session = inject(ChatSessionService);
   protected readonly prefs = inject(AppPrefsService);
   protected readonly draft = signal('');
   private readonly integrations = inject(IntegrationsService);

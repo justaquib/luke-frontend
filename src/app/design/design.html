@@ -1,0 +1,221 @@
+<app-shell>
+  <main class="design-main">
+    <ng-template appPageInfoActions>
+      <button type="button" class="ghost small" (click)="resetLayout()">Reset layout</button>
+    </ng-template>
+
+    <div class="design-page">
+      <app-engine-facts [facts]="facts()" label="Workspace design state" />
+
+      <div class="design-columns">
+        <section class="design-card" aria-labelledby="design-palettes-title">
+          <app-card-info
+            label="the palettes"
+            text="A palette is two accents: one for the dark surface and one for the light surface. The soft and line tints are derived from each accent, so every page follows the choice."
+          >
+            <h2 id="design-palettes-title">Colour palettes</h2>
+          </app-card-info>
+
+          <ul class="palette-list">
+            @for (palette of paletteService.palettes(); track palette.id) {
+              <li class="palette-row" [class.selected]="appearance.palette() === palette.id">
+                <label class="palette-pick">
+                  <input
+                    type="radio"
+                    name="palette"
+                    [value]="palette.id"
+                    [checked]="appearance.palette() === palette.id"
+                    (change)="selectPalette(palette.id)"
+                  />
+                  <span
+                    class="swatch"
+                    [style.background]="palette.darkAccent"
+                    aria-hidden="true"
+                  ></span>
+                  <span
+                    class="swatch soft"
+                    [style.background]="palette.lightAccent"
+                    aria-hidden="true"
+                  ></span>
+                  <span class="palette-name">{{ palette.name }}</span>
+                  <span class="palette-kind">{{ palette.builtIn ? 'Built in' : 'Custom' }}</span>
+                </label>
+                @if (!palette.builtIn) {
+                  <span class="row-actions">
+                    <button
+                      type="button"
+                      class="ghost icon-only xsmall"
+                      (click)="editPalette(palette)"
+                      [attr.aria-label]="'Edit ' + palette.name"
+                      [title]="'Edit ' + palette.name"
+                    >
+                      <app-icon name="pencil" [size]="13" />
+                    </button>
+                    <button
+                      type="button"
+                      class="ghost icon-only xsmall"
+                      (click)="removePalette(palette)"
+                      [attr.aria-label]="'Remove ' + palette.name"
+                      [title]="'Remove ' + palette.name"
+                    >
+                      <app-icon name="trash" [size]="13" />
+                    </button>
+                  </span>
+                }
+              </li>
+            }
+          </ul>
+
+          <form class="palette-form" (submit)="$event.preventDefault(); savePalette()">
+            <p class="form-title">
+              {{ editingName() ? 'Edit ' + editingName() : 'Add a palette' }}
+            </p>
+            <label class="field">
+              Name
+              <input
+                type="text"
+                name="palette-name"
+                maxlength="40"
+                placeholder="Evening"
+                [value]="draft().name"
+                (input)="updateDraft('name', $any($event.target).value)"
+              />
+            </label>
+            <div class="color-fields">
+              <label class="field">
+                Dark accent
+                <input
+                  type="color"
+                  name="dark-accent"
+                  [value]="draft().darkAccent"
+                  (input)="updateDraft('darkAccent', $any($event.target).value)"
+                />
+              </label>
+              <label class="field">
+                Light accent
+                <input
+                  type="color"
+                  name="light-accent"
+                  [value]="draft().lightAccent"
+                  (input)="updateDraft('lightAccent', $any($event.target).value)"
+                />
+              </label>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="primary small">
+                {{ editingName() ? 'Save palette' : 'Add palette' }}
+              </button>
+              @if (editingName()) {
+                <button type="button" class="ghost small" (click)="cancelEdit()">Cancel</button>
+              }
+            </div>
+          </form>
+        </section>
+
+        <section class="design-card" aria-labelledby="design-frame-title">
+          <app-card-info
+            label="the frame"
+            text="Card sizes, the corner radius, the dialog width and the sidebar frame are written as root tokens. A change shows on every page at once; no page carries a copy."
+          >
+            <h2 id="design-frame-title">Frame and measurements</h2>
+          </app-card-info>
+
+          <div class="range-grid">
+            @for (range of ranges; track range.key) {
+              <label class="range-row">
+                <span class="range-label">{{ range.label }}</span>
+                <input
+                  type="range"
+                  [min]="range.min"
+                  [max]="range.max"
+                  [step]="range.step"
+                  [value]="setting(range.key)"
+                  (input)="setNumber(range.key, $any($event.target).value)"
+                />
+                <output class="range-value">{{ rangeValue(range) }}</output>
+              </label>
+            }
+          </div>
+
+          <div class="option-block">
+            <p class="form-title">Sidebar behaviour</p>
+            <div class="segmented" role="group" aria-label="Sidebar behaviour">
+              @for (mode of modes; track mode.value) {
+                <button
+                  type="button"
+                  class="segment"
+                  [class.active]="design.sidebarMode() === mode.value"
+                  [attr.aria-pressed]="design.sidebarMode() === mode.value"
+                  (click)="setMode(mode.value)"
+                  [title]="mode.label"
+                >
+                  <app-icon [name]="mode.icon" [size]="14" />
+                  <span>{{ mode.label }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="option-block">
+            <p class="form-title">Sidebar side</p>
+            <div class="segmented" role="group" aria-label="Sidebar side">
+              @for (side of sides; track side.value) {
+                <button
+                  type="button"
+                  class="segment"
+                  [class.active]="design.sidebarSide() === side.value"
+                  [attr.aria-pressed]="design.sidebarSide() === side.value"
+                  (click)="setSide(side.value)"
+                  [title]="side.label"
+                >
+                  <app-icon [name]="side.icon" [size]="14" />
+                  <span>{{ side.label }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="ghost small preview-button"
+            (click)="previewOpen.set(true)"
+            aria-haspopup="dialog"
+          >
+            <app-icon name="eye" [size]="14" />
+            Preview the window
+          </button>
+        </section>
+      </div>
+
+      <section class="design-card" aria-labelledby="design-icons-title">
+        <app-card-info
+          label="the icon set"
+          text="Every control draws from this one stroke set, sized by the caller. A new control reuses a name here before the set grows."
+        >
+          <h2 id="design-icons-title">Icon set</h2>
+        </app-card-info>
+        <ul class="icon-grid">
+          @for (icon of icons; track icon) {
+            <li class="icon-cell">
+              <app-icon [name]="icon" [size]="18" />
+              <span>{{ icon }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
+
+    <app-modal [open]="previewOpen()" title="Window preview" (closed)="previewOpen.set(false)">
+      <p class="preview-copy">
+        This dialog is {{ design.settings().modalWidth }}px wide where the screen allows it, with
+        {{ design.settings().cardRadius }}px corners and a {{ design.settings().overlayOpacity }}%
+        overlay behind it.
+      </p>
+      <div modal-actions>
+        <button type="button" class="primary small" (click)="previewOpen.set(false)">
+          Close preview
+        </button>
+      </div>
+    </app-modal>
+  </main>
+</app-shell>

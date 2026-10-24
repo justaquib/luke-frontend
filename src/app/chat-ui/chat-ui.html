@@ -1,21 +1,23 @@
 <div
   class="shell"
-  [class.train-on]="session.trainMode()"
-  [class.sidebar-collapsed]="!ui.sidebarOpen()"
+  [class.sidebar-collapsed]="!design.sidebarOpen()"
+  [class.sidebar-open]="design.sidebarOpen()"
+  [attr.data-sidebar-side]="design.sidebarSide()"
+  [attr.data-sidebar-mode]="design.sidebarMode()"
 >
+  <app-top-bar navControls="app-chat-sidebar" />
   <app-chat-sidebar />
 
   <main class="chat-area">
     <app-chat-header />
 
-    @if (session.trainMode()) {
-      <div class="train-banner">
-        <strong>Train mode is on.</strong>
-        Click ✏️ on any assistant message to correct the answer.
-      </div>
-    }
+    <app-engine-facts class="chat-facts" [facts]="facts()" label="Conversation engine state" />
 
     <app-chat-messages />
     <app-chat-composer />
   </main>
+
+  <div class="sidebar-scrim" role="presentation" (click)="design.closeSidebar()"></div>
 </div>
+
+<app-right-sidebar />

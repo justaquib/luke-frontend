@@ -1,0 +1,162 @@
+.learner-chat-messages {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-height: 110px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.learner-chat-empty,
+.learner-chat-thinking {
+  margin: auto 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.learner-chat-turn {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.learner-chat-question,
+.learner-chat-answer {
+  width: min(100%, 88%);
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.learner-chat-question {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+
+.learner-chat-answer {
+  justify-self: start;
+  background: var(--surface-2);
+}
+
+.learner-chat-question small,
+.learner-chat-answer small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.learner-chat-question p,
+.learner-chat-answer p {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.learner-chat-form input {
+  flex: 1;
+}
+
+.learner-reasoning {
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.learner-reasoning summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.learner-reasoning summary:hover {
+  color: var(--text);
+}
+
+.learner-reasoning ol {
+  display: grid;
+  gap: 4px;
+  margin: 6px 0 0;
+  padding-left: 16px;
+}
+
+.learner-reasoning li {
+  display: grid;
+  gap: 1px;
+}
+
+.learner-reasoning strong {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.learner-reasoning span {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.learner-reasoning-confidence {
+  margin: 6px 0 0;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.practice-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.practice-row label {
+  display: grid;
+  flex: 1 1 240px;
+  gap: 4px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.practice-row input {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.practice-row input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.practice-result {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  .learner-chat-question,
+  .learner-chat-answer {
+    width: 100%;
+  }
+}

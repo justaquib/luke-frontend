@@ -1,16 +1,17 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth.service';
 import { UiService } from '../shared/ui.service';
+import { AppIcon } from '../shared/app-icon';
 
 @Component({
   selector: 'app-systemadmin-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink, AppIcon],
   templateUrl: './systemadmin-login.html',
-  styleUrl: './systemadmin-login.css',
+  styleUrls: ['../shared/auth.css'],
 })
 export class SystemadminLogin {
   private readonly auth = inject(AuthService);

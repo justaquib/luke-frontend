@@ -1,10 +1,93 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+@import './styles/typography.css';
+@import './styles/design-tokens.css';
 
 :root {
-  --font-family-base: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, sans-serif;
-  --font-family-icon: 'Material Symbols Outlined', 'Material Icons', sans-serif;
+  /* The builder palette. One accent per theme, neutral surfaces, and status
+     colours that only appear beside a measured value. The dark accent is used
+     by default; each theme also names the deeper accent its light mode needs. */
+  --dark-accent: #6ea8fe;
+  --dark-accent-soft: rgba(110, 168, 254, 0.14);
+  --dark-accent-line: rgba(110, 168, 254, 0.42);
+  --light-accent: #2f6fdb;
+  --light-accent-soft: rgba(47, 111, 219, 0.1);
+  --light-accent-line: rgba(47, 111, 219, 0.38);
+  --bg: #0b0d10;
+  --surface: #111418;
+  --surface-2: #171a1f;
+  --border: #23272e;
+  --text: #e6e9ee;
+  --muted: #9aa1ab;
+  --faint: #6b7280;
+  --accent: var(--dark-accent);
+  --accent-soft: var(--dark-accent-soft);
+  --accent-line: var(--dark-accent-line);
+  --ok: #4ac26b;
+  --ok-soft: rgba(74, 194, 107, 0.14);
+  --warn: #d9a441;
+  --warn-soft: rgba(217, 164, 65, 0.14);
+  --warn-line: rgba(217, 164, 65, 0.42);
+  --bad: #e5534b;
+  --bad-soft: rgba(229, 83, 75, 0.14);
+  --mono: var(--font-family-mono);
+  /* Page frames use these instead of raw viewport units, because the large
+     text setting zooms the page and would otherwise make every frame 10%
+     taller and wider than the window. */
+  --app-vh: 100vh;
+  --app-vw: 100vw;
+  /* The frame's top panel holds the brand and both sidebar controls. */
+  --topbar-height: 44px;
+  color-scheme: dark;
+}
+
+:root[data-color-mode='system'] {
+  color-scheme: light dark;
+}
+
+:root[data-color-mode='light'] {
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --surface-2: #eef1f5;
+  --border: #dfe4ea;
+  --text: #14171c;
+  --muted: #59616c;
+  --faint: #7c8695;
+  --accent: var(--light-accent);
+  --accent-soft: var(--light-accent-soft);
+  --accent-line: var(--light-accent-line);
+  --ok: #237a48;
+  --ok-soft: rgba(35, 122, 72, 0.12);
+  --warn: #8a5a09;
+  --warn-soft: rgba(138, 90, 9, 0.12);
+  --warn-line: rgba(138, 90, 9, 0.4);
+  --bad: #b3372f;
+  --bad-soft: rgba(179, 55, 47, 0.12);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-color-mode='system'] {
+    --bg: #f7f8fa;
+    --surface: #ffffff;
+    --surface-2: #eef1f5;
+    --border: #dfe4ea;
+    --text: #14171c;
+    --muted: #59616c;
+    --faint: #7c8695;
+    --accent: var(--light-accent);
+    --accent-soft: var(--light-accent-soft);
+    --accent-line: var(--light-accent-line);
+    --ok: #237a48;
+    --ok-soft: rgba(35, 122, 72, 0.12);
+    --warn: #8a5a09;
+    --warn-soft: rgba(138, 90, 9, 0.12);
+    --warn-line: rgba(138, 90, 9, 0.4);
+    --bad: #b3372f;
+    --bad-soft: rgba(179, 55, 47, 0.12);
+    color-scheme: light;
+  }
 }
 
 html,
@@ -12,11 +95,30 @@ body {
   height: 100%;
 }
 
+html {
+  background: var(--bg);
+}
+
 body {
   margin: 0;
+  background: var(--bg);
+  color: var(--text);
   font-family: var(--font-family-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* The interface sets its type in px, so the large text setting scales the
+   rendered page the way browser zoom does, instead of leaving half the type
+   behind. 0.9091 is the reciprocal of 1.1, so the zoomed frame still ends at
+   the window edge. */
+:root[data-text-size='large'] {
+  --app-vh: calc(100vh * 0.9091);
+  --app-vw: calc(100vw * 0.9091);
+}
+
+:root[data-text-size='large'] body {
+  zoom: 1.1;
 }
 /* Hide the scrollbar arrows */
 ::-webkit-scrollbar-button {
@@ -40,7 +142,9 @@ body {
   -webkit-font-feature-settings: 'liga';
   font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
-  font-variation-settings: 'FILL' 0, 'wght' 400;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400;
 }
 
 .material-icons {
@@ -87,11 +191,12 @@ body {
 /* Shared page frame. The dashboard views use the same label, the same small
    icon button and the same dark surfaces, so they read as one product. */
 .eyebrow {
-  margin: 0 0 14px;
-  color: #a5b4fc;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  margin: 0 0 4px;
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .icon-btn {
@@ -100,19 +205,19 @@ body {
   height: 2rem;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  background: #0f172a;
-  color: #e2e8f0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--muted);
   cursor: pointer;
 }
 
 .icon-btn:hover {
-  border-color: rgba(165, 180, 252, 0.5);
-  color: #f8fafc;
+  border-color: var(--accent-line);
+  color: var(--text);
 }
 
 .icon-btn:focus-visible {
-  outline: 2px solid #a5b4fc;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }

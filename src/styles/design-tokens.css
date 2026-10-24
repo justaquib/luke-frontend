@@ -1,0 +1,48 @@
+/* The frame of the product that the Design page owns. The defaults are the
+   recorded card, dialog and sidebar rules; the service overrides these
+   properties on the document root when the person changes them. */
+:root {
+  --sidebar-width: 240px;
+  --card-min: 240px;
+  --card-max: none;
+  --card-radius: 8px;
+  --modal-width: 512px;
+  --overlay-rgb: 6, 8, 11;
+  --overlay-alpha: 0.72;
+  --overlay: rgba(var(--overlay-rgb), var(--overlay-alpha));
+}
+
+:root[data-color-mode='light'] {
+  --overlay-rgb: 20, 23, 28;
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-color-mode='system'] {
+    --overlay-rgb: 20, 23, 28;
+  }
+}
+
+/* One user token wins over a component's own surface rule: the Design page
+   owns the corner radius and the widest size of every card. */
+.card,
+.settings-card,
+.design-card,
+.language-learning-card,
+.lesson-subject-card,
+.feature-card,
+.step-card,
+.support-card,
+.doc-card,
+.auth-card,
+.intent-group-card,
+.match-card,
+.merge-target-card,
+.merge-search-card,
+.faq-card,
+.dup-card,
+.duplicate-card,
+.expression-card,
+.tenant-card {
+  max-width: var(--card-max, none);
+  border-radius: var(--card-radius, 8px) !important;
+}

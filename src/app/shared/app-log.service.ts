@@ -20,7 +20,9 @@ const MAX_LOGS = 200;
 export class AppLogService {
   private readonly entriesState = signal<AppLogEntry[]>(this.readStoredLogs());
   readonly entries = this.entriesState.asReadonly();
-  readonly errorCount = computed(() => this.entriesState().filter((entry) => entry.level === 'error').length);
+  readonly errorCount = computed(
+    () => this.entriesState().filter((entry) => entry.level === 'error').length,
+  );
 
   record(entry: Omit<AppLogEntry, 'id' | 'time'>): void {
     const next: AppLogEntry = {
@@ -49,10 +51,13 @@ export class AppLogService {
       const value: unknown = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '[]');
       if (!Array.isArray(value)) return [];
       return value
-        .filter((entry): entry is AppLogEntry =>
-          !!entry && typeof entry === 'object' &&
-          (entry.level === 'error' || entry.level === 'warning') &&
-          typeof entry.message === 'string' && typeof entry.time === 'string',
+        .filter(
+          (entry): entry is AppLogEntry =>
+            !!entry &&
+            typeof entry === 'object' &&
+            (entry.level === 'error' || entry.level === 'warning') &&
+            typeof entry.message === 'string' &&
+            typeof entry.time === 'string',
         )
         .slice(0, MAX_LOGS);
     } catch {

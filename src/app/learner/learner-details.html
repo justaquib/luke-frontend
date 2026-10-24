@@ -1,0 +1,47 @@
+@if (model(); as model) {
+  <section class="learner-details" aria-label="Learner summary" aria-live="polite">
+    <p class="learner-details-line">
+      {{ model.current_stage_id === 'complete' ? 'All grades passed' : 'Current grade' }}
+      · {{ lessonTotal() | number }} lessons · {{ model.vocabulary_size | number }} words known
+    </p>
+    <dl class="learner-details-stats">
+      <div>
+        <dt>Questions</dt>
+        <dd>{{ questions() | number }}</dd>
+      </div>
+      <div>
+        <dt>Sentence examples</dt>
+        <dd>{{ sentenceExamples() | number }}</dd>
+      </div>
+      <div>
+        <dt>Trainer answers</dt>
+        <dd>{{ trainerAnswers() | number }}</dd>
+      </div>
+      <div>
+        <dt>Tokens learned</dt>
+        <dd>{{ model.token_count | number }}</dd>
+      </div>
+    </dl>
+    <div class="learner-details-about">
+      <p class="learner-details-caption">About this learner</p>
+      <p>
+        {{ model.description }} Teach lessons by grade, then ask school-style questions and score
+        the answers yourself. It advances only when you pass its grade test.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="ghost small icon-only learner-details-refresh"
+      (click)="refresh.emit()"
+      [attr.aria-label]="
+        refreshing() ? 'Refreshing the learner summary' : 'Refresh the learner summary'
+      "
+      [title]="refreshing() ? 'Refreshing the learner summary' : 'Refresh the learner summary'"
+      [disabled]="refreshing()"
+    >
+      <app-icon name="refresh" [size]="14" />
+    </button>
+  </section>
+} @else {
+  <p class="empty">Reading the learner summary…</p>
+}
