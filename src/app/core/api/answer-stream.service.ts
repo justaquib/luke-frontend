@@ -31,6 +31,7 @@ export class AnswerStreamService extends BaseApiService {
     const body: Record<string, unknown> = { question, n_results: nResults };
     if (options?.apps) body['apps'] = options.apps;
     if (options?.location) body['location'] = options.location;
+    if (options?.model) body['model'] = options.model;
     return this.stream<QueryResponse>('/query/stream', body, signal);
   }
 
@@ -189,6 +190,10 @@ export class AnswerStreamService extends BaseApiService {
         return { type: 'thinking', thinking: data as AnswerThinking };
       case 'connecting':
         return { type: 'connecting', connection: data as SourceConnection };
+      case 'writing': {
+        const model = (data as { model?: unknown }).model;
+        return { type: 'writing', model: typeof model === 'string' ? model : '' };
+      }
       case 'answer':
         return { type: 'answer', answer: data as T };
       case 'error': {

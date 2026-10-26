@@ -129,24 +129,32 @@ export class ChatService {
   }
 
   private appendAnswer(question: string, response: QueryResponse): void {
-    this.session.appendMessage({
-      id: this.session.nextMessageId(),
-      role: 'assistant',
-      text: response.answer || 'No matching information found.',
-      timestamp: new Date(),
-      hits: response.hits ?? [],
-      source: response.source,
-      pendingId: response.pending_id ?? undefined,
-      intent: response.intent ?? null,
-      app: response.app ?? null,
-      disabledExternalSources: response.disabled_external_sources ?? undefined,
-      understanding: response.understanding ?? null,
-      reveal: true,
-    });
+    this.session.appendMessage(this.answerMessage(response));
     this.isTyping.set(false);
     this.clearTrace();
     this.backendStatus.set('online');
     this.session.touchTitle(question);
+  }
+
+  private answerMessage(response: QueryResponse): ChatMessage {
+    return {
+      id: this.session.nextMessageId(),
+      role: 'assistant',
+      text: response.answer || 'No matching information found.',
+      timestamp: new Date(),
+      hits: response.hits,
+      source: response.source,
+      pendingId: response.pending_id ?? undefined,
+      intent: response.intent ?? null,
+      app: response.app ?? null,
+      disabledExternalSources: response.disabled_external_sources,
+      understanding: response.understanding ?? null,
+      matchDistance: response.distance,
+      confidence: response.confidence,
+      model: response.model,
+      modelName: response.model_name,
+      reveal: true,
+    };
   }
 
   /** The stream ended without a normal `answer`; say so once. */

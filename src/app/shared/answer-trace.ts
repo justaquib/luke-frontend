@@ -7,17 +7,18 @@ import type {
 } from '../core/api/api-models';
 
 /** The stage of the answer the page is currently showing. */
-export type PipelinePhase = 'reading' | 'thinking' | 'connecting' | 'answer';
+export type PipelinePhase = 'reading' | 'thinking' | 'connecting' | 'writing' | 'answer';
 
 /** What the backend has read and connected so far for one answer. */
 export interface AnswerTrace {
   reading: AnswerReading | null;
   thinking: AnswerThinking | null;
   connections: SourceConnection[];
+  writing: string | null;
 }
 
 export function emptyTrace(): AnswerTrace {
-  return { reading: null, thinking: null, connections: [] };
+  return { reading: null, thinking: null, connections: [], writing: null };
 }
 
 export function hasTrace(trace: AnswerTrace): boolean {
@@ -32,6 +33,8 @@ export function applyStreamEvent(trace: AnswerTrace, event: AnswerStreamEvent): 
       return { ...trace, thinking: event.thinking };
     case 'connecting':
       return { ...trace, connections: [...trace.connections, event.connection] };
+    case 'writing':
+      return { ...trace, writing: event.model };
     case 'answer':
     case 'done':
     case 'error':
@@ -47,6 +50,8 @@ export function phaseFor(event: AnswerStreamEvent): PipelinePhase | null {
       return 'thinking';
     case 'connecting':
       return 'connecting';
+    case 'writing':
+      return 'writing';
     case 'answer':
       return 'answer';
     case 'done':
@@ -72,5 +77,6 @@ export function traceFromUnderstanding(
       plan: understanding.plan,
     },
     connections: understanding.connections ?? [],
+    writing: null,
   };
 }

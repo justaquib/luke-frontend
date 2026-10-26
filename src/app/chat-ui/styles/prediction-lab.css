@@ -1,0 +1,228 @@
+/* The prediction lab: a prefix, the words chosen, and the measured next words. */
+.lab {
+  display: grid;
+  gap: 14px;
+}
+
+.lab-lede {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.lab-field {
+  display: grid;
+  gap: 5px;
+}
+
+.lab-label {
+  color: var(--faint);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lab-prefix,
+.lab-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  outline: none;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.lab-prefix:focus-visible,
+.lab-input:focus-visible {
+  border-color: var(--accent-line);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.lab-continuation {
+  display: flex;
+  min-height: 34px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.picked-word {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border: 1px solid var(--accent-line);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.picked-word:hover {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+
+.picked-word.fresh {
+  animation: word-in 220ms ease-out;
+}
+
+.lab-waiting {
+  color: var(--faint);
+  font-size: 12px;
+}
+
+.lab-typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.lab-typing span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: dot 900ms infinite ease-in-out;
+}
+
+.lab-typing span:nth-child(2) {
+  animation-delay: 140ms;
+}
+
+.lab-typing span:nth-child(3) {
+  animation-delay: 280ms;
+}
+
+.lab-next {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 30px;
+}
+
+.next-word {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  animation: word-in 200ms both ease-out;
+}
+
+.next-word:hover {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+
+.next-text {
+  font-size: 13px;
+}
+
+.next-prob {
+  color: var(--faint);
+  font-size: 10px;
+}
+
+.lab-custom {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lab-input {
+  flex: 1 1 220px;
+  resize: none;
+}
+
+.lab-error {
+  margin: 0;
+  color: var(--bad);
+  font-size: 12px;
+}
+
+.lab-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.lab-heat {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.lab-heat-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.lab-heat-head h3 {
+  margin: 0;
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lab-heat-head .mono {
+  color: var(--faint);
+  font-size: 10px;
+}
+
+@keyframes word-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .picked-word.fresh,
+  .next-word,
+  .lab-typing span {
+    animation: none;
+  }
+}

@@ -31,12 +31,13 @@ function fullTrace(): AnswerTrace {
       },
       { source: 'dictionary', outcome: 'miss', detail: 'No dictionary entry.' },
     ],
+    writing: null,
   };
 }
 
 async function render(
   trace: AnswerTrace,
-  phase: 'reading' | 'thinking' | 'connecting' | 'answer' | null = null,
+  phase: 'reading' | 'thinking' | 'connecting' | 'writing' | 'answer' | null = null,
   live = false,
 ): Promise<{ fixture: ComponentFixture<AnswerPipeline>; compiled: HTMLElement }> {
   TestBed.resetTestingModule();
@@ -91,6 +92,13 @@ describe('AnswerPipeline', () => {
     expect(rows[1].textContent).toContain('No dictionary entry.');
   });
 
+  it('names the model that is writing the answer', async () => {
+    const { compiled } = await render({ ...emptyTrace(), writing: 'SmolLM2 135M' });
+
+    expect(compiled.querySelector('.stage-label')?.textContent?.trim()).toBe('Writing');
+    expect(compiled.textContent).toContain('SmolLM2 135M is writing the answer');
+  });
+
   it('shows the active row only while the answer is live', async () => {
     const live = await render(fullTrace(), 'connecting', true);
     expect(live.compiled.textContent).toContain('Checking the sources');
@@ -109,9 +117,11 @@ describe('AnswerPipeline', () => {
       type: 'connecting',
       connection: { source: 'faq', outcome: 'miss', detail: 'No saved answer.' },
     });
+    trace = applyStreamEvent(trace, { type: 'writing', model: 'SmolLM2 135M' });
 
     expect(trace.reading?.question_type).toBe('fact');
     expect(trace.connections.length).toBe(1);
+    expect(trace.writing).toBe('SmolLM2 135M');
     expect(applyStreamEvent(trace, { type: 'done' })).toBe(trace);
   });
 });

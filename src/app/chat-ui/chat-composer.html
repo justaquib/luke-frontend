@@ -1,22 +1,49 @@
 <footer class="composer">
-  <textarea
-    class="composer-input"
-    rows="1"
-    placeholder="Message {{ prefs.botName() }}…"
-    [value]="draft()"
-    (input)="onInput($any($event.target).value)"
-    (keydown)="onKeydown($event)"
-    [disabled]="service.isTyping()"
-    aria-label="Message input"
-  ></textarea>
-  <button
-    type="button"
-    class="send-btn"
-    (click)="send()"
-    [disabled]="!draft().trim() || service.isTyping()"
-    aria-label="Send message"
-    title="Send message"
-  >
-    <app-icon name="send" [size]="16" />
-  </button>
+  <div class="composer-model">
+    <label class="model-pick">
+      <app-icon name="layers" [size]="13" />
+      <span class="model-pick-label">Model</span>
+      <select
+        class="model-select"
+        [value]="models.selectedId()"
+        (change)="models.select($any($event.target).value)"
+        [disabled]="service.isTyping()"
+        [title]="models.error() || 'The model that answers the next message'"
+        aria-label="Model that answers"
+      >
+        @for (model of models.models(); track model.id) {
+          <option
+            [value]="model.id"
+            [selected]="model.id === models.selectedId()"
+            [disabled]="!model.ready"
+          >
+            {{ model.name }}{{ model.ready ? '' : ' (not trained)' }}
+          </option>
+        }
+      </select>
+    </label>
+  </div>
+
+  <div class="composer-row">
+    <textarea
+      class="composer-input"
+      rows="1"
+      placeholder="Message {{ prefs.botName() }}…"
+      [value]="draft()"
+      (input)="onInput($any($event.target).value)"
+      (keydown)="onKeydown($event)"
+      [disabled]="service.isTyping()"
+      aria-label="Message input"
+    ></textarea>
+    <button
+      type="button"
+      class="send-btn"
+      (click)="send()"
+      [disabled]="!draft().trim() || service.isTyping()"
+      aria-label="Send message"
+      title="Send message"
+    >
+      <app-icon name="send" [size]="16" />
+    </button>
+  </div>
 </footer>

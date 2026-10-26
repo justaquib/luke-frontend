@@ -1,0 +1,30 @@
+@if (attention() && tokens().length) {
+  <div class="heatmap">
+    <div
+      class="heat-grid"
+      role="img"
+      [attr.aria-label]="summary()"
+      [style.grid-template-columns]="'max-content repeat(' + tokens().length + ', minmax(0, 1fr))'"
+    >
+      <span class="heat-corner" aria-hidden="true"></span>
+      @for (token of tokens(); track $index) {
+        <span class="heat-head" [title]="token" aria-hidden="true">{{ token }}</span>
+      }
+      @for (row of rows(); track $index) {
+        <span class="heat-row-label" [title]="tokens()[$index]" aria-hidden="true">{{
+          tokens()[$index]
+        }}</span>
+        @for (cell of row; track cell.column) {
+          <span class="heat-cell" [attr.title]="cell.title" aria-hidden="true">
+            <span class="heat-fill" [style.opacity]="0.05 + cell.heat * 0.95"></span>
+          </span>
+        }
+      }
+    </div>
+    <p class="heat-note">
+      Rows see columns · last layer, averaged over heads · the strongest cell is the lightest
+    </p>
+  </div>
+} @else {
+  <p class="heat-empty">This model did not report attention for this prefix.</p>
+}

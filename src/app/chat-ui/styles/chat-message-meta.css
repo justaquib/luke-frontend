@@ -1,6 +1,7 @@
-/* Where the answer came from, and the one hint that belongs beside it. */
+/* Where the answer came from, with the numbers the backend measured. */
 .provenance {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 6px;
   margin: 8px 0 0;
@@ -14,7 +15,8 @@
   text-transform: uppercase;
 }
 
-.provenance-value {
+.provenance-value,
+.provenance-metric {
   color: var(--muted);
   font-family: var(--mono);
   font-size: 11px;
@@ -24,15 +26,13 @@
   color: var(--warn);
 }
 
-.source-hint {
-  display: block;
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
+.provenance-sep {
+  color: var(--border);
+  font-size: 10px;
 }
 
-.source-hint a {
-  color: var(--accent);
-  text-decoration: underline;
+.provenance-metric .mono {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
 }

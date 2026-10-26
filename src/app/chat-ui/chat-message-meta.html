@@ -4,13 +4,23 @@
     <span class="provenance-value" [class.pending]="message().source === 'pending'">
       {{ sourceLabel() }}
     </span>
+    @if (distance(); as dist) {
+      <span class="provenance-sep" aria-hidden="true">|</span>
+      <span class="provenance-metric"
+        >dist <span class="mono">{{ dist }}</span></span
+      >
+    }
+    @if (confidence(); as score) {
+      <span class="provenance-sep" aria-hidden="true">|</span>
+      <span class="provenance-metric"
+        >confidence <span class="mono">{{ score }}</span></span
+      >
+    }
+    @if (modelName(); as model) {
+      <span class="provenance-sep" aria-hidden="true">|</span>
+      <span class="provenance-metric"
+        >model <span class="mono">{{ model }}</span></span
+      >
+    }
   </p>
-}
-@if (hasDisabledSources()) {
-  <small class="source-hint">
-    Live answers are off.
-    <a routerLink="/dashboard/settings">
-      Enable {{ message().disabledExternalSources?.join(' and ') }} in Settings</a
-    >
-  </small>
 }

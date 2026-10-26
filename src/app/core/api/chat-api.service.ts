@@ -6,6 +6,8 @@ import type { QueryResponse } from './api-models';
 export interface QueryOptions {
   apps?: { weather?: boolean; wiki?: boolean };
   location?: { lat?: number; lon?: number };
+  /** The model that answers: `luke` or an installed teacher's `hf:` id. */
+  model?: string;
 }
 
 export interface FeedbackRequest {
@@ -29,6 +31,9 @@ export class ChatApiService extends BaseApiService {
     }
     if (opts?.location) {
       body['location'] = opts.location;
+    }
+    if (opts?.model) {
+      body['model'] = opts.model;
     }
     return this.http
       .post<QueryResponse>(`${this.base}/query`, body, { headers: this.authHeaders() })

@@ -3,6 +3,7 @@ import type { QueryOptions } from '../core/api/chat-api.service';
 import { AppPrefsService } from '../core/app-prefs.service';
 import { IntegrationsService } from '../core/integrations.service';
 import { AppIcon } from '../shared/app-icon';
+import { AnswerModelService } from './answer-model.service';
 import { ChatService } from './chat.service';
 
 @Component({
@@ -16,8 +17,13 @@ import { ChatService } from './chat.service';
 export class ChatComposer {
   protected readonly service = inject(ChatService);
   protected readonly prefs = inject(AppPrefsService);
+  protected readonly models = inject(AnswerModelService);
   protected readonly draft = signal('');
   private readonly integrations = inject(IntegrationsService);
+
+  constructor() {
+    this.models.load();
+  }
 
   onInput(value: string): void {
     this.draft.set(value);
@@ -47,6 +53,7 @@ export class ChatComposer {
         wiki: this.integrations.wikiEnabled(),
       },
       location: location ? { lat: location.lat, lon: location.lon } : undefined,
+      model: this.models.selectedId(),
     };
   }
 }

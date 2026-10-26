@@ -1,0 +1,65 @@
+/* The measured attention grid of the selected model. */
+.heatmap {
+  display: grid;
+  gap: 6px;
+}
+
+.heat-grid {
+  display: grid;
+  gap: 2px;
+  align-items: stretch;
+  font-family: var(--mono);
+}
+
+.heat-head,
+.heat-row-label {
+  max-width: 62px;
+  overflow: hidden;
+  color: var(--faint);
+  font-size: 9px;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.heat-head {
+  align-self: end;
+  padding-bottom: 2px;
+  text-align: center;
+}
+
+.heat-row-label {
+  display: flex;
+  align-items: center;
+  padding-right: 4px;
+  text-align: right;
+}
+
+.heat-cell {
+  position: relative;
+  min-height: 12px;
+  aspect-ratio: 1;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--surface-2);
+}
+
+.heat-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 1px;
+  background: var(--accent);
+}
+
+.heat-note,
+.heat-empty {
+  margin: 0;
+  color: var(--faint);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.heat-empty {
+  color: var(--muted);
+  font-size: 12px;
+}

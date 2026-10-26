@@ -1,0 +1,111 @@
+<app-modal [open]="open()" title="Prediction lab" size="wide" (closed)="close()">
+  <div class="lab">
+    <p class="lab-lede">
+      {{ modelName() }} continues one word at a time. Edit any word of the prefix, pick a suggested
+      next word, or type your own replacement. Every number here is what the model measured.
+    </p>
+
+    <label class="lab-field">
+      <span class="lab-label">Prefix</span>
+      <textarea
+        rows="2"
+        class="lab-prefix"
+        [value]="prefix()"
+        (input)="onPrefix($any($event.target).value)"
+        aria-label="Prefix the model continues"
+      ></textarea>
+    </label>
+
+    <div class="lab-continuation" aria-live="polite">
+      @for (word of words(); track $index) {
+        <button
+          type="button"
+          class="picked-word"
+          [class.fresh]="$index === words().length - 1 && justPicked()"
+          (click)="removeFrom($index)"
+          [attr.aria-label]="'Remove ' + word + ' and continue from here'"
+          title="Remove this word and continue from here"
+        >
+          {{ word }}
+          <app-icon name="x" [size]="10" />
+        </button>
+      }
+      @if (loading()) {
+        <span class="lab-typing" aria-label="The model is predicting">
+          <span></span><span></span><span></span>
+        </span>
+      }
+      @if (!words().length && !loading() && !prediction()) {
+        <span class="lab-waiting">The continuation appears here, word by word.</span>
+      }
+    </div>
+
+    <div class="lab-next" aria-live="polite">
+      @if (prediction(); as current) {
+        @for (next of current.next; track next.word; let index = $index) {
+          <button
+            type="button"
+            class="next-word"
+            [style.animation-delay.ms]="index * 55"
+            (click)="pick(next.word)"
+            [attr.aria-label]="'Use ' + next.word + ' next'"
+          >
+            <span class="next-text">{{ next.word }}</span>
+            <span class="next-prob mono">{{ percent(next.probability) }}</span>
+          </button>
+        } @empty {
+          <p class="lab-empty">The model gave no next word for this prefix.</p>
+        }
+      }
+    </div>
+
+    <div class="lab-custom">
+      <input
+        type="text"
+        class="lab-input"
+        [value]="custom()"
+        (input)="custom.set($any($event.target).value)"
+        (keydown.enter)="useCustom()"
+        placeholder="Type a word to replace the prediction…"
+        aria-label="Your own next word"
+      />
+      <button
+        type="button"
+        class="primary small"
+        (click)="useCustom()"
+        [disabled]="!custom().trim()"
+      >
+        Use word
+      </button>
+      <button
+        type="button"
+        class="ghost small"
+        (click)="predictNow()"
+        [disabled]="loading()"
+        title="Predict again from the current prefix"
+      >
+        Predict again
+      </button>
+    </div>
+
+    @if (error(); as message) {
+      <p class="lab-error">{{ message }}</p>
+    }
+
+    @if (prediction(); as current) {
+      <section class="lab-heat">
+        <div class="lab-heat-head">
+          <h3>What {{ current.model_name }} looked at</h3>
+          <span class="mono"
+            >{{ current.layers ?? '?' }} layers · {{ current.heads ?? '?' }} heads</span
+          >
+        </div>
+        <app-word-heatmap [tokens]="current.tokens" [attention]="current.attention" />
+      </section>
+    }
+  </div>
+
+  <div modal-actions>
+    <button type="button" class="ghost small" (click)="close()">Close</button>
+  </div>
+</app-modal>

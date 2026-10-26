@@ -1,0 +1,40 @@
+<dl class="record">
+  <div class="record-row">
+    <dt>Source</dt>
+    <dd>{{ sourceLabel() }}</dd>
+  </div>
+  @if (modelName()) {
+    <div class="record-row">
+      <dt>Model</dt>
+      <dd>{{ modelName() }}</dd>
+    </div>
+  }
+  <div class="record-row">
+    <dt>Answered</dt>
+    <dd class="mono">{{ answeredAt() }}</dd>
+  </div>
+  @if (matchedQuestion()) {
+    <div class="record-row">
+      <dt>Matched lesson</dt>
+      <dd>{{ matchedQuestion() }}</dd>
+    </div>
+  }
+  @if (measuredDistance(); as distance) {
+    <div class="record-row">
+      <dt>Match distance</dt>
+      <dd class="mono">{{ distance }}</dd>
+    </div>
+  }
+  @if (measuredConfidence(); as confidence) {
+    <div class="record-row">
+      <dt>Confidence</dt>
+      <dd class="mono">{{ confidence }}</dd>
+    </div>
+  }
+  @if (pendingId(); as id) {
+    <div class="record-row">
+      <dt>Training queue</dt>
+      <dd class="mono">#{{ id }}</dd>
+    </div>
+  }
+</dl>

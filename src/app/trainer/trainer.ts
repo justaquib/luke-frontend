@@ -29,8 +29,9 @@ import { PageInfoFacts } from '../shared/page-info-facts';
 import { AppShell } from '../shared/app-shell';
 import { AppIcon } from '../shared/app-icon';
 import { RightSidebarService } from '../shared/right-sidebar.service';
+import { TrainerBase } from './trainer-base';
 
-type Tab = 'inbox' | 'faqs' | 'merge' | 'new' | 'documents';
+type Tab = 'inbox' | 'faqs' | 'merge' | 'new' | 'documents' | 'base';
 type StatusFilter = 'all' | 'pending' | 'approved' | 'declined' | 'duplicate';
 
 interface DuplicateGroup {
@@ -58,6 +59,7 @@ const SIDEBAR_OWNER = 'trainer';
     PageInfoFacts,
     AppIcon,
     AppEngineFacts,
+    TrainerBase,
   ],
   templateUrl: './trainer.html',
   styleUrl: './trainer.css',

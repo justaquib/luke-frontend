@@ -55,6 +55,8 @@ export class AnswerPipeline {
         return 'Planning where to look';
       case 'connecting':
         return 'Checking the sources';
+      case 'writing':
+        return 'Writing the answer';
       case 'answer':
       case null:
         return '';

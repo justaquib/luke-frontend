@@ -100,7 +100,14 @@ export const SYSTEM_PACKAGES: SystemPackage[] = [
     name: 'torch',
     area: 'Backend',
     purpose:
-      'The library the word model is trained and served with: it learns the next word of the learner’s sentences and is kept for that feature only.',
+      'The library Luke’s word model and the fine-tuned Hugging Face teachers are trained and served with, on this machine only.',
+    kind: 'runtime',
+  },
+  {
+    name: 'transformers, safetensors',
+    area: 'Backend',
+    purpose:
+      'The Hugging Face libraries the Base model tab fine-tunes a small teacher with, and that answer and predict from it: safetensors loads the weights and transformers runs the model with its measured attention.',
     kind: 'runtime',
   },
   {

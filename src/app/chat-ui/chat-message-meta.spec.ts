@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 import { ChatMessageMeta } from './chat-message-meta';
 import type { ChatMessage } from './chat.types';
 
@@ -10,12 +9,15 @@ function render(message: ChatMessage): HTMLElement {
   return fixture.nativeElement as HTMLElement;
 }
 
+function metrics(compiled: HTMLElement): string[] {
+  return [...compiled.querySelectorAll('.provenance-metric')].map(
+    (node) => node.textContent?.replace(/\s+/g, ' ').trim() ?? '',
+  );
+}
+
 describe('ChatMessageMeta', () => {
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [ChatMessageMeta],
-      providers: [provideRouter([])],
-    }).compileComponents();
+    await TestBed.configureTestingModule({ imports: [ChatMessageMeta] }).compileComponents();
   });
 
   it('names the answer source without a pill', () => {
@@ -30,24 +32,35 @@ describe('ChatMessageMeta', () => {
     expect(compiled.querySelector('.source-tag')).toBeNull();
     expect(compiled.querySelector('.provenance-label')?.textContent?.trim()).toBe('Source');
     expect(compiled.querySelector('.provenance-value')?.textContent?.trim()).toBe('Number cards');
+    expect(metrics(compiled)).toEqual([]);
   });
 
-  it('turns a disabled live source into a settings link, not a warning box', () => {
+  it('shows the measured distance, confidence and model beside the source', () => {
     const compiled = render({
       id: 2,
       role: 'assistant',
-      text: 'I do not know that yet.',
+      text: 'A drum is hit with a stick.',
       timestamp: new Date('2026-10-24T10:00:00Z'),
-      source: 'pending',
-      disabledExternalSources: ['Wikipedia'],
+      source: 'lesson_cards',
+      matchDistance: 0.1,
+      confidence: 0.996,
+      modelName: 'SmolLM2 135M',
     });
 
-    const hint = compiled.querySelector('.source-hint');
-    const link = hint?.querySelector('a');
-    expect(hint?.textContent).toContain('Live answers are off.');
-    expect(link?.getAttribute('href')).toBe('/dashboard/settings');
-    expect(link?.textContent).toContain('Enable Wikipedia in Settings');
-    expect(compiled.querySelector('.external-hint')).toBeNull();
-    expect(compiled.querySelector('.provenance-value')?.classList.contains('pending')).toBe(true);
+    expect(metrics(compiled)).toEqual(['dist 0.10', 'confidence 100%', 'model SmolLM2 135M']);
+    expect(compiled.querySelector('.source-hint')).toBeNull();
+  });
+
+  it('falls back to the intent distance when no measured distance was stored', () => {
+    const compiled = render({
+      id: 3,
+      role: 'assistant',
+      text: 'The office is open at nine.',
+      timestamp: new Date('2026-10-24T10:00:00Z'),
+      source: 'intent',
+      intent: { distance: 0.234 },
+    });
+
+    expect(metrics(compiled)).toEqual(['dist 0.23']);
   });
 });

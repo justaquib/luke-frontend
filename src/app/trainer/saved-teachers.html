@@ -1,0 +1,33 @@
+<div class="base-card">
+  <h3>
+    Saved teachers <span class="count">{{ teachers().length }}</span>
+  </h3>
+  @if (teachers().length === 0) {
+    <p class="empty">No teacher is saved yet. Fine-tune a base model to make one.</p>
+  } @else {
+    <ul class="teacher-list">
+      @for (teacher of teachers(); track teacher.folder) {
+        <li class="teacher">
+          <div class="teacher-text">
+            <strong>{{ teacher.name }}</strong>
+            <span class="meta mono">{{ teacher.model_id }}</span>
+            <span class="meta">
+              {{ teacher.steps ?? 0 }} steps · loss {{ teacher.loss ?? '—' }} ·
+              {{ sizeMb(teacher.bytes) }} · {{ trainedAt(teacher.trained_at) }}
+            </span>
+          </div>
+          <button
+            type="button"
+            class="ghost small icon-only"
+            (click)="remove.emit(teacher)"
+            [disabled]="busy() || removing() === teacher.folder"
+            [attr.aria-label]="'Remove ' + teacher.name"
+            title="Remove this teacher's weights"
+          >
+            <app-icon name="trash" [size]="14" />
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

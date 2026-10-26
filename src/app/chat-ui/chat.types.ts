@@ -15,6 +15,13 @@ export interface ChatMessage {
   app?: Record<string, unknown> | null;
   disabledExternalSources?: string[] | null;
   understanding?: QuestionUnderstanding | null;
+  /** The measured match distance the backend attached to this answer. */
+  matchDistance?: number | null;
+  /** The backend's confidence in the answer, when it measured one. */
+  confidence?: number | null;
+  /** The model that answered: `luke`, or an installed teacher's `hf:` id. */
+  model?: string | null;
+  modelName?: string | null;
   /** True only for an answer that just arrived; reloaded messages never animate. */
   reveal?: boolean;
 }

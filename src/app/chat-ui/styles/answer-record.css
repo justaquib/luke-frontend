@@ -1,0 +1,48 @@
+/* The measured facts of one answer, inside the shared details panel. */
+:host {
+  display: block;
+}
+
+.record {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.record-row {
+  display: grid;
+  grid-template-columns: minmax(96px, 32%) minmax(0, 1fr);
+  gap: 12px;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border);
+}
+
+.record-row:first-child {
+  border-top: 0;
+}
+
+.record-row dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.record-row dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.mono {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 680px) {
+  .record-row {
+    grid-template-columns: minmax(84px, 34%) minmax(0, 1fr);
+  }
+}

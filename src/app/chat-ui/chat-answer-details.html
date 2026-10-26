@@ -26,34 +26,9 @@
     </section>
   }
 
-  <dl class="record">
-    <div class="record-row">
-      <dt>Source</dt>
-      <dd>{{ sourceLabel() }}</dd>
-    </div>
-    <div class="record-row">
-      <dt>Answered</dt>
-      <dd class="mono">{{ answeredAt() }}</dd>
-    </div>
-    @if (matchedQuestion()) {
-      <div class="record-row">
-        <dt>Matched lesson</dt>
-        <dd>{{ matchedQuestion() }}</dd>
-      </div>
-    }
-    @if (matchDistance(); as distance) {
-      <div class="record-row">
-        <dt>Match distance</dt>
-        <dd class="mono">{{ distance }}</dd>
-      </div>
-    }
-    @if (pendingId(); as id) {
-      <div class="record-row">
-        <dt>Training queue</dt>
-        <dd class="mono">#{{ id }}</dd>
-      </div>
-    }
-  </dl>
+  <app-answer-prediction [message]="message()" [question]="question()" />
+
+  <app-answer-record [message]="message()" />
 
   @if (hits().length) {
     <section class="detail-section">
@@ -82,14 +57,5 @@
         <app-icon name="external" [size]="12" />
       </a>
     </section>
-  }
-
-  @if (hasDisabledSources()) {
-    <p class="source-hint">
-      Live answers are off.
-      <a routerLink="/dashboard/settings">
-        Enable {{ message().disabledExternalSources?.join(' and ') }} in Settings</a
-      >
-    </p>
   }
 </section>

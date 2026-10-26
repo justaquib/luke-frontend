@@ -22,6 +22,37 @@ function startedAt(createdAt: number): string {
   return new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+function modelCatalog(): Record<string, unknown> {
+  return {
+    default: 'luke',
+    models: [
+      {
+        id: 'luke',
+        name: 'Luke',
+        kind: 'luke',
+        detail: 'Answers from the taught material.',
+        ready: true,
+      },
+    ],
+  };
+}
+
+function prediction(): Record<string, unknown> {
+  return {
+    model: 'luke',
+    prefix: 'Why is the sky blue?',
+    tokens: ['Why', 'is', 'the', 'sky', 'blue'],
+    attention: [
+      [1, 0, 0, 0, 0],
+      [0, 1, 0, 0, 0],
+      [0, 0, 1, 0, 0],
+      [0, 0, 0, 1, 0],
+      [0, 0, 0, 0, 1],
+    ],
+    next: [{ word: 'because', probability: 0.42, count: null }],
+  };
+}
+
 describe('ChatUI', () => {
   let component: ChatUI;
   let fixture: ComponentFixture<ChatUI>;
@@ -38,6 +69,7 @@ describe('ChatUI', () => {
     }).compileComponents();
 
     http = TestBed.inject(HttpTestingController);
+    localStorage.clear();
     fixture = TestBed.createComponent(ChatUI);
     component = fixture.componentInstance;
     await fixture.whenStable();
@@ -45,6 +77,9 @@ describe('ChatUI', () => {
     http
       .match((request) => request.url.endsWith('/health'))
       .forEach((request) => request.flush({ status: 'ok' }));
+    http
+      .match((request) => request.url.endsWith('/language-model/models'))
+      .forEach((request) => request.flush(modelCatalog()));
     fixture.detectChanges();
   });
 
@@ -195,6 +230,9 @@ describe('ChatUI', () => {
       .forEach((request) =>
         request.flush({ training: false, trained: true, vocabulary: 12, progress: null }),
       );
+    const predictions = http.match((request) => request.url.endsWith('/language-model/predict'));
+    expect(predictions.length).toBe(1);
+    predictions.forEach((request) => request.flush(prediction()));
 
     await fixture.whenStable();
     fixture.detectChanges();

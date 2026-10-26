@@ -57,6 +57,13 @@
     </div>
   }
 
+  @if (trace().writing; as model) {
+    <div class="stage">
+      <p class="stage-label">Writing</p>
+      <p class="stage-note">{{ model }} is writing the answer from the material above.</p>
+    </div>
+  }
+
   @if (activeLabel(); as label) {
     <p class="active">
       <span class="dot"></span>

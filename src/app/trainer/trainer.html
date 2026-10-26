@@ -49,6 +49,16 @@
       <button
         type="button"
         class="tool-tab"
+        [class.active]="tab() === 'base'"
+        (click)="setTab('base')"
+        [attr.aria-current]="tab() === 'base' ? 'page' : null"
+      >
+        <app-icon name="layers" [size]="14" />
+        Base model
+      </button>
+      <button
+        type="button"
+        class="tool-tab"
         [class.active]="tab() === 'documents'"
         (click)="setTab('documents'); refreshDocuments()"
         [attr.aria-current]="tab() === 'documents' ? 'page' : null"
@@ -822,6 +832,9 @@
               </div>
             }
           </div>
+        }
+        @case ('base') {
+          <app-trainer-base />
         }
         @case ('documents') {
           <div class="documents-grid">
