@@ -44,14 +44,12 @@ export interface ModelProbe {
 }
 
 /** One set of measured probes: how many passed, and how they were answered. */
-export interface ModelMeasure {
-  score?: number;
-  passed?: number;
-  total?: number;
-  written?: number;
-  looked_up?: number;
-  model?: number;
-  probes?: ModelProbe[];
+export interface ModelProbe {
+  question: string;
+  answered?: boolean;
+  correct?: boolean;
+  source?: string;
+  answered_text?: string;
 }
 
 /** The level the brain has reached, measured and approved separately. */
@@ -90,21 +88,6 @@ export interface ModelLevel {
   generality: number;
   generality_cap: number | null;
   generality_probes: ModelProbe[];
-  instruction_following: number;
-  instruction_probes: ModelProbe[];
-  instruction_total: number;
-  instruction_measured: boolean;
-  instruction_written?: number;
-  instruction_looked_up?: number;
-  instruction_measured_at?: string | null;
-  adversarial?: ModelMeasure;
-  cross_topic?: ModelMeasure & { subject?: string };
-  contamination?: {
-    checked?: number;
-    overlaps?: number;
-    clean?: boolean;
-    examples?: string[];
-  };
   ladder_share?: number;
   frontier_level: number;
   frontier_title: string;
@@ -167,7 +150,7 @@ export interface StoreSummary {
   };
   model: {
     name: string;
-    level: number;
+    level: string;
     title: string;
     vocabulary: number;
     parameters: number;
@@ -208,8 +191,7 @@ export type AnswerSource =
   | 'sentence_patterns'
   | 'taught'
   | 'trainer'
-  | 'word_cards'
-  | 'written';
+  | 'word_cards';
 
 export interface QueryResponse {
   question: string;

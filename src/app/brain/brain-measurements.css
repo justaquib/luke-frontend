@@ -62,27 +62,6 @@ dd {
   font-variant-numeric: tabular-nums;
 }
 
-small {
-  color: var(--faint);
-  font-family: var(--font-family-base);
-  font-size: 11px;
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--faint);
-}
-
-.dot.ok {
-  background: var(--ok);
-}
-
-.dot.bad {
-  background: var(--bad);
-}
-
 .note {
   margin: 8px 0 0;
   border-top: 1px solid var(--border);

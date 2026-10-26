@@ -1,0 +1,68 @@
+<section class="pipeline" role="status" aria-live="polite" [attr.aria-busy]="live()">
+  @if (trace().reading; as reading) {
+    <div class="stage">
+      <p class="stage-label">Reading</p>
+      @if (reading.words.length) {
+        <ul class="words">
+          @for (word of reading.words; track $index) {
+            <li class="word">
+              <span class="word-text">{{ word.word }}</span>
+              <span class="word-meta">{{ wordMeta(word) }}</span>
+              <span class="word-meaning">{{ word.meaning }}</span>
+              <span class="word-synonyms">{{ synonymLine(word) }}</span>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="stage-note">No words could be read from the question.</p>
+      }
+    </div>
+  }
+
+  @if (trace().thinking; as thinking) {
+    <div class="stage">
+      <p class="stage-label">Thinking</p>
+      <div class="stage-body">
+        <p class="thinking-line">
+          <span class="thinking-type">{{ questionType(thinking.question_type) }}</span>
+          @if (thinking.key_words.length) {
+            <span class="thinking-keys">
+              key words <span class="mono">{{ thinking.key_words.join(', ') }}</span>
+            </span>
+          }
+        </p>
+        <ol class="plan">
+          @for (step of thinking.plan; track $index) {
+            <li>{{ step }}</li>
+          }
+        </ol>
+      </div>
+    </div>
+  }
+
+  @if (trace().connections.length) {
+    <div class="stage">
+      <p class="stage-label">Connecting dots</p>
+      <ul class="connections">
+        @for (connection of trace().connections; track $index) {
+          <li class="connection" [class.hit]="isHit(connection)">
+            <app-icon [name]="outcomeIcon(connection.outcome)" [size]="12" />
+            <span class="connection-source">{{ sourceLabel(connection.source) }}</span>
+            <span class="connection-outcome mono">{{ connection.outcome }}</span>
+            <span class="connection-detail">{{ connection.detail }}</span>
+            <span class="connection-match">{{ matchLine(connection) }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (activeLabel(); as label) {
+    <p class="active">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span>{{ label }}</span>
+    </p>
+  }
+</section>

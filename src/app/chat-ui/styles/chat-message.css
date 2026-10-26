@@ -19,10 +19,16 @@
   text-align: left;
 }
 
-.answer-open:hover .msg-text {
+.answer-open:hover .msg-text,
+.answer-open:hover app-answer-reveal {
   text-decoration: underline;
   text-decoration-color: var(--accent-line);
   text-underline-offset: 3px;
+}
+
+.answer-open app-answer-reveal {
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 .answer-open:focus-visible {

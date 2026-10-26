@@ -60,7 +60,7 @@ export class BrainTrainingPanel implements OnInit {
     this.load();
   }
 
-  /** The numbers of the writer's steps, as the live line reads them. */
+  /** The numbers of the training steps, as the live line reads them. */
   protected stepsFor(progress: TrainingProgress): string {
     const done = progress.steps_done ?? 0;
     const total = progress.steps_total ?? 0;

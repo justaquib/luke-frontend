@@ -12,7 +12,11 @@
         (click)="openDetails.emit(message())"
         title="Open answer details"
       >
-        <span class="msg-text">{{ message().text }}</span>
+        <app-answer-reveal
+          [text]="message().text"
+          [animate]="message().reveal === true"
+          (advanced)="revealAdvanced.emit()"
+        />
       </button>
     } @else {
       <p class="msg-text">{{ message().text }}</p>

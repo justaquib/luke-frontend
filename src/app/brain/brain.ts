@@ -18,8 +18,6 @@ import type {
   BrainWordReport,
   LanguageBrainDocument,
   LanguageLevelApproval,
-  LanguageLevelTest,
-  ModelReport,
   TrainingProgress,
 } from '../core/api/language-brain.types';
 import type { ModelLevel } from '../core/api/api.types';
@@ -87,7 +85,6 @@ export class Brain implements OnInit, OnDestroy {
   protected readonly engine = computed<BrainEngineState | null>(
     () => this.brainState()?.engine ?? null,
   );
-  protected readonly answer = computed<ModelReport | null>(() => this.engine()?.answer ?? null);
   protected readonly words = computed<BrainWordReport | null>(() => this.engine()?.words ?? null);
   protected readonly runs = computed<BrainRun[]>(() => this.engine()?.runs ?? []);
   protected readonly level = computed<ModelLevel | null>(
@@ -106,7 +103,7 @@ export class Brain implements OnInit, OnDestroy {
     () => engineStatus(this.engine(), this.brainTraining()).tone,
   );
 
-  /** What the answer model was built from, beside what the school holds. */
+  /** What the word model was built from, beside what the school holds. */
   protected readonly corpusRows = computed<CorpusRow[]>(() => [
     ...this.storeRows(),
     ...this.corpusCountRows(),
@@ -168,13 +165,14 @@ export class Brain implements OnInit, OnDestroy {
   protected testLevel(): void {
     if (this.brainTesting()) return;
     this.brainTesting.set(true);
-    this.languageApi.testLanguageModelLevel().subscribe({
-      next: (result: LanguageLevelTest) => {
-        this.brainState.set(result.state);
+    this.languageApi.languageModelBrain(true).subscribe({
+      next: (state) => {
+        this.brainState.set(state);
         this.brainTesting.set(false);
-        const answered = Math.round((result.instruction?.score ?? 0) * 100);
+        const rungs = state.model_level?.rungs ?? [];
+        const passed = rungs.filter((rung) => rung.rate >= 0.6).length;
         this.ui.success(
-          `Level test done: ${result.passed} of ${result.total} rungs passed, ${answered}% of the never-worded requests answered. The result is kept.`,
+          `Level test done: ${passed} of ${rungs.length} rungs passed. The result is kept.`,
         );
       },
       error: (err: Error) => {
@@ -243,13 +241,10 @@ export class Brain implements OnInit, OnDestroy {
   }
 
   private corpusCountRows(): CorpusRow[] {
-    const answer = this.answer();
-    const corpus = answer?.corpus;
+    const corpus = this.words()?.corpus;
     return [
       { label: 'Sentences', value: this.count(corpus?.sentences) },
       { label: 'Requests', value: this.count(corpus?.instructions) },
-      { label: 'With material', value: this.count(corpus?.contexts) },
-      { label: 'Dropped', value: this.count(answer?.dropped_sentences) },
     ];
   }
 
@@ -259,9 +254,9 @@ export class Brain implements OnInit, OnDestroy {
 
   /** Say what the training changed, so the button is not a mystery. */
   private reportTraining(state: LanguageBrainDocument): void {
-    const summary = trainingSummary(state.engine?.answer);
+    const summary = trainingSummary(state.engine?.words);
     if (summary === null) {
-      this.ui.info('The training finished, but no answer model was trained.');
+      this.ui.info('The training finished, but no word model was trained.');
       return;
     }
     this.ui.success(summary);

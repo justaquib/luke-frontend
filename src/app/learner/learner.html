@@ -122,37 +122,14 @@
                     </p>
                   }
                   @for (turn of learnerChatMessages(); track $index) {
-                    <div class="learner-chat-turn">
-                      <div class="learner-chat-question">
-                        <small>You asked</small>
-                        <p>{{ turn.question }}</p>
-                      </div>
-                      <div class="learner-chat-answer">
-                        <small>Learner · {{ learnerAnswerSourceLabel(turn.source) }}</small>
-                        <p>{{ turn.answer }}</p>
-                        @if (turn.reasoning; as reasoning) {
-                          <details class="learner-reasoning">
-                            <summary>How I thought about it</summary>
-                            <ol>
-                              @for (step of reasoning.steps; track $index) {
-                                <li>
-                                  <strong>{{ step.label }}</strong
-                                  ><span>{{ step.detail }}</span>
-                                </li>
-                              }
-                            </ol>
-                            <p class="learner-reasoning-confidence">
-                              Confidence {{ reasoning.confidence * 100 | number: '1.0-0' }}%
-                            </p>
-                          </details>
-                        }
-                      </div>
-                    </div>
+                    <app-learner-chat-turn [turn]="turn" />
                   }
                   @if (learnerChatBusy()) {
-                    <p class="learner-chat-thinking" role="status">
-                      The learner is checking what it has learned…
-                    </p>
+                    <app-answer-pipeline
+                      [trace]="learnerPipeline()"
+                      [phase]="learnerPipelinePhase()"
+                      [live]="true"
+                    />
                   }
                 </div>
                 <form

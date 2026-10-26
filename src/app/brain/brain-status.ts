@@ -14,7 +14,6 @@ export function engineStatus(engine: BrainEngineState | null, training: boolean)
 }
 
 function reportOf(engine: BrainEngineState | null): ModelReport | null {
-  if (engine?.answer.trained) return engine.answer;
   return engine?.words.trained ? engine.words : null;
 }
 
@@ -31,11 +30,11 @@ function measuredStatus(report: ModelReport): EngineStatus {
 }
 
 /** What a finished training changed, or null when it trained nothing. */
-export function trainingSummary(answer: ModelReport | null | undefined): string | null {
-  if (!answer?.trained) return null;
+export function trainingSummary(wordModel: ModelReport | null | undefined): string | null {
+  if (!wordModel?.trained) return null;
   const held =
-    answer.validation_loss === null || answer.validation_loss === undefined
+    wordModel.validation_loss === null || wordModel.validation_loss === undefined
       ? 'held-out loss not measured'
-      : `held-out loss ${answer.validation_loss.toFixed(3)}`;
-  return `The brain trained: ${held}, ${answer.steps ?? 0} steps, stop ${answer.stop_reason ?? 'unknown'}.`;
+      : `held-out loss ${wordModel.validation_loss.toFixed(3)}`;
+  return `The brain trained: ${held}, ${wordModel.steps ?? 0} steps, stop ${wordModel.stop_reason ?? 'unknown'}.`;
 }

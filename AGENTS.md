@@ -98,13 +98,14 @@ Read it before changing any page. In short:
 - Chat: flat answers on the page surface, the session title in the top bar
   (renamed there), and the conversation facts in the info panel, read from the
   active session. An answer's text or info control opens the right panel with
-  the question, answer, source, passages and the measured "How the model reads
-  this question" trace — real tokens,
-  embeddings, per-layer/per-head attention heatmap, next-word candidates and
-  the writer's own choice steps from `POST /language-model/trace`. State the
-  served route honestly; a served answer that was not generated word by word
-  gets the writer's reading of the same question as a labelled comparison,
-  not as its own path. The bubble keeps provenance and icon-only feedback.
+  the question, answer, source, passages and "How this answer was found" — the
+  reading, plan and connections the backend stored with that answer. While an
+  answer streams, the messages area shows the live pipeline: the words read
+  with their dictionary meanings, the question type and plan, and one row per
+  source actually consulted. Render a stage only from backend data; a reveal
+  may animate an answer that is already complete, never invent a stage, and
+  reloaded answers show in full without re-animating. The bubble keeps
+  provenance and icon-only feedback.
 - Trainer: the corpus facts (trained answers, pending questions, corpus items)
   sit in the shared info panel's facts slot and come from the loaded corpus
   lists; tab counters are plain mono text. The Inbox lists pending questions
@@ -129,6 +130,9 @@ Read it before changing any page. In short:
   answered directly from the conversation pairs, which come from the backend
   and use the configured model name; the same pairs are training material. Do
   not hard-code the assistant's name in a component or template.
+- Brain: the page trains and reports the **word model** only. The answer writer,
+  its trace, the attention heatmap and the Hugging Face base-model tab are
+  retired; do not add a page, tab or API call for them.
 - Routes: `/chat` is the assistant surface. Every model-trainer and dashboard
   page lives under `/dashboard` (`trainer`, `parenting`, `learner`, `brain`,
   `settings`, `design`, `tenants`), and `/dashboard` redirects to

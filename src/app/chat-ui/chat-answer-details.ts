@@ -1,16 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { QueryHit } from '../core/api/api-models';
+import { AnswerPipeline } from '../shared/answer-pipeline';
+import { hasTrace, traceFromUnderstanding } from '../shared/answer-trace';
 import { AppIcon } from '../shared/app-icon';
 import { chatSourceLabel } from './chat-source-label';
-import { ChatAnswerTrace } from './chat-answer-trace';
 import type { ChatMessage } from './chat.types';
 
-/** The record behind one assistant answer, and the writer's real reading of it. */
+/** The record behind one assistant answer. */
 @Component({
   selector: 'app-chat-answer-details',
   standalone: true,
-  imports: [RouterLink, AppIcon, ChatAnswerTrace],
+  imports: [AnswerPipeline, RouterLink, AppIcon],
   templateUrl: './chat-answer-details.html',
   styleUrl: './styles/chat-answer-details.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,6 +29,18 @@ export class ChatAnswerDetails {
   );
 
   protected readonly hits = computed<QueryHit[]>(() => this.message().hits ?? []);
+
+  protected readonly trace = computed(() => traceFromUnderstanding(this.message().understanding));
+
+  protected readonly hasUnderstanding = computed(() => hasTrace(this.trace()));
+
+  protected readonly grammarNotes = computed(
+    () => this.message().understanding?.grammar_notes ?? [],
+  );
+
+  protected readonly verification = computed(
+    () => this.message().understanding?.verification ?? '',
+  );
 
   protected readonly matchedQuestion = computed(
     () => this.message().intent?.matched_question ?? '',

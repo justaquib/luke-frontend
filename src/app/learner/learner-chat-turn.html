@@ -1,0 +1,33 @@
+<div class="learner-chat-turn">
+  <div class="learner-chat-question">
+    <small>You asked</small>
+    <p>{{ turn().question }}</p>
+  </div>
+  <div class="learner-chat-answer">
+    <small>Learner · {{ sourceLabel() }}</small>
+    <p>
+      <app-answer-reveal [text]="turn().answer" [animate]="turn().reveal === true" />
+    </p>
+    @if (showTrace()) {
+      <div class="learner-chat-trace">
+        <app-answer-pipeline [trace]="trace()" [live]="false" />
+      </div>
+    }
+    @if (turn().reasoning; as reasoning) {
+      <details class="learner-reasoning">
+        <summary>How I thought about it</summary>
+        <ol>
+          @for (step of reasoning.steps; track $index) {
+            <li>
+              <strong>{{ step.label }}</strong
+              ><span>{{ step.detail }}</span>
+            </li>
+          }
+        </ol>
+        <p class="learner-reasoning-confidence">
+          Confidence {{ reasoning.confidence * 100 | number: '1.0-0' }}%
+        </p>
+      </details>
+    }
+  </div>
+</div>

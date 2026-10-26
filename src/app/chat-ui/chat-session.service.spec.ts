@@ -39,6 +39,37 @@ describe('ChatSessionService', () => {
     expect(service.nextMessageId()).toBe(102);
   });
 
+  it('shows a reloaded answer in full instead of replaying its reveal', () => {
+    localStorage.setItem(
+      SESSIONS_KEY,
+      JSON.stringify([
+        {
+          id: 'stored',
+          title: 'Reload',
+          createdAt: 1,
+          updatedAt: 2,
+          messages: [
+            {
+              id: 1,
+              role: 'assistant',
+              text: 'Sunlight scatters blue light.',
+              timestamp: new Date(2026, 9, 24, 10, 0).toISOString(),
+              reveal: true,
+            },
+          ],
+        },
+      ]),
+    );
+    localStorage.setItem(ACTIVE_KEY, 'stored');
+
+    const service = TestBed.inject(ChatSessionService);
+
+    const messages = service.active().messages;
+    expect(messages.length).toBe(1);
+    expect(messages[0].text).toBe('Sunlight scatters blue light.');
+    expect(messages[0].reveal).toBe(false);
+  });
+
   it('repairs duplicate ids so an answer keeps its own question', () => {
     storeSession([
       { id: 100, role: 'user', text: 'Twinkle Twinkle Little Star' },

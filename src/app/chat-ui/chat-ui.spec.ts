@@ -8,13 +8,6 @@ import { RightSidebarService } from '../shared/right-sidebar.service';
 import { ChatUI } from './chat-ui';
 import { ChatSessionService } from './chat-session.service';
 
-const CAUSAL = [
-  [1, 0, 0, 0],
-  [0.5, 0.5, 0, 0],
-  [0.3, 0.3, 0.4, 0],
-  [0.2, 0.2, 0.3, 0.3],
-];
-
 function modelSettings(): Record<string, unknown> {
   return {
     name: 'Luke',
@@ -27,55 +20,6 @@ function modelSettings(): Record<string, unknown> {
 
 function startedAt(createdAt: number): string {
   return new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
-function writerTrace(): Record<string, unknown> {
-  const tokens = ['<start>', '<instr>', 'why', '<resp>'];
-  return {
-    trained: true,
-    model: {
-      layers: 2,
-      heads: 2,
-      d_model: 8,
-      context: 32,
-      vocabulary: 120,
-      parameters: 1600,
-      device: 'cpu',
-    },
-    reading: { tokens: tokens.map((token, id) => ({ id, token })), words: 1 },
-    embeddings: {
-      dimensions: 8,
-      preview: 2,
-      tokens: tokens.map((token) => ({ token, values: [0.1, -0.2], norm: 0.7 })),
-    },
-    attention: {
-      tokens,
-      layers: [
-        [CAUSAL, CAUSAL],
-        [CAUSAL, CAUSAL],
-      ],
-    },
-    next: {
-      token: 'because',
-      probability: 0.45,
-      candidates: [
-        { token: 'because', probability: 0.45 },
-        { token: 'the', probability: 0.25 },
-        { token: 'sunlight', probability: 0.2 },
-      ],
-    },
-    generation: {
-      steps: [
-        { token: 'because', probability: 0.45, candidates: [] },
-        { token: 'sunlight', probability: 0.6, candidates: [] },
-        { token: '<end>', probability: 0.9, candidates: [] },
-      ],
-      text: 'Because sunlight scatters.',
-      stop: 'end',
-      seconds: 0.2,
-    },
-    measured_at: 1,
-  };
 }
 
 describe('ChatUI', () => {
@@ -217,7 +161,7 @@ describe('ChatUI', () => {
     expect(center?.querySelector('.context-title')?.textContent).toContain('New chat');
   });
 
-  it('opens an assistant answer with the real writer trace in the right sidebar', async () => {
+  it('opens an assistant answer with its record in the right sidebar', async () => {
     const session = TestBed.inject(ChatSessionService);
     session.appendMessage({
       id: 10,
@@ -252,10 +196,6 @@ describe('ChatUI', () => {
         request.flush({ training: false, trained: true, vocabulary: 12, progress: null }),
       );
 
-    const traceRequests = http.match((request) => request.url.endsWith('/language-model/trace'));
-    expect(traceRequests.length).toBe(1);
-    expect(traceRequests[0].request.body).toEqual({ question: 'Why is the sky blue?' });
-    traceRequests[0].flush(writerTrace());
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -267,19 +207,7 @@ describe('ChatUI', () => {
     expect(text).toContain('Sunlight scatters shorter blue wavelengths');
     expect(text).toContain('Documents');
     expect(text).toContain('Rayleigh scattering makes the sky blue.');
-    expect(text).toContain('How the model reads this question');
-    expect(text).toContain('Served by Documents');
-    expect(text).toContain('not generated word by word');
-    expect(text).toContain('What the writer read');
-    expect(text).toContain('<instr>');
-    expect(text).toContain('Embeddings');
-    expect(text).toContain('Attention weights');
-    expect(text).toContain('Layer 2');
-    expect(text).toContain('Next word');
-    expect(text).toContain('because');
-    expect(text).toContain("The writer's run");
-    expect(text).toContain('What this shows');
-    expect(text).not.toContain('Why is the sky blue? Because');
+    expect(text).not.toContain('What the writer read');
   });
 
   it('keeps settings in the shared top panel', () => {

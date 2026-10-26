@@ -2,17 +2,7 @@
   <main class="coach-main">
     <ng-template appPageInfoActions>
       <div class="coach-controls">
-        <label class="coach-train">
-          <input type="checkbox" [checked]="trainMode()" (change)="toggleTrainMode()" />
-          <app-icon name="sliders" [size]="14" />
-          <span>Train mode</span>
-        </label>
-        <span
-          class="coach-status"
-          [class.open]="sessionStatus() === 'open'"
-          [class.needs]="sessionStatus() === 'needs_correction'"
-          [class.escalated]="sessionStatus() === 'escalated'"
-        >
+        <span class="coach-status" [class.open]="sessionStatus() === 'open'">
           <span class="dot"></span>
           {{ statusLabel() }}
         </span>
@@ -31,7 +21,13 @@
           @for (message of messages(); track message.id) {
             <div class="coach-row" [class.parent]="message.role === 'parent'">
               <div class="coach-bubble" [class.coach]="message.role === 'coach'">
-                <p class="coach-text">{{ message.text }}</p>
+                <p class="coach-text">
+                  @if (message.role === 'coach') {
+                    <app-answer-reveal [text]="message.text" [animate]="message.reveal === true" />
+                  } @else {
+                    {{ message.text }}
+                  }
+                </p>
                 @if (message.role === 'coach') {
                   <p class="coach-meta">
                     {{ message.source }} · confidence {{ message.confidence }}
@@ -43,35 +39,12 @@
         }
 
         @if (isTyping()) {
-          <div class="coach-row coach">
-            <div class="coach-bubble typing" aria-label="The coach is writing">
-              <span class="coach-dot"></span>
-              <span class="coach-dot"></span>
-              <span class="coach-dot"></span>
-            </div>
+          <div class="coach-row">
+            <app-answer-pipeline [trace]="liveTrace()" [phase]="livePhase()" [live]="true" />
           </div>
         }
       </div>
     </section>
-
-    @if (scaffold(); as scaffold) {
-      <section class="coach-scaffold">
-        <p class="coach-label">Needs a better answer</p>
-        <h2 class="coach-scaffold-title">The coach can do better</h2>
-        <p class="coach-scaffold-failure">{{ scaffold.failure }}</p>
-        <ul class="coach-scaffold-list">
-          @for (suggestion of scaffold.suggestions; track $index) {
-            <li>
-              <button type="button" class="coach-scaffold-btn" (click)="pickSuggestion(suggestion)">
-                <app-icon name="pencil" [size]="14" />
-                {{ suggestion }}
-              </button>
-            </li>
-          }
-        </ul>
-        <p class="coach-scaffold-context">{{ scaffold.retry_context }}</p>
-      </section>
-    }
 
     <footer class="coach-composer">
       <div class="coach-composer-inner">

@@ -226,6 +226,9 @@ export class ChatSessionService {
         messages: session.messages.map((message) => ({
           ...message,
           timestamp: new Date(message.timestamp),
+          // A reload shows the answer in full; the word-by-word reveal is for
+          // the answer that just arrived.
+          reveal: false,
         })),
       }));
     } catch {

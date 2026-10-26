@@ -2,16 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { engineStatus, trainingSummary } from './brain-status';
 import type { BrainEngineState } from '../core/api/language-brain.types';
 
-function engine(
-  answer: Record<string, unknown>,
-  words: Record<string, unknown> = {},
-): BrainEngineState {
+function engine(words: Record<string, unknown> = {}): BrainEngineState {
   return {
     schema: 2,
     device: 'cpu',
     torch: '2.0',
-    answer: { trained: true, ...answer },
-    words: { trained: false, ...words },
+    words: { trained: true, ...words },
     runs: [],
   };
 }
@@ -48,7 +44,7 @@ describe('engineStatus', () => {
 });
 
 describe('trainingSummary', () => {
-  it('reports nothing when the run trained no answer model', () => {
+  it('reports nothing when the run trained no word model', () => {
     expect(trainingSummary(null)).toBeNull();
     expect(trainingSummary({ trained: false })).toBeNull();
   });

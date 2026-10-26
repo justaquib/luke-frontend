@@ -17,6 +17,7 @@ import type {
   StatsResponse,
   Tenant,
 } from './api/api.types';
+import type { LanguagePreview } from './api/api-models';
 import { AuthService } from './auth.service';
 
 export * from './api/api.types';
@@ -28,7 +29,7 @@ export * from './api/api.types';
 export type KnowledgeGraph = any;
 export type LanguageModelState = any;
 export type LanguageDictionaryEntry = any;
-export type LanguagePreviewResponse = any;
+export type LanguagePreviewResponse = LanguagePreview;
 export type LanguageTest = any;
 export type LanguageTestFinishResult = any;
 export type QueryReasoning = any;

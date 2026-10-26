@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   inject,
   signal,
   computed,
@@ -8,10 +9,24 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AppShell } from '../../shared/app-shell';
 import { PageInfoActions } from '../../shared/page-info-actions';
 import { AppIcon } from '../../shared/app-icon';
-import type { CoachingScaffold, CoachingTurn } from '../../core/api/api-models';
+import { AnswerPipeline } from '../../shared/answer-pipeline';
+import { AnswerReveal } from '../../shared/answer-reveal';
+import {
+  type AnswerTrace,
+  type PipelinePhase,
+  applyStreamEvent,
+  emptyTrace,
+  phaseFor,
+} from '../../shared/answer-trace';
+import type {
+  AnswerStreamEvent,
+  CoachingTurn,
+  QuestionUnderstanding,
+} from '../../core/api/api-models';
 import { ParentingApiService } from '../../core/api/parenting-api.service';
 
 /** One turn of the coaching chat: what the parent said and what the coach answered. */
@@ -22,16 +37,17 @@ export interface CoachingMessage {
   timestamp: string;
   source: string | null;
   confidence: number | null;
+  understanding?: QuestionUnderstanding | null;
+  reveal?: boolean;
 }
 
 /**
  * The coaching chat of the parenting module: the coach answers from the
- * lessons, reads its own grammar and sentences, and takes the corrections the
- * parent gives until it answers well.
+ * lessons the tenant taught.
  */
 @Component({
   selector: 'app-parenting-chat',
-  imports: [AppShell, PageInfoActions, AppIcon],
+  imports: [AnswerPipeline, AnswerReveal, AppShell, PageInfoActions, AppIcon],
   templateUrl: './parenting-chat.html',
   styleUrl: './parenting-chat.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,32 +55,22 @@ export interface CoachingMessage {
 export class ParentingChat implements OnInit {
   private readonly parentingApi = inject(ParentingApiService);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly messages = signal<CoachingMessage[]>([]);
   protected readonly draft = signal('');
   protected readonly isTyping = signal(false);
+  protected readonly liveTrace = signal<AnswerTrace>(emptyTrace());
+  protected readonly livePhase = signal<PipelinePhase | null>(null);
   protected readonly sessionId = signal<string | null>(null);
   protected readonly sessionStatus = signal('open');
   protected readonly turns = signal(0);
-  protected readonly correctionsUsed = signal(0);
-  protected readonly scaffoldsUsed = signal(0);
-  protected readonly scaffold = signal<CoachingScaffold | null>(null);
-  protected readonly awaitingCorrection = signal(false);
-  protected readonly trainMode = signal(true);
-  protected readonly statusLabel = computed(() => {
-    switch (this.sessionStatus()) {
-      case 'open':
-        return 'Open';
-      case 'needs_correction':
-        return 'Needs correction';
-      case 'escalated':
-        return 'Escalated';
-      default:
-        return this.sessionStatus();
-    }
-  });
+  protected readonly statusLabel = computed(() =>
+    this.sessionStatus() === 'open' ? 'Open' : 'Answered',
+  );
 
   private messageId = 0;
+  private controller?: AbortController;
 
   ngOnInit(): void {
     if (!isPlatformBrowser(this.platformId)) {
@@ -74,13 +80,7 @@ export class ParentingChat implements OnInit {
       this.sessionId.set(session.id);
       this.sessionStatus.set(session.status);
       this.turns.set(session.turns);
-      this.correctionsUsed.set(session.corrections_used);
-      this.scaffoldsUsed.set(session.scaffold_failures);
     });
-  }
-
-  protected toggleTrainMode(): void {
-    this.trainMode.set(!this.trainMode());
   }
 
   protected onDraft(value: string): void {
@@ -100,10 +100,6 @@ export class ParentingChat implements OnInit {
       return;
     }
     this.draft.set('');
-    if (this.awaitingCorrection()) {
-      this.submitCorrection(text);
-      return;
-    }
     this.appendMessage({
       id: this.nextMessageId(),
       role: 'parent',
@@ -112,51 +108,60 @@ export class ParentingChat implements OnInit {
       source: null,
       confidence: null,
     });
-    this.isTyping.set(true);
-    this.awaitingCorrection.set(false);
     const sessionId = this.sessionId();
     if (!sessionId) {
-      this.isTyping.set(false);
-      return;
-    }
-    this.parentingApi.sendCoachingTurn(sessionId, text).subscribe({
-      next: (turn) => this.handleTurn(turn),
-      error: () => this.isTyping.set(false),
-    });
-  }
-
-  protected submitCorrection(correction: string): void {
-    const sessionId = this.sessionId();
-    if (!sessionId || this.isTyping()) {
       return;
     }
     this.isTyping.set(true);
-    this.parentingApi.sendCoachingCorrection(sessionId, correction).subscribe({
-      next: (turn) => this.handleTurn(turn),
-      error: () => this.isTyping.set(false),
-    });
-  }
-
-  protected pickSuggestion(suggestion: string): void {
-    this.submitCorrection(suggestion);
+    this.liveTrace.set(emptyTrace());
+    this.livePhase.set('reading');
+    this.controller = new AbortController();
+    this.parentingApi
+      .streamCoachingTurn(sessionId, text, this.controller.signal)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (event) => this.handleEvent(event),
+        error: () => this.fail(),
+        complete: () => {
+          if (this.isTyping()) {
+            this.fail();
+          }
+        },
+      });
   }
 
   protected newSession(): void {
+    this.controller?.abort();
     this.parentingApi.createCoachingSession().subscribe((session) => {
       this.sessionId.set(session.id);
       this.sessionStatus.set(session.status);
       this.turns.set(session.turns);
-      this.correctionsUsed.set(session.corrections_used);
-      this.scaffoldsUsed.set(session.scaffold_failures);
       this.messages.set([]);
-      this.scaffold.set(null);
-      this.awaitingCorrection.set(false);
       this.isTyping.set(false);
+      this.clearTrace();
     });
+  }
+
+  private handleEvent(event: AnswerStreamEvent<CoachingTurn>): void {
+    if (event.type === 'error') {
+      this.fail();
+      return;
+    }
+    if (event.type === 'answer') {
+      this.handleTurn(event.answer);
+      return;
+    }
+    const phase = phaseFor(event);
+    if (phase) {
+      this.livePhase.set(phase);
+    }
+    this.liveTrace.update((trace) => applyStreamEvent(trace, event));
   }
 
   private handleTurn(turn: CoachingTurn): void {
     this.isTyping.set(false);
+    this.clearTrace();
+    this.controller = undefined;
     if (turn.answer) {
       this.appendMessage({
         id: this.nextMessageId(),
@@ -165,17 +170,22 @@ export class ParentingChat implements OnInit {
         timestamp: new Date().toISOString(),
         source: turn.answer.source,
         confidence: turn.answer.confidence,
+        understanding: turn.understanding ?? null,
+        reveal: true,
       });
     }
-    if (turn.scaffold && this.trainMode()) {
-      this.scaffold.set(turn.scaffold);
-      this.scaffoldsUsed.update((value) => value + 1);
-      this.awaitingCorrection.set(true);
-    } else {
-      this.scaffold.set(null);
-      this.awaitingCorrection.set(false);
-    }
     this.sessionStatus.set(turn.status);
+  }
+
+  private fail(): void {
+    this.isTyping.set(false);
+    this.clearTrace();
+    this.controller = undefined;
+  }
+
+  private clearTrace(): void {
+    this.liveTrace.set(emptyTrace());
+    this.livePhase.set(null);
   }
 
   private appendMessage(message: CoachingMessage): void {

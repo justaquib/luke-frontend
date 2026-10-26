@@ -19,6 +19,7 @@ import { RightSidebarService } from '../shared/right-sidebar.service';
 import { ChatAnswerDetails } from './chat-answer-details';
 import { ChatComposer } from './chat-composer';
 import { ChatMessages } from './chat-messages';
+import { ChatService } from './chat.service';
 import { ChatSessionService } from './chat-session.service';
 import { ChatSidebar } from './chat-sidebar';
 import type { ChatMessage as ChatMessageModel } from './chat.types';
@@ -45,6 +46,7 @@ const ANSWER_DETAILS_OWNER = 'chat-answer';
 export class ChatUI {
   protected readonly design = inject(DesignService);
   private readonly session = inject(ChatSessionService);
+  private readonly service = inject(ChatService);
   private readonly info = inject(PageInfoService);
   private readonly sidebar = inject(RightSidebarService);
   private readonly destroyRef = inject(DestroyRef);
@@ -84,6 +86,7 @@ export class ChatUI {
       });
     });
     this.destroyRef.onDestroy(() => {
+      this.service.stop();
       this.info.setContextTitle(null);
       this.sidebar.clearDetails(ANSWER_DETAILS_OWNER);
     });

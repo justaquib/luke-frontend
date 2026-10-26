@@ -13,6 +13,19 @@
     <p class="answer-text">{{ message().text }}</p>
   </section>
 
+  @if (hasUnderstanding()) {
+    <section class="detail-section">
+      <h3 class="section-label">How this answer was found</h3>
+      <app-answer-pipeline [trace]="trace()" [live]="false" />
+      @if (grammarNotes().length) {
+        <p class="detail-note">Grammar check: {{ grammarNotes().join('; ') }}</p>
+      }
+      @if (verification()) {
+        <p class="detail-note">{{ verification() }}</p>
+      }
+    </section>
+  }
+
   <dl class="record">
     <div class="record-row">
       <dt>Source</dt>
@@ -78,14 +91,5 @@
         Enable {{ message().disabledExternalSources?.join(' and ') }} in Settings</a
       >
     </p>
-  }
-
-  @if (question(); as asked) {
-    <app-chat-answer-trace [question]="asked" [source]="message().source" />
-  } @else {
-    <section class="detail-section">
-      <h3 class="section-label">How the model reads this question</h3>
-      <p class="detail-note">No question was recorded, so there is nothing to trace.</p>
-    </section>
   }
 </section>

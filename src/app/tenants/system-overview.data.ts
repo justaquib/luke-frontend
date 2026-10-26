@@ -100,7 +100,14 @@ export const SYSTEM_PACKAGES: SystemPackage[] = [
     name: 'torch',
     area: 'Backend',
     purpose:
-      'The library the brain is trained with: the transformer that writes in the trainer’s own words.',
+      'The library the word model is trained and served with: it learns the next word of the learner’s sentences and is kept for that feature only.',
+    kind: 'runtime',
+  },
+  {
+    name: 'nltk',
+    area: 'Backend',
+    purpose:
+      'The offline English dictionary (WordNet) Luke reads each question with: word meanings, parts of speech and synonyms, with no network call.',
     kind: 'runtime',
   },
   {

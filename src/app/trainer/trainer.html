@@ -20,9 +20,7 @@
       >
         <app-icon name="inbox" [size]="14" />
         Inbox
-        @if (pendingCount() > 0) {
-          <span class="tab-count">{{ pendingCount() }}</span>
-        }
+        <span class="tab-count" [hidden]="pendingCount() === 0">{{ pendingCount() }}</span>
       </button>
       <button
         type="button"
@@ -33,9 +31,7 @@
       >
         <app-icon name="book" [size]="14" />
         Trained
-        @if (faqCount() > 0) {
-          <span class="tab-count">{{ faqCount() }}</span>
-        }
+        <span class="tab-count" [hidden]="faqCount() === 0">{{ faqCount() }}</span>
       </button>
       <button
         type="button"
@@ -46,9 +42,9 @@
       >
         <app-icon name="merge" [size]="14" />
         Merge
-        @if (intentGroups().length > 0) {
-          <span class="tab-count">{{ intentGroups().length }}</span>
-        }
+        <span class="tab-count" [hidden]="intentGroups().length === 0">{{
+          intentGroups().length
+        }}</span>
       </button>
       <button
         type="button"
@@ -59,9 +55,7 @@
       >
         <app-icon name="file" [size]="14" />
         Documents
-        @if (documents().length > 0) {
-          <span class="tab-count">{{ documents().length }}</span>
-        }
+        <span class="tab-count" [hidden]="documents().length === 0">{{ documents().length }}</span>
       </button>
     </nav>
 

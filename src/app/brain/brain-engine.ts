@@ -28,7 +28,7 @@ export class BrainEngine {
 
   protected readonly lastTrained = computed<number | null>(() => {
     const engine = this.engine();
-    return engine?.answer.trained_at ?? engine?.words.trained_at ?? null;
+    return engine?.words.trained_at ?? null;
   });
 
   protected readonly checkpoint = computed(() => {
@@ -37,18 +37,17 @@ export class BrainEngine {
   });
 
   protected readonly corpus = computed(() => {
-    const corpus = this.engine()?.answer.corpus;
+    const corpus = this.engine()?.words.corpus;
     if (corpus?.sentences === undefined) return 'Not measured yet';
     const parts = [`${corpus.sentences} sentences`];
     if (corpus.instructions !== undefined) parts.push(`${corpus.instructions} requests`);
-    if (corpus.contexts !== undefined) parts.push(`${corpus.contexts} with material`);
     return parts.join(' · ');
   });
 
   protected readonly weights = computed(() => {
     const memory = this.engine()?.memory;
     if (!memory) return 'Not measured yet';
-    const bytes = (memory.answer_bytes ?? 0) + (memory.words_bytes ?? 0);
+    const bytes = memory.words_bytes ?? 0;
     if (!bytes) return 'No checkpoint yet';
     const size =
       bytes >= 1024 * 1024

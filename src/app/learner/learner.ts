@@ -12,6 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
   ApiService,
@@ -23,11 +24,20 @@ import {
   LanguagePreviewResponse,
   LanguageTest,
   LanguageTestFinishResult,
-  QueryReasoning,
 } from '../core/api.service';
+import type { AnswerStreamEvent, LanguagePreview } from '../core/api/api-models';
 import { LanguageModelApiService, LessonKind } from '../core/api/language-model-api.service';
+import { LearnerChatTurnCard, type LearnerChatTurn } from './learner-chat-turn';
 import { LearnerDetails, type LearnerDetailsModel } from './learner-details';
 import { LessonEntryMode, LessonForm } from './lesson-form';
+import { AnswerPipeline } from '../shared/answer-pipeline';
+import {
+  type AnswerTrace,
+  type PipelinePhase,
+  applyStreamEvent,
+  emptyTrace,
+  phaseFor,
+} from '../shared/answer-trace';
 import { AppCardInfo } from '../shared/app-card-info';
 import { AppIcon } from '../shared/app-icon';
 import { AppShell } from '../shared/app-shell';
@@ -121,7 +131,17 @@ interface LearnerSearchResult {
 @Component({
   selector: 'app-learner',
   standalone: true,
-  imports: [CommonModule, FormsModule, AppShell, AppIcon, AppCardInfo, LessonForm, LearnerDetails],
+  imports: [
+    CommonModule,
+    FormsModule,
+    AnswerPipeline,
+    AppShell,
+    AppIcon,
+    AppCardInfo,
+    LearnerChatTurnCard,
+    LessonForm,
+    LearnerDetails,
+  ],
   templateUrl: './learner.html',
   styleUrls: [
     './learner.css',
@@ -181,15 +201,11 @@ export class Learner implements OnInit {
   protected readonly languageTestResult = signal<LanguageTestFinishResult['result'] | null>(null);
   protected readonly languageTestBusy = signal(false);
   protected readonly learnerChatDraft = signal('');
-  protected readonly learnerChatMessages = signal<
-    Array<{
-      question: string;
-      answer: string;
-      source: LanguagePreviewResponse['source'];
-      reasoning?: QueryReasoning | null;
-    }>
-  >([]);
+  protected readonly learnerChatMessages = signal<LearnerChatTurn[]>([]);
   protected readonly learnerChatBusy = signal(false);
+  protected readonly learnerPipeline = signal<AnswerTrace>(emptyTrace());
+  protected readonly learnerPipelinePhase = signal<PipelinePhase | null>(null);
+  private learnerController?: AbortController;
   protected readonly learnerMatchPrompt = signal<{
     question: string;
     candidates: NonNullable<LanguagePreviewResponse['candidates']>;
@@ -656,31 +672,68 @@ export class Learner implements OnInit {
   private queryLanguageLearner(question: string, skipTrainer = false) {
     this.learnerChatBusy.set(true);
     this.languageModelError.set(null);
-    this.languageApi.previewLanguageAnswer(question, skipTrainer).subscribe({
-      next: (result: any) => {
-        if (result.needs_clarification && result.candidates?.length) {
-          this.learnerMatchPrompt.set({ question, candidates: result.candidates });
-        } else {
-          this.learnerChatMessages.update((messages) =>
-            [
-              ...messages,
-              {
-                question,
-                answer: result.answer,
-                source: result.source,
-                reasoning: result.reasoning ?? null,
-              },
-            ].slice(-30),
-          );
-        }
-        this.learnerChatDraft.set('');
-        this.learnerChatBusy.set(false);
-      },
-      error: (error: Error) => {
-        this.languageModelError.set(error.message);
-        this.learnerChatBusy.set(false);
-      },
-    });
+    this.learnerPipeline.set(emptyTrace());
+    this.learnerPipelinePhase.set('reading');
+    this.learnerController = new AbortController();
+    this.languageApi
+      .streamPreview(question, skipTrainer, this.learnerController.signal)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (event) => this.handleLearnerEvent(question, event),
+        error: (error: Error) => this.failLearner(error.message),
+        complete: () => {
+          if (this.learnerChatBusy()) {
+            this.failLearner('The answer stopped before it was finished. Please ask again.');
+          }
+        },
+      });
+  }
+
+  private handleLearnerEvent(question: string, event: AnswerStreamEvent<LanguagePreview>): void {
+    if (event.type === 'error') {
+      this.failLearner(event.message);
+      return;
+    }
+    if (event.type === 'answer') {
+      const result = event.answer;
+      if (result.needs_clarification && result.candidates?.length) {
+        this.learnerMatchPrompt.set({ question, candidates: result.candidates });
+      } else {
+        this.learnerChatMessages.update((messages) =>
+          [
+            ...messages,
+            {
+              question,
+              answer: result.answer,
+              source: result.source,
+              reasoning: result.reasoning ?? null,
+              understanding: result.understanding ?? null,
+              reveal: true,
+            },
+          ].slice(-30),
+        );
+      }
+      this.learnerChatDraft.set('');
+      this.finishLearnerTurn();
+      return;
+    }
+    const phase = phaseFor(event);
+    if (phase) {
+      this.learnerPipelinePhase.set(phase);
+    }
+    this.learnerPipeline.update((trace) => applyStreamEvent(trace, event));
+  }
+
+  private failLearner(message: string): void {
+    this.languageModelError.set(message);
+    this.finishLearnerTurn();
+  }
+
+  private finishLearnerTurn(): void {
+    this.learnerChatBusy.set(false);
+    this.learnerController = undefined;
+    this.learnerPipeline.set(emptyTrace());
+    this.learnerPipelinePhase.set(null);
   }
 
   chooseLearnerTrainerAnswer(
@@ -688,12 +741,12 @@ export class Learner implements OnInit {
   ) {
     const prompt = this.learnerMatchPrompt();
     if (!prompt) return;
-    this.learnerChatMessages.update((messages) =>
-      [
-        ...messages,
-        { question: prompt.question, answer: candidate.answer, source: 'trainer' },
-      ].slice(-30),
-    );
+    const turn: LearnerChatTurn = {
+      question: prompt.question,
+      answer: candidate.answer,
+      source: 'trainer',
+    };
+    this.learnerChatMessages.update((messages) => [...messages, turn].slice(-30));
     this.learnerMatchPrompt.set(null);
   }
 
@@ -707,26 +760,6 @@ export class Learner implements OnInit {
   reviewSimilarQuestionsInTrainer() {
     this.learnerMatchPrompt.set(null);
     void this.router.navigate(['/dashboard/trainer'], { queryParams: { tab: 'merge' } });
-  }
-
-  learnerAnswerSourceLabel(source: LanguagePreviewResponse['source']): string {
-    const labels: Record<string, string> = {
-      assistant_profile: 'Assistant profile',
-      dictionary: 'Offline dictionary',
-      faq: 'Trainer-approved answer',
-      learner: 'Learner curriculum',
-      lesson_cards: 'Lesson knowledge',
-      letters: 'Letter learning',
-      not_learned: 'Not learned yet',
-      number_cards: 'Number cards',
-      sentence_examples: 'Learned sentence examples',
-      sentence_patterns: 'Learned sentence patterns',
-      taught: 'Taught lesson',
-      trainer: 'Trainer-approved answer',
-      word_cards: 'Learned word',
-      written: 'Written from a lesson',
-    };
-    return labels[source] ?? 'Learner knowledge';
   }
 
   languageStageTitle(stageId: string): string {

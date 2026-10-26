@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { AnswerReveal } from '../shared/answer-reveal';
 import { AppIcon } from '../shared/app-icon';
 import { ChatMessageMeta } from './chat-message-meta';
 import { ChatService } from './chat.service';
@@ -7,7 +8,7 @@ import type { ChatMessage as ChatMessageModel } from './chat.types';
 @Component({
   selector: 'app-chat-message',
   standalone: true,
-  imports: [AppIcon, ChatMessageMeta],
+  imports: [AnswerReveal, AppIcon, ChatMessageMeta],
   templateUrl: './chat-message.html',
   styleUrls: ['./styles/chat-message.css', './styles/chat-bubble.css', '../shared/controls.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -15,6 +16,7 @@ import type { ChatMessage as ChatMessageModel } from './chat.types';
 export class ChatMessage {
   readonly message = input.required<ChatMessageModel>();
   readonly openDetails = output<ChatMessageModel>();
+  readonly revealAdvanced = output<void>();
 
   protected readonly service = inject(ChatService);
 

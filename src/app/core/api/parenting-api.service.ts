@@ -1,15 +1,17 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { type Observable } from 'rxjs';
+import { AnswerStreamService } from './answer-stream.service';
 import { BaseApiService } from './base-api.service';
-import type { CoachingSession, CoachingTurn } from './api-models';
+import type { AnswerStreamEvent, CoachingSession, CoachingTurn } from './api-models';
 
 /**
  * The calls of the parenting coaching chat: the coach answers the parent from
- * the lessons the tenant taught, and the corrections the parent gives go back
- * to the coach until it answers well.
+ * the lessons the tenant taught.
  */
 @Injectable({ providedIn: 'root' })
 export class ParentingApiService extends BaseApiService {
+  private readonly streams = inject(AnswerStreamService);
+
   createCoachingSession(topic = 'General', childAgeBand = ''): Observable<CoachingSession> {
     return this.http.post<CoachingSession>(
       `${this.base}/parenting/chat/session`,
@@ -32,11 +34,12 @@ export class ParentingApiService extends BaseApiService {
     );
   }
 
-  sendCoachingCorrection(sessionId: string, correction: string): Observable<CoachingTurn> {
-    return this.http.post<CoachingTurn>(
-      `${this.base}/parenting/chat/session/${sessionId}/correction`,
-      { correction },
-      { headers: this.authHeaders() },
-    );
+  /** The same turn, read and connected stage by stage. */
+  streamCoachingTurn(
+    sessionId: string,
+    message: string,
+    signal?: AbortSignal,
+  ): Observable<AnswerStreamEvent<CoachingTurn>> {
+    return this.streams.streamCoachingTurn(sessionId, message, signal);
   }
 }

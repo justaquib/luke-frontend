@@ -1,6 +1,6 @@
 import type { ChatSource } from './chat.types';
 
-const SOURCE_LABELS: Readonly<Record<ChatSource, string>> = {
+const SOURCE_LABELS: Readonly<Record<string, string>> = {
   faq: 'Trained',
   docs: 'Documents',
   pending: 'Awaiting',
@@ -19,10 +19,9 @@ const SOURCE_LABELS: Readonly<Record<ChatSource, string>> = {
   taught: 'Taught lesson',
   trainer: 'Trained',
   word_cards: 'Word meanings',
-  written: 'Written answer',
 };
 
 /** The human name of the path an answer took. */
 export function chatSourceLabel(source: ChatSource | undefined): string | null {
-  return source ? SOURCE_LABELS[source] : null;
+  return source ? (SOURCE_LABELS[source] ?? source) : null;
 }

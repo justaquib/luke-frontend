@@ -1,6 +1,8 @@
-import { Injectable } from '@angular/core';
-import { catchError, type Observable } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { type Observable } from 'rxjs';
+import { AnswerStreamService } from './answer-stream.service';
 import { BaseApiService } from './base-api.service';
+import type { AnswerStreamEvent } from './api-models';
 import type {
   DuplicateLessons,
   KnowledgeGraph,
@@ -16,11 +18,9 @@ import type {
   StoreSummary,
 } from '../api.service';
 import type {
-  AnswerTrace,
   LanguageBrainDocument,
   LanguageBrainTraining,
   LanguageLevelApproval,
-  LanguageLevelTest,
   ModelSettingsDocument,
 } from './language-brain.types';
 
@@ -77,6 +77,8 @@ export interface BrainCorrection {
  */
 @Injectable({ providedIn: 'root' })
 export class LanguageModelApiService extends BaseApiService {
+  private readonly streams = inject(AnswerStreamService);
+
   storeSummary(): Observable<StoreSummary> {
     return this.http.get<StoreSummary>(`${this.base}/language-model/store`, {
       headers: this.authHeaders(),
@@ -104,9 +106,10 @@ export class LanguageModelApiService extends BaseApiService {
     });
   }
 
-  languageModelBrain(): Observable<LanguageBrainDocument> {
+  languageModelBrain(force = false): Observable<LanguageBrainDocument> {
     return this.http.get<LanguageBrainDocument>(`${this.base}/language-model/brain`, {
       headers: this.authHeaders(),
+      params: { force },
     });
   }
 
@@ -124,17 +127,6 @@ export class LanguageModelApiService extends BaseApiService {
       { name, start_level: startLevel },
       { headers: this.authHeaders() },
     );
-  }
-
-  /** The writer's real reading of one question: tokens, attention and choices. */
-  traceAnswer(question: string): Observable<AnswerTrace> {
-    return this.http
-      .post<AnswerTrace>(
-        `${this.base}/language-model/trace`,
-        { question },
-        { headers: this.authHeaders() },
-      )
-      .pipe(catchError((error) => this.handleError(error)));
   }
 
   /** What the brain has trained from, and how the training works. */
@@ -160,14 +152,6 @@ export class LanguageModelApiService extends BaseApiService {
   trainLanguageModelBrain(): Observable<LanguageBrainTraining> {
     return this.http.post<LanguageBrainTraining>(
       `${this.base}/language-model/brain/train`,
-      {},
-      { headers: this.authHeaders() },
-    );
-  }
-
-  testLanguageModelLevel(): Observable<LanguageLevelTest> {
-    return this.http.post<LanguageLevelTest>(
-      `${this.base}/language-model/brain/test`,
       {},
       { headers: this.authHeaders() },
     );
@@ -244,6 +228,15 @@ export class LanguageModelApiService extends BaseApiService {
       { question, skip_trainer: skipTrainer },
       { headers: this.authHeaders() },
     );
+  }
+
+  /** The same preview, read and connected stage by stage. */
+  streamPreview(
+    question: string,
+    skipTrainer = false,
+    signal?: AbortSignal,
+  ): Observable<AnswerStreamEvent<LanguagePreviewResponse>> {
+    return this.streams.streamPreview(question, skipTrainer, signal);
   }
 
   startLanguageTest(stage: string, kind: string): Observable<LanguageTestStart> {

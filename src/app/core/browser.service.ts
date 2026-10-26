@@ -96,4 +96,11 @@ export class BrowserService {
     }
     window.requestAnimationFrame(callback);
   }
+
+  prefersReducedMotion(): boolean {
+    if (!this.isBrowser() || typeof window.matchMedia !== 'function') {
+      return false;
+    }
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
 }

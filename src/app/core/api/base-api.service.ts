@@ -14,7 +14,7 @@ export abstract class BaseApiService {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
-  protected handleError(err: unknown): Observable<never> {
+  protected errorMessage(err: unknown): string {
     let message = 'Could not reach the assistance backend.';
     const httpError = err instanceof HttpErrorResponse ? err : null;
     if (!httpError || httpError.status === 0) {
@@ -27,6 +27,14 @@ export abstract class BaseApiService {
         message += ` (HTTP ${httpError.status})`;
       }
     }
-    return throwError(() => new Error(message));
+    return message;
+  }
+
+  protected statusMessage(status: number): string {
+    return `Could not reach the assistance backend. (HTTP ${status})`;
+  }
+
+  protected handleError(err: unknown): Observable<never> {
+    return throwError(() => new Error(this.errorMessage(err)));
   }
 }

@@ -1,4 +1,4 @@
-import type { ModelLevel, ModelLevelRung } from './api.types';
+import type { ModelLevel } from './api.types';
 
 /** How far one part of a training has come. */
 export type TrainingStageStatus = 'waiting' | 'working' | 'done';
@@ -53,7 +53,7 @@ export interface ModelReport {
   token_count?: number;
   transition_count?: number;
   dropped_sentences?: number;
-  corpus?: { sentences?: number; instructions?: number; contexts?: number };
+  corpus?: { sentences?: number; instructions?: number };
 }
 
 /** The word model adds the backend that serves and why. */
@@ -77,19 +77,16 @@ export interface BrainRun {
 
 /** The checkpoint sizes, and whether a model has been built from them yet. */
 export interface BrainMemoryReport {
-  answer_bytes: number;
   words_bytes: number;
-  answer_loaded?: boolean;
   words_loaded?: boolean;
   loaded: boolean;
 }
 
-/** The engine's view of the two models, the device and the last runs. */
+/** The engine's view of the word model, the device and the last runs. */
 export interface BrainEngineState {
   schema: number;
   device: string;
   torch: string;
-  answer: ModelReport;
   words: BrainWordReport;
   memory?: BrainMemoryReport;
   runs: BrainRun[];
@@ -99,8 +96,10 @@ export interface BrainEngineState {
 export interface LanguageBrainState {
   trained: boolean;
   vocabulary: number;
-  transformer: ModelReport;
-  transformer_ready: boolean;
+  words: BrainWordReport;
+  words_ready: boolean;
+  backend: string;
+  backend_reason: string;
   training: boolean;
   progress: TrainingProgress | null;
   emotions: string[];
@@ -125,24 +124,7 @@ export interface LanguageBrainDocument extends LanguageBrainState {
 /** The POST /brain/train answer: the state, and whether a child is training. */
 export interface LanguageBrainTraining {
   state: LanguageBrainDocument;
-  sentence: string | null;
   training: boolean;
-}
-
-/** The result of running the level tests again. */
-export interface LanguageLevelTest {
-  state: LanguageBrainDocument;
-  rungs: ModelLevelRung[];
-  instruction: {
-    score: number;
-    passed: number;
-    total: number;
-    measured: boolean;
-    written?: number;
-    looked_up?: number;
-  };
-  passed: number;
-  total: number;
 }
 
 /** The state after the trainer approves the measured level. */
@@ -158,70 +140,6 @@ export interface ModelVersion {
   name: string;
   title: string;
   description: string;
-}
-
-/** One token the writer read, with its id in the vocabulary. */
-export interface TraceToken {
-  id: number;
-  token: string;
-}
-
-/** The shape of the model the trace was measured on. */
-export interface TraceModel {
-  layers: number;
-  heads: number;
-  d_model: number;
-  context: number;
-  vocabulary: number;
-  parameters: number;
-  device: string;
-}
-
-/** The learned vector of one token, previewed. */
-export interface TraceEmbeddingToken {
-  token: string;
-  values: number[];
-  norm: number;
-}
-
-/** One scored word and its probability. */
-export interface TraceCandidate {
-  token: string;
-  probability: number;
-}
-
-/** The word the writer chose, and the scores it chose from. */
-export interface TraceChoice {
-  token: string;
-  probability: number;
-  candidates: TraceCandidate[];
-}
-
-/** Attention of every layer and head, over the tokens that were read. */
-export interface TraceAttention {
-  tokens: string[];
-  layers: number[][][][];
-}
-
-/** The writer's own run on the question. */
-export interface TraceGeneration {
-  steps: TraceChoice[];
-  text: string | null;
-  stop: 'end' | 'limit';
-  seconds: number;
-}
-
-/** The measured reading of the writer, or why there is none. */
-export interface AnswerTrace {
-  trained: boolean;
-  reason?: string;
-  model?: TraceModel;
-  reading?: { tokens: TraceToken[]; words: number };
-  embeddings?: { dimensions: number; preview: number; tokens: TraceEmbeddingToken[] };
-  attention?: TraceAttention;
-  next?: TraceChoice | null;
-  generation?: TraceGeneration;
-  measured_at?: number;
 }
 
 /** The name the model answers to and the version it starts from. */

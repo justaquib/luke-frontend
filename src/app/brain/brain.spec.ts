@@ -14,7 +14,7 @@ describe('Brain', () => {
     }).compileComponents();
   });
 
-  it('reads the engine and both models from the flat state', async () => {
+  it('reads the engine and the word model from the flat state', async () => {
     const fixture = TestBed.createComponent(Brain);
     const http = TestBed.inject(HttpTestingController);
     await read(fixture, http, trainedBrain());
@@ -28,9 +28,10 @@ describe('Brain', () => {
 
     const text = compiled.textContent ?? '';
     expect(text).toContain('Held-out loss');
-    expect(text).toContain('4.371');
-    expect(text).toContain('7.463');
+    expect(text).toContain('3.100');
+    expect(text).toContain('6.900');
     expect(text).toContain('neural');
+    expect(text).toContain('50%');
     expect(text).toContain('35% of 1.0.0');
     expect(text).toContain('Ladder to 1.0.0');
     expect(text).toContain('1 of 4 passed');
@@ -87,21 +88,17 @@ describe('Brain', () => {
     expect(trainButton).toBeTruthy();
 
     testButton?.click();
-    const tested = http.expectOne((req) => req.url.endsWith('/language-model/brain/test'));
-    expect(tested.request.method).toBe('POST');
-    tested.flush({
-      state: brain(),
-      rungs: [],
-      instruction: { score: 0.5, passed: 6, total: 12, measured: true },
-      passed: 3,
-      total: 9,
-    });
+    const tested = http.expectOne(
+      (req) => req.url.endsWith('/language-model/brain') && req.params.get('force') === 'true',
+    );
+    expect(tested.request.method).toBe('GET');
+    tested.flush(brain());
     fixture.detectChanges();
 
     trainButton?.click();
     const trained = http.expectOne((req) => req.url.endsWith('/language-model/brain/train'));
     expect(trained.request.method).toBe('POST');
-    trained.flush({ state: brain(), sentence: 'a cat sat', training: false });
+    trained.flush({ state: brain(), training: false });
     fixture.detectChanges();
   });
 
@@ -119,7 +116,7 @@ describe('Brain', () => {
     trainButton?.click();
 
     const trained = http.expectOne((req) => req.url.endsWith('/language-model/brain/train'));
-    trained.flush({ state: brain({ training: true }), sentence: null, training: true });
+    trained.flush({ state: brain({ training: true }), training: true });
     fixture.detectChanges();
 
     // The panel is open in the shared sidebar, so the trainer can see what it
