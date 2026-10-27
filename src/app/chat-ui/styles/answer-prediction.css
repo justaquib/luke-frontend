@@ -1,4 +1,4 @@
-/* The selected model's read of the question: attention and next words. */
+/* The selected model's read of the question and the answer. */
 :host {
   display: block;
 }
@@ -19,49 +19,15 @@
 
 .section-head {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   gap: 8px;
 }
 
-.icon-text {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.next-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.next-item {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  padding: 3px 8px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface-2);
-}
-
-.next-word {
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 12px;
-}
-
-.next-prob {
+.section-meta {
   color: var(--faint);
+  font-family: var(--mono);
   font-size: 10px;
-}
-
-.prediction-error {
-  color: var(--bad);
 }
 
 .detail-note {
@@ -71,7 +37,29 @@
   line-height: 1.55;
 }
 
-.mono {
-  font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
+.training-callout {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.training-link {
+  justify-self: start;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.training-link:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.training-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }

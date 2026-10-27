@@ -231,7 +231,10 @@ describe('ChatUI', () => {
         request.flush({ training: false, trained: true, vocabulary: 12, progress: null }),
       );
     const predictions = http.match((request) => request.url.endsWith('/language-model/predict'));
-    expect(predictions.length).toBe(1);
+    expect(predictions.map((request) => (request.request.body as { text: string }).text)).toEqual([
+      'Why is the sky blue?',
+      'Sunlight scatters shorter blue wavelengths more strongly.',
+    ]);
     predictions.forEach((request) => request.flush(prediction()));
 
     await fixture.whenStable();
@@ -245,6 +248,8 @@ describe('ChatUI', () => {
     expect(text).toContain('Sunlight scatters shorter blue wavelengths');
     expect(text).toContain('Documents');
     expect(text).toContain('Rayleigh scattering makes the sky blue.');
+    expect(sidebar?.querySelectorAll('app-heat-read').length).toBe(2);
+    expect(sidebar?.querySelectorAll('.heat-grid').length).toBe(2);
     expect(text).not.toContain('What the writer read');
   });
 

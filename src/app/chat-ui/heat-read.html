@@ -1,0 +1,46 @@
+<article class="heat-read">
+  <header class="read-head">
+    <div class="read-title">
+      <h4 class="read-label">{{ label() }}</h4>
+      @if (hint()) {
+        <p class="read-hint">{{ hint() }}</p>
+      }
+    </div>
+    <button
+      type="button"
+      class="read-action icon-text"
+      (click)="inspect.emit()"
+      [disabled]="!prediction()"
+      [title]="'Open the ' + label().toLowerCase() + ' heatmap in the prediction lab'"
+    >
+      <app-icon name="play" [size]="12" />
+      Open in lab
+    </button>
+  </header>
+
+  @if (loading()) {
+    <p class="read-note">Reading with {{ modelName() }}…</p>
+  } @else if (error(); as problem) {
+    <div class="read-failed">
+      <p class="read-note read-error">{{ problem }}</p>
+      <button type="button" class="read-action" (click)="retry.emit()">Try again</button>
+    </div>
+  } @else if (prediction(); as current) {
+    <app-word-heatmap [tokens]="current.tokens" [attention]="current.attention" />
+    @if (current.next.length) {
+      <ul class="next-list" aria-label="Words the model expects after this text">
+        @for (next of current.next; track next.word) {
+          <li class="next-item">
+            <span class="next-word">{{ next.word }}</span>
+            <span class="next-prob mono">{{ percent(next.probability) }}</span>
+          </li>
+        }
+      </ul>
+    }
+    @if (shape(); as measured) {
+      <p class="read-meta mono">{{ measured }}</p>
+    }
+  } @else {
+    <p class="read-note">{{ empty() }}</p>
+  }
+</article>

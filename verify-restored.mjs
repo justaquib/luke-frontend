@@ -273,6 +273,10 @@ console.log(
   'record',
   JSON.stringify((await page.locator('.answer-details .record').innerText()).split('\n')),
 );
+console.log(
+  'heat reads',
+  JSON.stringify(await page.locator('.answer-details app-heat-read .read-label').allTextContents()),
+);
 console.log('heat cells', await page.locator('.answer-details .heat-cell').count());
 console.log(
   'next words',
@@ -281,8 +285,9 @@ console.log(
 console.log('predict requests for the details', predictRequests);
 await page.screenshot({ path: '/tmp/luke-details-1440.png' });
 
-await page.getByRole('button', { name: 'Prediction lab' }).click();
+await page.locator('app-heat-read').nth(1).getByRole('button', { name: 'Open in lab' }).click();
 await page.waitForSelector('.lab');
+console.log('lab prefix', JSON.stringify(await page.locator('.lab-prefix').inputValue()));
 console.log(
   'lab next words',
   JSON.stringify(await page.locator('.lab-next .next-word').allInnerTexts()),
@@ -310,6 +315,7 @@ await page.screenshot({ path: '/tmp/luke-lab-typed-1440.png' });
 await page.getByRole('button', { name: 'Close', exact: true }).click();
 await page.waitForTimeout(200);
 await overflow('chat 1440');
+await page.screenshot({ path: '/tmp/luke-chat-1440.png' });
 
 await page.setViewportSize({ width: 1024, height: 768 });
 await page.waitForTimeout(200);

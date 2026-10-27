@@ -16,7 +16,9 @@ import type {
 import { ModelApiService } from '../core/api/model-api.service';
 import { AppIcon } from '../shared/app-icon';
 import { UiService } from '../shared/ui.service';
+import { LukePackage } from './luke-package';
 import { SavedTeachers } from './saved-teachers';
+import { TrainerTransfer } from './trainer-transfer';
 
 const DEFAULT_STEPS = 200;
 const POLL_MS = 2000;
@@ -29,7 +31,7 @@ const POLL_MS = 2000;
 @Component({
   selector: 'app-trainer-base',
   standalone: true,
-  imports: [AppIcon, SavedTeachers],
+  imports: [AppIcon, LukePackage, SavedTeachers, TrainerTransfer],
   templateUrl: './trainer-base.html',
   styleUrls: ['./styles/trainer-base.css', '../shared/controls.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,

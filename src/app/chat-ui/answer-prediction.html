@@ -1,44 +1,52 @@
-<section class="detail-section prediction-section">
+<section class="detail-section prediction-section" aria-label="Model attention">
   <div class="section-head">
-    <h3 class="section-label">Next-word prediction</h3>
-    <button
-      type="button"
-      class="ghost small icon-text"
-      (click)="labOpen.set(true)"
-      title="Open the prediction lab"
-    >
-      <app-icon name="play" [size]="12" />
-      Prediction lab
-    </button>
+    <h3 class="section-label">Model attention</h3>
+    <span class="section-meta">{{ predictionModelName() }}</span>
   </div>
-  <p class="detail-note">
-    {{ predictionModelName() }} reads this question word by word. Open the lab to replace a word or
-    pick the next one.
-  </p>
-  @if (predictionLoading()) {
-    <p class="detail-note">Reading the question with {{ predictionModelName() }}…</p>
-  } @else if (predictionError(); as problem) {
-    <p class="detail-note prediction-error">{{ problem }}</p>
-  } @else if (prediction(); as current) {
-    <app-word-heatmap [tokens]="current.tokens" [attention]="current.attention" />
-    @if (current.next.length) {
-      <ul class="next-list">
-        @for (next of current.next; track next.word) {
-          <li class="next-item">
-            <span class="next-word">{{ next.word }}</span>
-            <span class="next-prob mono">{{ percent(next.probability) }}</span>
-          </li>
-        }
-      </ul>
-    }
+  @if (!needsTraining()) {
+    <p class="detail-note">
+      The words {{ predictionModelName() }} read and what it expected next. Open either heatmap in
+      the lab to replace a word and watch the prediction change.
+    </p>
+  }
+
+  @if (needsTraining()) {
+    <div class="training-callout" role="status">
+      <p class="detail-note">
+        This workspace has no trained word model yet, so there is no attention to measure. Open the
+        Assistance Brain, train it, then open this answer again.
+      </p>
+      <a class="training-link" routerLink="/dashboard/brain">Open the Assistance Brain</a>
+    </div>
   } @else {
-    <p class="detail-note">There is no prefix to predict from.</p>
+    <app-heat-read
+      label="Question"
+      [hint]="questionText()"
+      [modelName]="predictionModelName()"
+      [prediction]="questionRead().prediction"
+      [loading]="questionRead().loading"
+      [error]="questionRead().error"
+      empty="No question was recorded before this answer."
+      (inspect)="openLab(questionText())"
+      (retry)="retry()"
+    />
+
+    <app-heat-read
+      label="Answer"
+      [modelName]="predictionModelName()"
+      [prediction]="answerRead().prediction"
+      [loading]="answerRead().loading"
+      [error]="answerRead().error"
+      empty="This answer is empty."
+      (inspect)="openLab(answerText())"
+      (retry)="retry()"
+    />
   }
 </section>
 
 <app-prediction-lab
   [open]="labOpen()"
-  [seed]="seed()"
+  [seed]="labSeed()"
   [model]="predictionModel()"
   [modelName]="predictionModelName()"
   (closed)="labOpen.set(false)"

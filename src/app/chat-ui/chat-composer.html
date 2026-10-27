@@ -1,49 +1,114 @@
 <footer class="composer">
-  <div class="composer-model">
-    <label class="model-pick">
-      <app-icon name="layers" [size]="13" />
-      <span class="model-pick-label">Model</span>
-      <select
-        class="model-select"
-        [value]="models.selectedId()"
-        (change)="models.select($any($event.target).value)"
-        [disabled]="service.isTyping()"
-        [title]="models.error() || 'The model that answers the next message'"
-        aria-label="Model that answers"
-      >
-        @for (model of models.models(); track model.id) {
-          <option
-            [value]="model.id"
-            [selected]="model.id === models.selectedId()"
-            [disabled]="!model.ready"
-          >
-            {{ model.name }}{{ model.ready ? '' : ' (not trained)' }}
-          </option>
-        }
-      </select>
-    </label>
-  </div>
+  <div class="composer-inner">
+    <div class="composer-box" [class.answering]="service.isTyping()">
+      <textarea
+        #input
+        class="composer-input"
+        rows="2"
+        [placeholder]="'Message ' + prefs.botName() + '…'"
+        [value]="draft()"
+        (input)="onInput($any($event.target))"
+        (keydown)="onKeydown($event)"
+        (focus)="sources.open = false"
+        aria-label="Message input"
+      ></textarea>
 
-  <div class="composer-row">
-    <textarea
-      class="composer-input"
-      rows="1"
-      placeholder="Message {{ prefs.botName() }}…"
-      [value]="draft()"
-      (input)="onInput($any($event.target).value)"
-      (keydown)="onKeydown($event)"
-      [disabled]="service.isTyping()"
-      aria-label="Message input"
-    ></textarea>
-    <button
-      type="button"
-      class="send-btn"
-      (click)="send()"
-      [disabled]="!draft().trim() || service.isTyping()"
-      aria-label="Send message"
-      title="Send message"
-    >
-      <app-icon name="send" [size]="16" />
-    </button>
+      <div class="composer-tools">
+        <div class="tools-start">
+          <button
+            type="button"
+            class="tool-btn new-chat-btn"
+            (click)="newChat()"
+            [disabled]="service.isTyping()"
+            aria-label="New chat"
+            title="New chat"
+          >
+            <app-icon name="plus" [size]="16" />
+          </button>
+
+          <details #sources class="sources">
+            <summary
+              class="tool-pill"
+              (keydown.escape)="sources.open = false"
+              [attr.aria-label]="sourcesLabel()"
+              title="Live sources for questions the material cannot answer"
+            >
+              <app-icon name="sliders" [size]="14" />
+              <span class="tool-label">{{ sourcesLabel() }}</span>
+              <app-icon name="chevron-down" [size]="12" class="chev" />
+            </summary>
+            <div class="sources-menu">
+              <p class="sources-title">Live sources</p>
+              <label class="source-row">
+                <input
+                  type="checkbox"
+                  [checked]="integrations.weatherEnabled()"
+                  (change)="setWeather($any($event.target).checked)"
+                />
+                <span>Weather</span>
+              </label>
+              <label class="source-row">
+                <input
+                  type="checkbox"
+                  [checked]="integrations.wikiEnabled()"
+                  (change)="setWiki($any($event.target).checked)"
+                />
+                <span>Wiki</span>
+              </label>
+              <p class="sources-note">Used only when the taught material has no answer.</p>
+            </div>
+          </details>
+        </div>
+
+        <div class="tools-end">
+          <label
+            class="model-pill"
+            [title]="models.error() || 'The model that answers the next message'"
+          >
+            <app-icon name="layers" [size]="13" />
+            <select
+              class="model-select"
+              [value]="models.selectedId()"
+              (change)="models.select($any($event.target).value)"
+              aria-label="Model that answers"
+            >
+              @for (model of models.models(); track model.id) {
+                <option
+                  [value]="model.id"
+                  [selected]="model.id === models.selectedId()"
+                  [disabled]="!model.ready"
+                >
+                  {{ model.name }}{{ model.ready ? '' : ' (not trained)' }}
+                </option>
+              }
+            </select>
+            <app-icon name="chevron-down" [size]="12" class="chev" />
+          </label>
+
+          @if (service.isTyping()) {
+            <button
+              type="button"
+              class="stop-btn"
+              (click)="stop()"
+              title="Stop the answer"
+              aria-label="Stop answering"
+            >
+              <app-icon name="stop" [size]="14" />
+            </button>
+          } @else {
+            <button
+              type="button"
+              class="send-btn"
+              (click)="send()"
+              [disabled]="!draft().trim()"
+              aria-label="Send message"
+              title="Send message · Enter"
+            >
+              <app-icon name="arrow-up" [size]="17" />
+            </button>
+          }
+        </div>
+      </div>
+    </div>
   </div>
 </footer>

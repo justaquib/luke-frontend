@@ -7,6 +7,8 @@ import type {
   HuggingFaceState,
   WordPrediction,
 } from './api-models';
+import type { LukePackagePreview } from './luke-package';
+import type { TransferState } from './transfer-models';
 
 /**
  * The models the chat can answer with, and the words one of them expects next.
@@ -67,6 +69,51 @@ export class ModelApiService extends BaseApiService {
         map((state) => this.normalised(state)),
         catchError((err) => this.handleError(err)),
       );
+  }
+
+  transfer(): Observable<TransferState> {
+    return this.http
+      .get<TransferState>(`${this.base}/language-model/huggingface/transfer`, {
+        headers: this.authHeaders(),
+      })
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  startTransfer(folder: string, limit: number): Observable<TransferState> {
+    return this.http
+      .post<TransferState>(
+        `${this.base}/language-model/huggingface/transfer`,
+        { folder, limit },
+        { headers: this.authHeaders() },
+      )
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  undoTransfer(): Observable<TransferState> {
+    return this.http
+      .post<TransferState>(
+        `${this.base}/language-model/huggingface/transfer/undo`,
+        {},
+        { headers: this.authHeaders() },
+      )
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  lukePackage(): Observable<LukePackagePreview> {
+    return this.http
+      .get<LukePackagePreview>(`${this.base}/language-model/export/preview`, {
+        headers: this.authHeaders(),
+      })
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  downloadLukePackage(): Observable<Blob> {
+    return this.http
+      .get(`${this.base}/language-model/export`, {
+        headers: this.authHeaders(),
+        responseType: 'blob',
+      })
+      .pipe(catchError((err) => this.handleError(err)));
   }
 
   /** The backend writes an empty record before a run; the page reads absence. */

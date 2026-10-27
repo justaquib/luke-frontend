@@ -1,0 +1,125 @@
+<section class="transfer-card">
+  <header class="transfer-head">
+    <div>
+      <h3>Move the teacher’s knowledge into Luke</h3>
+      <p class="hint">
+        The teacher answers every new question in your material. The answers it writes from that
+        material are saved as trained answers, so Luke keeps them after the weights are gone.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="ghost small icon-only"
+      (click)="refresh()"
+      [disabled]="loading()"
+      aria-label="Refresh the transfer"
+      title="Refresh the transfer"
+    >
+      <app-icon name="refresh" [size]="14" />
+    </button>
+  </header>
+
+  @if (teachers().length === 0) {
+    <p class="empty">
+      Fine-tune a teacher above first. The transfer needs its weights on this machine.
+    </p>
+  } @else {
+    <div class="transfer-row">
+      <label class="field teacher">
+        <span class="field-label">Teacher</span>
+        <select
+          class="select"
+          [value]="folder()"
+          (change)="select($any($event.target).value)"
+          [disabled]="running()"
+        >
+          @for (teacher of teachers(); track teacher.folder) {
+            <option [value]="teacher.folder">{{ teacher.name }}</option>
+          }
+        </select>
+      </label>
+      <label class="field limit">
+        <span class="field-label">Questions</span>
+        <input
+          class="input"
+          type="number"
+          min="1"
+          max="200"
+          [value]="limit()"
+          (input)="setLimit($any($event.target).value)"
+          [disabled]="running()"
+        />
+      </label>
+      <button
+        type="button"
+        class="primary"
+        (click)="transferKnowledge()"
+        [disabled]="busy() || !chosen() || available() === 0"
+      >
+        <app-icon name="merge" [size]="14" />
+        {{ running() ? 'Transferring…' : 'Transfer into Luke' }}
+      </button>
+    </div>
+
+    <p class="hint">
+      {{ available() }} new question(s) from {{ kinds().length }} source(s); this run asks up to
+      {{ limit() }}.
+    </p>
+
+    @if (kinds().length > 0) {
+      <div class="kinds">
+        @for (kind of kinds(); track kind.kind) {
+          <span class="chip">{{ kind.label }} · {{ kind.count }}</span>
+        }
+      </div>
+    }
+
+    @if (samples().length > 0) {
+      <details class="samples">
+        <summary>Sample questions</summary>
+        <ul>
+          @for (sample of samples(); track sample.question) {
+            <li>
+              <span class="kind">{{ kindLabel(sample.kind) }}</span>
+              {{ sample.question }}
+            </li>
+          }
+        </ul>
+      </details>
+    }
+  }
+
+  @if (run(); as report) {
+    <div class="report">
+      <div class="report-head">
+        <h4>{{ stageLabel(report) }} · {{ report.model_name }}</h4>
+        @if (canUndo()) {
+          <button type="button" class="danger small" (click)="undo()" [disabled]="busy()">
+            <app-icon name="trash" [size]="14" />
+            Undo transfer
+          </button>
+        }
+      </div>
+      <div
+        class="progress-bar"
+        role="progressbar"
+        [attr.aria-valuenow]="percent()"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        [attr.aria-label]="'Transfer progress: ' + percent() + '%'"
+      >
+        <span [style.width.%]="percent()"></span>
+      </div>
+      <p class="run-line mono">{{ runLine(report) }}</p>
+      @if (report.last_question) {
+        <div class="last-read">
+          <span class="last-question">{{ report.last_question }}</span>
+          <span class="last-answer">{{ report.last_answer }}</span>
+        </div>
+      }
+      @if (report.error) {
+        <p class="error">{{ report.error }}</p>
+      }
+    </div>
+  }
+</section>

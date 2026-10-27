@@ -64,6 +64,10 @@ export class ModelSettingsService {
   private apply(settings: ModelSettingsDocument): void {
     this._settings.set(settings);
     this._error.set(null);
-    this.prefs.setBotName(settings.name);
+    // A reply without the name keeps the current one instead of refusing the
+    // whole document, so a renamed model can never leave the chat unusable.
+    if (typeof settings.name === 'string') {
+      this.prefs.setBotName(settings.name);
+    }
   }
 }

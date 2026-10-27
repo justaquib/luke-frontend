@@ -1,0 +1,94 @@
+<section class="package-card">
+  <header class="package-head">
+    <div>
+      <h3>Download Luke</h3>
+      <p class="hint">
+        One zip with the model Luke answers with, the heads it trained and every trained answer,
+        lesson, correction and document line it learned from.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="ghost small icon-only"
+      (click)="refresh()"
+      [disabled]="loading()"
+      aria-label="Refresh the package"
+      title="Refresh the package"
+    >
+      <app-icon name="refresh" [size]="14" />
+    </button>
+  </header>
+
+  @if (loading() && !preview()) {
+    <p class="hint">Counting what the package would hold…</p>
+  }
+
+  @if (error(); as problem) {
+    <p class="error">{{ problem }}</p>
+  }
+
+  @if (preview(); as pack) {
+    <dl class="facts">
+      <div class="fact">
+        <dt>Model</dt>
+        <dd>{{ pack.model.name }} · level {{ pack.model.approved_level }}</dd>
+      </div>
+      <div class="fact">
+        <dt>Material</dt>
+        <dd class="mono">{{ pack.available }} line(s)</dd>
+      </div>
+      <div class="fact">
+        <dt>Model files</dt>
+        <dd class="mono">{{ pack.checkpoints.length }} · {{ modelBytes() }}</dd>
+      </div>
+      <div class="fact">
+        <dt>File</dt>
+        <dd class="mono file">{{ pack.filename }}</dd>
+      </div>
+    </dl>
+
+    @if (kinds().length > 0) {
+      <div class="kinds">
+        @for (kind of kinds(); track kind.kind) {
+          <span class="chip">{{ kind.label }} · {{ kind.count }}</span>
+        }
+      </div>
+    }
+
+    @if (pack.checkpoints.length === 0) {
+      <p class="note">
+        Luke has no checkpoint yet. The package still holds the material and state, so it can be
+        retrained on another machine.
+      </p>
+    }
+
+    @if (pack.pending > 0) {
+      <p class="note">
+        {{ pack.pending }} unanswered question(s) ride along for context; they are not trained
+        answers.
+      </p>
+    }
+
+    @if (teachers() > 0) {
+      <p class="note">
+        {{ teachers() }} fine-tuned teacher(s) are left out. Their knowledge reaches Luke through
+        the transfer above, so the package stays small.
+      </p>
+    }
+
+    <div class="actions">
+      <button
+        type="button"
+        class="primary"
+        (click)="download()"
+        [disabled]="downloading() || loading()"
+      >
+        <app-icon name="download" [size]="14" />
+        {{ downloading() ? 'Packing…' : 'Download Luke' }}
+      </button>
+      @if (downloading()) {
+        <span class="hint">Building the zip on this machine…</span>
+      }
+    </div>
+  }
+</section>

@@ -62,10 +62,12 @@ export const ICONS = {
   ],
   'arrow-right': [{ kind: 'path', d: 'M5 12h14M13 6l6 6-6 6' }],
   'arrow-left': [{ kind: 'path', d: 'M19 12H5M11 6l-6 6 6 6' }],
+  'arrow-up': [{ kind: 'path', d: 'M12 19V5M6 11l6-6 6 6' }],
   send: [
     { kind: 'path', d: 'M22 2L11 13' },
     { kind: 'path', d: 'M22 2l-7 20-4-9-9-4z' },
   ],
+  stop: [{ kind: 'rect', x: 6, y: 6, width: 12, height: 12, rx: 2 }],
   sliders: [
     { kind: 'path', d: 'M4 6h16M4 12h16M4 18h16' },
     { kind: 'circle', cx: 9, cy: 6, r: 2 },

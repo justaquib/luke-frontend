@@ -58,10 +58,42 @@ describe('TrainerBase', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
+  const flushTransfer = (): void => {
+    http
+      .expectOne((request) => request.url.endsWith('/language-model/huggingface/transfer'))
+      .flush({
+        teachers: [],
+        available: 0,
+        limit: 40,
+        by_kind: {},
+        samples: [],
+        running: false,
+        progress: null,
+        last: null,
+      });
+  };
+
+  const flushPackage = (): void => {
+    http
+      .expectOne((request) => request.url.endsWith('/language-model/export/preview'))
+      .flush({
+        model: { name: 'Luke', start_level: '0.0.0', approved_level: '0.1.0' },
+        available: 1622,
+        by_kind: { lesson: 500 },
+        checkpoints: [{ name: 'words-1.pt', bytes: 2557967 }],
+        teachers: [],
+        pending: 0,
+        bytes: 2557967,
+        filename: 'luke-1-2026-10-26.zip',
+      });
+  };
+
   const render = (initial: Record<string, unknown> = state()): HTMLElement => {
     const fixture = TestBed.createComponent(TrainerBase);
     fixture.detectChanges();
     http.expectOne((request) => request.url.endsWith('/language-model/huggingface')).flush(initial);
+    flushTransfer();
+    flushPackage();
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
   };
@@ -82,6 +114,8 @@ describe('TrainerBase', () => {
     expect(teacher?.textContent).toContain('SmolLM2 135M');
     expect(teacher?.textContent).toContain('200 steps');
     expect(teacher?.textContent).toContain('256 MB');
+    expect(compiled.textContent).toContain('Download Luke');
+    expect(compiled.textContent).toContain('1622 line(s)');
   });
 
   it('starts one fine-tune with the chosen steps', () => {
@@ -90,6 +124,8 @@ describe('TrainerBase', () => {
     http
       .expectOne((request) => request.url.endsWith('/language-model/huggingface'))
       .flush(state({ teachers: [], last_run: null }));
+    flushTransfer();
+    flushPackage();
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
@@ -132,6 +168,8 @@ describe('TrainerBase', () => {
     const fixture = TestBed.createComponent(TrainerBase);
     fixture.detectChanges();
     http.expectOne((request) => request.url.endsWith('/language-model/huggingface')).flush(state());
+    flushTransfer();
+    flushPackage();
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
