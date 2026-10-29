@@ -10,7 +10,7 @@
 
   <section class="detail-section">
     <h3 class="section-label">Answer</h3>
-    <p class="answer-text">{{ message().text }}</p>
+    <app-answer-text class="answer-text" [text]="message().text" />
   </section>
 
   @if (hasUnderstanding()) {
@@ -29,6 +29,23 @@
   <app-answer-prediction [message]="message()" [question]="question()" />
 
   <app-answer-record [message]="message()" />
+
+  @if (citations().length) {
+    <section class="detail-section">
+      <h3 class="section-label">Cited passages ({{ citations().length }})</h3>
+      <div class="passages">
+        @for (citation of citations(); track citation.index) {
+          <article class="passage">
+            <div class="passage-head">
+              <span>[{{ citation.index }}] {{ citation.label || citation.source }}</span>
+              <span class="mono">{{ citation.source }}</span>
+            </div>
+            <p>{{ citation.excerpt }}</p>
+          </article>
+        }
+      </div>
+    </section>
+  }
 
   @if (hits().length) {
     <section class="detail-section">

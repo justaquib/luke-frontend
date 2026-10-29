@@ -184,6 +184,17 @@ export class ChatSessionService {
     return this.nextId++;
   }
 
+  /** The last few turns, so a follow-up keeps the conversation in view. */
+  recentTurns(limit = 12): { role: 'user' | 'assistant'; content: string }[] {
+    return this.active()
+      .messages.filter(
+        (message): message is ChatMessage & { role: 'user' | 'assistant' } =>
+          message.role !== 'system' && !!message.text.trim(),
+      )
+      .slice(-limit)
+      .map((message) => ({ role: message.role, content: message.text }));
+  }
+
   touchTitle(question: string): void {
     const id = this.activeId();
     if (!id) {

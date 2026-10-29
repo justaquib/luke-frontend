@@ -1,13 +1,19 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { AppIcon } from '../shared/app-icon';
 import { TrainerMergeActions } from './trainer-merge.actions';
 import { TrainerStore } from './trainer.store';
-import { TRAINER_STYLES } from './trainer-styles';
 
+/** The intents the corpus already shares one answer across. */
 @Component({
   selector: 'app-trainer-merge-groups',
   standalone: true,
+  imports: [AppIcon],
   templateUrl: './trainer-merge-groups.html',
-  styleUrls: [...TRAINER_STYLES],
+  styleUrls: [
+    './styles/trainer-common.css',
+    './styles/trainer-controls.css',
+    './styles/trainer-merge.css',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TrainerMergeGroups {

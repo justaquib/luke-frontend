@@ -12,8 +12,10 @@ export type QuerySource =
   | 'intent'
   | 'weather'
   | 'wiki'
+  | 'web'
   | 'assistant_profile'
   | 'dictionary'
+  | 'expressions'
   | 'learner'
   | 'lesson_cards'
   | 'letters'
@@ -23,7 +25,20 @@ export type QuerySource =
   | 'sentence_patterns'
   | 'taught'
   | 'trainer'
-  | 'word_cards';
+  | 'word_cards'
+  | 'generated'
+  | 'composed';
+
+/** How the answer was produced: read, written, or written from passages. */
+export type AnswerMode = 'retrieved' | 'generated' | 'hybrid';
+
+/** One numbered passage a composed answer cites. */
+export interface AnswerCitation {
+  index: number;
+  source: string;
+  label: string;
+  excerpt: string;
+}
 
 export interface QueryResponse {
   question: string;
@@ -43,6 +58,10 @@ export interface QueryResponse {
   understanding?: QuestionUnderstanding | null;
   model?: string | null;
   model_name?: string | null;
+  model_version?: string | null;
+  mode?: AnswerMode;
+  citations?: AnswerCitation[];
+  tokens_per_second?: number | null;
   distance?: number | null;
   confidence?: number | null;
 }
@@ -119,6 +138,31 @@ export interface IngestResponse {
   source: string;
   chunks: number;
   start_id: number | null;
+  duplicates?: { stored: number; exact: number; near: number };
+}
+
+/** One background read of an uploaded file, as the job row and the stream report it. */
+export interface IngestJob {
+  id: number;
+  source: string;
+  status: 'queued' | 'running' | 'done' | 'duplicate' | 'failed' | 'cancelled';
+  step: string;
+  progress: number;
+  done: number;
+  total: number;
+  chunks: number;
+  duplicates: { stored: number; exact: number; near: number };
+  error: string | null;
+  created_at: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+}
+
+/** The 202 answer to an upload: a job to follow, or a file already in the corpus. */
+export interface UploadAccepted {
+  job_id: number | null;
+  source: string;
+  status: string;
 }
 
 export interface StatsResponse {
@@ -141,6 +185,7 @@ export interface FaqItem {
 export interface PendingItem {
   id: number;
   question: string;
+  note?: string | null;
   occurrences: number;
   resolved: boolean;
   created_at: string;
@@ -151,23 +196,6 @@ export interface DocumentItem {
   source: string;
   chunks: number;
   created_at?: string;
-}
-
-export interface Tenant {
-  id: number;
-  name: string;
-  slug: string;
-  created_at: string;
-}
-
-export interface Invite {
-  id: number;
-  tenant_id: number;
-  email: string;
-  role: string;
-  token: string;
-  expires_at: string;
-  used_at: string | null;
 }
 
 export interface CoachingAnswer {
@@ -242,6 +270,7 @@ export type AnswerStreamEvent<Answer = unknown> =
   | { type: 'thinking'; thinking: AnswerThinking }
   | { type: 'connecting'; connection: SourceConnection }
   | { type: 'writing'; model: string }
+  | { type: 'token'; text: string }
   | { type: 'answer'; answer: Answer }
   | { type: 'done' }
   | { type: 'error'; message: string };
@@ -268,6 +297,8 @@ export interface NextWord {
   word: string;
   probability: number;
   count: number | null;
+  /** True when the token is a byte-level piece rather than a word. */
+  piece?: boolean;
 }
 
 /** The next words and attention a selected model measured for one prefix. */

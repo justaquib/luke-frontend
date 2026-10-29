@@ -7,7 +7,7 @@ import type {
   HuggingFaceState,
   WordPrediction,
 } from './api-models';
-import type { LukePackagePreview } from './luke-package';
+import type { LukePackageMode, LukePackagePreview } from './luke-package';
 import type { TransferState } from './transfer-models';
 
 /**
@@ -107,11 +107,24 @@ export class ModelApiService extends BaseApiService {
       .pipe(catchError((err) => this.handleError(err)));
   }
 
-  downloadLukePackage(): Observable<Blob> {
+  downloadLukePackage(mode: LukePackageMode = 'full'): Observable<Blob> {
     return this.http
       .get(`${this.base}/language-model/export`, {
         headers: this.authHeaders(),
+        params: { mode },
         responseType: 'blob',
+      })
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  /** Reports are validated by the package feature before offering a destructive decision. */
+  importLukePackage(file: File, dryRun: boolean, replace = false): Observable<unknown> {
+    const body = new FormData();
+    body.append('file', file, file.name);
+    return this.http
+      .post<unknown>(`${this.base}/language-model/package/import`, body, {
+        headers: this.authHeaders(),
+        params: { dry_run: dryRun, replace },
       })
       .pipe(catchError((err) => this.handleError(err)));
   }

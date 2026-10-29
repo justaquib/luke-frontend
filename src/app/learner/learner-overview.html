@@ -1,0 +1,123 @@
+<section class="language-learning-card learner-chat-card" aria-labelledby="learner-chat-title">
+  <div class="language-section-heading">
+    <app-card-info
+      label="the learner chat"
+      text="Trainer-approved answers are checked first, followed by the learner’s own starter material, words, sentences, and lessons. If similar Trainer questions match, choose the intended answer. Uploaded documents and web sources are not consulted."
+    >
+      <h3 id="learner-chat-title">Try a question with the learner</h3>
+    </app-card-info>
+    @if (chat.messages().length) {
+      <button
+        type="button"
+        class="ghost small icon-only"
+        (click)="chat.clear()"
+        aria-label="Clear the chat"
+        title="Clear the chat"
+      >
+        <app-icon name="trash" [size]="14" />
+      </button>
+    }
+  </div>
+  <div class="learner-chat-messages" role="log" aria-live="polite" aria-relevant="additions">
+    @if (!chat.messages().length) {
+      <p class="learner-chat-empty">
+        Ask something it should know, such as “What does apple mean?”, “What is a circle?”, “What
+        day comes after Monday?”, “What time is it?”, or one of your taught lesson questions.
+      </p>
+    }
+    @for (turn of chat.messages(); track $index) {
+      <app-learner-chat-turn [turn]="turn" />
+    }
+    @if (chat.busy()) {
+      <app-answer-pipeline [trace]="chat.pipeline()" [phase]="chat.pipelinePhase()" [live]="true" />
+    }
+  </div>
+  <form class="language-inline-form learner-chat-form" (ngSubmit)="chat.ask()">
+    <input
+      [ngModel]="chat.draft()"
+      (ngModelChange)="chat.draft.set($event)"
+      name="learnerChatQuestion"
+      maxlength="1000"
+      autocomplete="off"
+      placeholder="Ask the learner a question…"
+      aria-label="Ask the learner a question"
+      [disabled]="chat.busy()"
+    />
+    <button
+      type="submit"
+      class="primary icon-only"
+      [attr.aria-label]="chat.busy() ? 'Asking the learner' : 'Ask the learner'"
+      [title]="chat.busy() ? 'Asking the learner' : 'Ask the learner'"
+      [disabled]="chat.busy() || !chat.draft().trim()"
+    >
+      <app-icon name="send" [size]="14" />
+    </button>
+  </form>
+</section>
+
+<section class="language-learning-card practice-card" aria-labelledby="learner-practice-title">
+  <div class="language-section-heading">
+    <app-card-info
+      label="practice"
+      text="Build a sentence from words the learner knows, or ask it to do a sum, a difference, a product, a division, or a square root."
+    >
+      <h3 id="learner-practice-title">Practice</h3>
+    </app-card-info>
+  </div>
+
+  <form class="practice-row" (ngSubmit)="practice.buildSentence()">
+    <label>
+      <span>Make a sentence from words</span>
+      <input
+        [ngModel]="practice.sentenceWords()"
+        (ngModelChange)="practice.sentenceWords.set($event)"
+        name="sentenceWords"
+        maxlength="160"
+        autocomplete="off"
+        placeholder="red apple"
+        aria-label="Words to make a sentence from"
+        [disabled]="practice.busy()"
+      />
+    </label>
+    <button
+      type="submit"
+      class="primary small icon-only"
+      [attr.aria-label]="practice.busy() ? 'Building the sentence' : 'Build a sentence'"
+      [title]="practice.busy() ? 'Building the sentence' : 'Build a sentence'"
+      [disabled]="practice.busy() || !practice.sentenceWords().trim()"
+    >
+      <app-icon name="book" [size]="14" />
+    </button>
+  </form>
+  @if (practice.sentenceResult()) {
+    <p class="practice-result" role="status">{{ practice.sentenceResult() }}</p>
+  }
+
+  <form class="practice-row" (ngSubmit)="practice.calculate()">
+    <label>
+      <span>Do a calculation</span>
+      <input
+        [ngModel]="practice.calculationDraft()"
+        (ngModelChange)="practice.calculationDraft.set($event)"
+        name="calculation"
+        maxlength="120"
+        autocomplete="off"
+        placeholder="what is 12 plus 8"
+        aria-label="Calculation to do"
+        [disabled]="practice.busy()"
+      />
+    </label>
+    <button
+      type="submit"
+      class="primary small icon-only"
+      [attr.aria-label]="practice.busy() ? 'Calculating' : 'Do the calculation'"
+      [title]="practice.busy() ? 'Calculating' : 'Do the calculation'"
+      [disabled]="practice.busy() || !practice.calculationDraft().trim()"
+    >
+      <app-icon name="plus" [size]="14" />
+    </button>
+  </form>
+  @if (practice.calculationResult()) {
+    <p class="practice-result" role="status">{{ practice.calculationResult() }}</p>
+  }
+</section>

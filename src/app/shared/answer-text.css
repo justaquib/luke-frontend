@@ -1,0 +1,12 @@
+/* The prose of an answer, laid out beside its code cards. */
+:host {
+  display: block;
+  /* A grid or flex parent would otherwise grow this host to the width of the
+     longest code line instead of letting the card scroll. */
+  min-width: 0;
+}
+
+.prose {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}

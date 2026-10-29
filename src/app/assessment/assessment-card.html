@@ -1,0 +1,62 @@
+<section class="skill-card" [attr.aria-labelledby]="'skill-' + profile().skill">
+  <header class="card-head">
+    <app-card-info
+      [label]="'the ' + profile().title + ' benchmark'"
+      [text]="'The score is the share of held-out items answered correctly in this mode. It is a benchmark of this stage, not an age or an intelligence claim. A skill with too few scored items stays unassessed instead of reading as zero.'"
+    >
+      <h2 [id]="'skill-' + profile().skill">{{ profile().title }}</h2>
+    </app-card-info>
+    <span class="state" [class.ok]="passed()" [class.waiting]="!assessed()">
+      {{ assessed() ? (passed() ? 'Passed' : 'Below mark') : 'Unassessed' }}
+    </span>
+  </header>
+
+  <div class="score-row">
+    <span class="score" [class.unmeasured]="!assessed()">{{ score() }}</span>
+    <span class="verdict">{{ profile().verdict }}</span>
+  </div>
+
+  <dl class="rows">
+    <div class="row">
+      <dt>Stage</dt>
+      <dd>{{ stage() }}</dd>
+    </div>
+    <div class="row">
+      <dt>Confidence</dt>
+      <dd>
+        {{ confidence() }}
+        <span class="note">{{ confidenceNote() }}</span>
+      </dd>
+    </div>
+    <div class="row">
+      <dt>Change</dt>
+      <dd>{{ change() }}</dd>
+    </div>
+    <div class="row">
+      <dt>Scored items</dt>
+      <dd>{{ profile().items_scored }}</dd>
+    </div>
+  </dl>
+
+  @if (untested().length) {
+    <div class="untested">
+      <span class="label">Not tested yet</span>
+      <ul>
+        @for (topic of untested(); track topic) {
+          <li>{{ topic }}</li>
+        }
+        @if (moreUntested()) {
+          <li class="more">+{{ moreUntested() }} more</li>
+        }
+      </ul>
+    </div>
+  }
+
+  <p class="next">{{ profile().next_step }}</p>
+
+  @if (profile().waiting) {
+    <button type="button" class="ghost small review" (click)="review.emit(profile())">
+      Review {{ profile().waiting }} waiting
+    </button>
+  }
+</section>

@@ -1,0 +1,62 @@
+<section class="language-learning-card grade-browser" aria-labelledby="grade-browser-title">
+  <div class="language-section-heading">
+    <app-card-info
+      label="questions by grade"
+      text="Review the built-in and taught questions of one grade and topic. Built-in examples are read-only; your lessons can be edited or removed. The Search tab finds a question across every grade, marks a repeat with D, and shows the confidence of every answer."
+    >
+      <h3 id="grade-browser-title">Questions by grade and subject</h3>
+    </app-card-info>
+    <span class="grade-qa-total">{{ model.lessonTotal() }} Q&amp;A</span>
+  </div>
+  <div class="grade-browser-body">
+    <div class="lesson-list-controls">
+      <label class="lesson-topic-filter"
+        ><app-icon name="sliders" [size]="14" /><span>Grade</span
+        ><select
+          [ngModel]="knowledge.browseStage()"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="knowledge.setGrade($event)"
+          aria-label="Choose a grade to review"
+        >
+          @for (stage of model.stages(); track stage.id) {
+            <option [value]="stage.id">{{ stage.title }}</option>
+          }
+        </select></label
+      >
+      @if (knowledge.groups().length) {
+        <label class="lesson-topic-filter"
+          ><app-icon name="sliders" [size]="14" /><span>Topic</span
+          ><select
+            [ngModel]="knowledge.activeSubject()"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="knowledge.setSubject($event)"
+            aria-label="Filter lessons by topic"
+          >
+            @for (group of knowledge.groups(); track group.subject) {
+              <option [value]="group.subject">
+                {{ group.subject }} · {{ group.lessons.length }}
+              </option>
+            }
+          </select></label
+        >
+      }
+      <span class="grade-qa-total">{{ knowledge.count() }} Q&amp;A</span>
+    </div>
+    @if (knowledge.groups().length) {
+      <div class="lesson-subject-grid">
+        @for (group of knowledge.visibleGroups(); track group.subject) {
+          <section class="lesson-subject-card">
+            <header>
+              <h4>{{ group.subject }}</h4>
+            </header>
+            @for (lesson of group.lessons; track lesson.id ?? $index) {
+              <app-learner-lesson-row [lesson]="lesson" />
+            }
+          </section>
+        }
+      </div>
+    } @else {
+      <p class="empty">No Q&amp;A lessons are stored for this grade yet.</p>
+    }
+  </div>
+</section>

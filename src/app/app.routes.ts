@@ -4,12 +4,13 @@ import { Trainer } from './trainer/trainer';
 import { ParentingChat } from './parenting/parenting-chat/parenting-chat';
 import { Brain } from './brain/brain';
 import { Design } from './design/design';
+import { Expressions } from './expressions/expressions';
+import { Assessment } from './assessment/assessment';
 import { Learner } from './learner/learner';
 import { Landing } from './landing/landing';
 import { Login } from './login/login.component';
 import { Onboarding } from './onboarding/onboarding.component';
 import { Settings } from './settings/settings';
-import { Tenants } from './tenants/tenants.component';
 import { SystemadminLogin } from './systemadmin-login/systemadmin-login.component';
 import { authGuard } from './core/auth.guard';
 
@@ -20,9 +21,10 @@ const dashboardRoutes: Routes = [
   { path: 'parenting', component: ParentingChat },
   { path: 'learner', component: Learner },
   { path: 'brain', component: Brain },
+  { path: 'assessment', component: Assessment },
+  { path: 'expressions', component: Expressions },
   { path: 'design', component: Design },
   { path: 'settings', component: Settings },
-  { path: 'tenants', component: Tenants },
 ];
 
 export const routes: Routes = [
@@ -39,7 +41,7 @@ export const routes: Routes = [
   { path: 'parenting', pathMatch: 'full', redirectTo: 'dashboard/parenting' },
   { path: 'learner', pathMatch: 'full', redirectTo: 'dashboard/learner' },
   { path: 'brain', pathMatch: 'full', redirectTo: 'dashboard/brain' },
+  { path: 'expressions', pathMatch: 'full', redirectTo: 'dashboard/expressions' },
   { path: 'settings', pathMatch: 'full', redirectTo: 'dashboard/settings' },
-  { path: 'tenants', pathMatch: 'full', redirectTo: 'dashboard/tenants' },
   { path: '**', redirectTo: '' },
 ];

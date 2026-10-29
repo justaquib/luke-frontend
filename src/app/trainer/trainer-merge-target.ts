@@ -1,15 +1,20 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { AppIcon } from '../shared/app-icon';
 import { TrainerMergeActions } from './trainer-merge.actions';
 import { TrainerMergeCandidates } from './trainer-merge-candidates';
 import { TrainerStore } from './trainer.store';
-import { TRAINER_STYLES } from './trainer-styles';
 
+/** The canonical answer a merge is building, with its absorbable neighbours. */
 @Component({
   selector: 'app-trainer-merge-target',
   standalone: true,
-  imports: [TrainerMergeCandidates],
+  imports: [AppIcon, TrainerMergeCandidates],
   templateUrl: './trainer-merge-target.html',
-  styleUrls: [...TRAINER_STYLES],
+  styleUrls: [
+    './styles/trainer-common.css',
+    './styles/trainer-controls.css',
+    './styles/trainer-merge.css',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TrainerMergeTarget {

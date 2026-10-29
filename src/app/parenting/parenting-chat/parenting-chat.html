@@ -21,13 +21,13 @@
           @for (message of messages(); track message.id) {
             <div class="coach-row" [class.parent]="message.role === 'parent'">
               <div class="coach-bubble" [class.coach]="message.role === 'coach'">
-                <p class="coach-text">
+                <div class="coach-text">
                   @if (message.role === 'coach') {
                     <app-answer-reveal [text]="message.text" [animate]="message.reveal === true" />
                   } @else {
-                    {{ message.text }}
+                    <span class="coach-plain">{{ message.text }}</span>
                   }
-                </p>
+                </div>
                 @if (message.role === 'coach') {
                   <p class="coach-meta">
                     {{ message.source }} · confidence {{ message.confidence }}

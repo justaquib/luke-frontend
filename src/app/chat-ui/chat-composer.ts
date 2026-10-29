@@ -37,7 +37,7 @@ export class ChatComposer {
 
   protected readonly sourcesOn = computed(() => {
     const state = this.integrations.state();
-    return Number(state.weather) + Number(state.wiki);
+    return Number(state.weather) + Number(state.wiki) + Number(state.web);
   });
   protected readonly sourcesLabel = computed(() =>
     this.sourcesOn() ? `Sources · ${this.sourcesOn()}` : 'Sources',
@@ -72,6 +72,10 @@ export class ChatComposer {
     this.integrations.setWiki(on);
   }
 
+  setWeb(on: boolean): void {
+    this.integrations.setWeb(on);
+  }
+
   send(): void {
     const text = this.draft().trim();
     if (!text || this.service.isTyping()) {
@@ -100,6 +104,7 @@ export class ChatComposer {
       apps: {
         weather: this.integrations.weatherEnabled(),
         wiki: this.integrations.wikiEnabled(),
+        web: this.integrations.webEnabled(),
       },
       location: location ? { lat: location.lat, lon: location.lon } : undefined,
       model: this.models.selectedId(),

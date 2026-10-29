@@ -4,11 +4,12 @@ import { Trainer } from './trainer/trainer';
 import { ParentingChat } from './parenting/parenting-chat/parenting-chat';
 import { Brain } from './brain/brain';
 import { Design } from './design/design';
+import { Expressions } from './expressions/expressions';
+import { Assessment } from './assessment/assessment';
 import { Learner } from './learner/learner';
 import { Landing } from './landing/landing';
 import { Login } from './login/login.component';
 import { Settings } from './settings/settings';
-import { Tenants } from './tenants/tenants.component';
 import { SystemadminLogin } from './systemadmin-login/systemadmin-login.component';
 import { authGuard } from './core/auth.guard';
 import { routes } from './app.routes';
@@ -46,9 +47,10 @@ describe('Application routes', () => {
     expect(components.get('parenting')).toBe(ParentingChat);
     expect(components.get('learner')).toBe(Learner);
     expect(components.get('brain')).toBe(Brain);
+    expect(components.get('expressions')).toBe(Expressions);
+    expect(components.get('assessment')).toBe(Assessment);
     expect(components.get('design')).toBe(Design);
     expect(components.get('settings')).toBe(Settings);
-    expect(components.get('tenants')).toBe(Tenants);
   });
 
   it('sends the old flat paths into the dashboard', () => {
@@ -59,8 +61,8 @@ describe('Application routes', () => {
       ['parenting', 'dashboard/parenting'],
       ['learner', 'dashboard/learner'],
       ['brain', 'dashboard/brain'],
+      ['expressions', 'dashboard/expressions'],
       ['settings', 'dashboard/settings'],
-      ['tenants', 'dashboard/tenants'],
     ]);
   });
 

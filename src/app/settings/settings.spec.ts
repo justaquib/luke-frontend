@@ -27,6 +27,57 @@ const modelSettings = (overrides: Record<string, unknown> = {}): Record<string, 
   ...overrides,
 });
 
+const foundation = (overrides: Record<string, unknown> = {}): Record<string, unknown> => ({
+  installed: true,
+  identity: {
+    name: 'Luke',
+    version: '0.0.1',
+    base_model: 'Qwen/Qwen2.5-0.5B-Instruct',
+    revision: '7ae557604adf67be50417f59c2c2f167def9a775',
+    license: 'Apache-2.0',
+    parameters: 494032768,
+    context_limit: 32768,
+    weight_sha256: 'fdf756fa7fcbe7404d5c60e26bff1a0c8b8aa1f72ced49e7dd0210fe288fb7fe',
+    weight_bytes: 988097824,
+    dtypes: ['BF16'],
+    display: 'Luke 0.0.1 · Qwen2.5-0.5B-Instruct · revision 7ae5576',
+  },
+  loaded: true,
+  device: 'mps',
+  memory_bytes: 2229 * 1024 * 1024,
+  error: null,
+  ...overrides,
+});
+
+const webStatus = (): Record<string, unknown> => ({
+  policy: {
+    enabled: false,
+    provider: 'searxng',
+    provider_name: 'SearXNG',
+    endpoint: '',
+    allowlist: [],
+    ttl_hours: 168,
+    min_score: 0.45,
+    results: 3,
+    providers: [
+      { id: 'searxng', name: 'SearXNG' },
+      { id: 'brave', name: 'Brave Search' },
+      { id: 'tavily', name: 'Tavily' },
+    ],
+    max_sources: 50,
+  },
+  sources: [],
+  counts: { indexed: 0, candidate: 0, superseded: 0 },
+});
+
+function flushWeb(http: HttpTestingController): void {
+  http.expectOne((req) => req.url.endsWith('/web/status')).flush(webStatus());
+}
+
+function flushFoundation(http: HttpTestingController): void {
+  http.expectOne((req) => req.url.endsWith('/language-model/foundation')).flush(foundation());
+}
+
 describe('Settings', () => {
   beforeEach(async () => {
     localStorage.clear();
@@ -52,6 +103,8 @@ describe('Settings', () => {
 
     http.expectOne((req) => req.url.endsWith('/health')).flush({ status: 'ok' });
     http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
+    flushFoundation(http);
+    flushWeb(http);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -62,7 +115,6 @@ describe('Settings', () => {
       'APP-ENGINE-FACTS',
     );
     expect(compiled.querySelector('#settings-store-title')).toBeNull();
-    expect(compiled.textContent).not.toContain('The store');
     expect(compiled.textContent).toContain('Live sources');
     expect(compiled.textContent).toContain('Connected');
     expect(compiled.querySelector('#settings-model-title')?.textContent?.trim()).toBe(
@@ -73,6 +125,59 @@ describe('Settings', () => {
     http.verify();
   });
 
+  it('shows the measured foundation checkpoint and its runtime', async () => {
+    const fixture = TestBed.createComponent(Settings);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+
+    http.expectOne((req) => req.url.endsWith('/health')).flush({ status: 'ok' });
+    http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
+    flushFoundation(http);
+    flushWeb(http);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const card = (fixture.nativeElement as HTMLElement).querySelector('app-foundation-card');
+    expect(card?.textContent).toContain('Luke 0.0.1 · Qwen2.5-0.5B-Instruct · revision 7ae5576');
+    expect(card?.textContent).toContain('494,032,768');
+    expect(card?.textContent).toContain('32,768 tokens');
+    expect(card?.textContent).toContain('Apache-2.0');
+    expect(card?.textContent).toContain('BF16 · 942.3 MB');
+    expect(card?.textContent).toContain('Installed · loaded on mps');
+    expect(card?.textContent).toContain('2229 MB');
+    http.verify();
+  });
+
+  it('says why a missing checkpoint cannot answer', async () => {
+    const fixture = TestBed.createComponent(Settings);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+
+    http.expectOne((req) => req.url.endsWith('/health')).flush({ status: 'ok' });
+    http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
+    http
+      .expectOne((req) => req.url.endsWith('/language-model/foundation'))
+      .flush(
+        foundation({
+          installed: false,
+          identity: null,
+          loaded: false,
+          device: null,
+          memory_bytes: null,
+          error:
+            "Luke's foundation checkpoint is not installed. Run `python scripts/install_foundation.py`.",
+        }),
+      );
+    flushWeb(http);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const card = (fixture.nativeElement as HTMLElement).querySelector('app-foundation-card');
+    expect(card?.textContent).toContain('No checkpoint installed');
+    expect(card?.textContent).toContain('install_foundation.py');
+    http.verify();
+  });
+
   it('summarizes the engine state before the cards', async () => {
     const fixture = TestBed.createComponent(Settings);
     const http = TestBed.inject(HttpTestingController);
@@ -80,6 +185,8 @@ describe('Settings', () => {
 
     http.expectOne((req) => req.url.endsWith('/health')).flush({ status: 'ok' });
     http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
+    flushFoundation(http);
+    flushWeb(http);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -97,11 +204,11 @@ describe('Settings', () => {
     expect(Array.from(facts?.querySelectorAll('.fact dd') ?? []).map(text)).toEqual([
       'Connected',
       'Luke',
-      '0/2',
+      '0/3',
       'Frost',
     ]);
     expect(facts?.textContent).toContain('version 0.0.0');
-    expect(facts?.textContent).toContain('weather and Wikipedia');
+    expect(facts?.textContent).toContain('weather, Wikipedia and web');
     expect(facts?.textContent).toContain('Medium text · Sans type');
     http.verify();
   });
@@ -113,6 +220,8 @@ describe('Settings', () => {
 
     http.expectOne((req) => req.url.endsWith('/health')).flush({ status: 'ok' });
     http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
+    flushFoundation(http);
+    flushWeb(http);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -134,6 +243,56 @@ describe('Settings', () => {
     http.verify();
   });
 
+  it('lists every package the product is built with', async () => {
+    const fixture = TestBed.createComponent(Settings);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+
+    http.expectOne((req) => req.url.endsWith('/health')).flush({ status: 'ok' });
+    http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
+    flushFoundation(http);
+    flushWeb(http);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const overview = compiled.querySelector('app-system-overview');
+
+    expect(overview?.querySelector('h2')?.textContent?.trim()).toBe('System overview');
+    expect(overview?.textContent).toContain('Runtime packages');
+    expect(overview?.textContent).toContain('Development tools');
+    expect(overview?.textContent).toContain('chromadb');
+    expect(overview?.textContent).toContain('ruff');
+    expect(overview?.textContent).toContain('peft, accelerate, psutil');
+    http.verify();
+  });
+
+  it('names a failed model reading instead of quoting the transport', async () => {
+    const fixture = TestBed.createComponent(Settings);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+
+    http.expectOne((req) => req.url.endsWith('/health')).flush({ status: 'ok' });
+    http
+      .expectOne((req) => req.url.endsWith('/language-model/settings'))
+      .error(new ErrorEvent('offline'));
+    flushFoundation(http);
+    flushWeb(http);
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const card = compiled.querySelector('app-model-identity')?.textContent ?? '';
+    expect(card).toContain('The model identity could not be read');
+    expect(card).toContain('Could not reach the Luke Lab backend');
+    expect(card).not.toContain('Http failure response');
+    // A read that failed is not a read still in progress.
+    const facts = compiled.querySelector('app-engine-facts')?.textContent ?? '';
+    expect(facts).toContain('not read');
+    expect(facts).not.toContain('reading the model…');
+    http.verify();
+  });
+
   it('applies an appearance choice as soon as it is picked', async () => {
     const fixture = TestBed.createComponent(Settings);
     const http = TestBed.inject(HttpTestingController);
@@ -141,6 +300,8 @@ describe('Settings', () => {
 
     http.expectOne((req) => req.url.endsWith('/health')).flush({ status: 'ok' });
     http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
+    flushFoundation(http);
+    flushWeb(http);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -173,6 +334,8 @@ describe('Settings', () => {
 
     http.expectOne((req) => req.url.endsWith('/health')).flush({ status: 'ok' });
     http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
+    flushFoundation(http);
+    flushWeb(http);
     await fixture.whenStable();
     fixture.detectChanges();
 

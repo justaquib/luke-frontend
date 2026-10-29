@@ -91,13 +91,13 @@ describe('AnswerStreamService', () => {
 
     await collect(service.streamQuery('What is a circle?', 4, { apps: { wiki: false } }));
 
-    const [url, init] = fetchMock.mock.calls[0];
-    expect(String(url)).toContain('/query/stream');
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toContain('/query/stream');
     expect(init?.method).toBe('POST');
     const headers = init?.headers as Record<string, string>;
     expect(headers['Accept']).toBe('text/event-stream');
     expect(headers['Authorization']).toBe('Bearer test-token');
-    expect(JSON.parse(String(init?.body))).toEqual({
+    expect(JSON.parse(init.body as string)).toEqual({
       question: 'What is a circle?',
       n_results: 4,
       apps: { wiki: false },
@@ -105,10 +105,10 @@ describe('AnswerStreamService', () => {
   });
 
   it('surfaces the backend detail when the request is refused', async () => {
-    fetchMock.mockResolvedValue(failure(403, 'User is not assigned to a tenant'));
+    fetchMock.mockResolvedValue(failure(403, 'Only administrators can do that.'));
 
     await expect(collect(service.streamQuery('hello'))).rejects.toThrow(
-      'User is not assigned to a tenant',
+      'Only administrators can do that.',
     );
   });
 
@@ -136,9 +136,10 @@ describe('AnswerStreamService', () => {
     await collect(service.streamPreview('What is a circle?', true));
     await collect(service.streamCoachingTurn('abc123', 'He will not listen'));
 
-    expect(String(fetchMock.mock.calls[0][0])).toContain('/language-model/preview/stream');
-    expect(String(fetchMock.mock.calls[1][0])).toContain(
-      '/parenting/chat/session/abc123/turn/stream',
-    );
+    const [previewUrl] = fetchMock.mock.calls[0] as [string];
+    const [turnUrl] = fetchMock.mock.calls[1] as [string];
+
+    expect(previewUrl).toContain('/language-model/preview/stream');
+    expect(turnUrl).toContain('/parenting/chat/session/abc123/turn/stream');
   });
 });

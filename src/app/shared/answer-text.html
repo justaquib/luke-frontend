@@ -1,0 +1,7 @@
+@for (part of parts(); track $index) {
+  @if (part.kind === 'code') {
+    <app-code-block [code]="part.text" [language]="part.language" />
+  } @else {
+    <span class="prose" [attr.aria-hidden]="revealing() ? 'true' : null">{{ part.text }}</span>
+  }
+}

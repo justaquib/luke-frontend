@@ -1,0 +1,36 @@
+<section class="settings-card" aria-labelledby="settings-foundation-title">
+  <app-card-info
+    label="the foundation checkpoint"
+    text="Luke 0.0.1 is built on one pinned, read-only base checkpoint. Its identity is measured from the files, not typed into a label. Taught answers always win; the checkpoint only writes an answer when nothing was taught, and that answer is labelled and never saved as taught knowledge."
+  >
+    <h2 id="settings-foundation-title">Foundation checkpoint</h2>
+  </app-card-info>
+
+  @if (status(); as current) {
+    <p class="foundation-display">{{ display() }}</p>
+
+    @if (rows().length) {
+      <dl class="foundation-rows">
+        @for (row of rows(); track row.label) {
+          <div>
+            <dt>{{ row.label }}</dt>
+            <dd>{{ row.value }}</dd>
+          </div>
+        }
+      </dl>
+    }
+
+    @if (current.error; as message) {
+      <p class="foundation-error" role="alert">{{ message }}</p>
+    }
+
+    <button type="button" class="ghost small foundation-check" (click)="load()">
+      Check the checkpoint again
+    </button>
+  } @else if (requestError(); as message) {
+    <p class="foundation-error" role="alert">{{ message }}</p>
+    <button type="button" class="ghost small foundation-check" (click)="load()">Try again</button>
+  } @else {
+    <p class="foundation-display">Reading the checkpoint…</p>
+  }
+</section>

@@ -1,0 +1,103 @@
+:host {
+  display: block;
+}
+
+app-shell {
+  background: var(--bg);
+}
+
+.assessment-main {
+  min-width: 0;
+  min-height: calc(var(--app-vh) - var(--topbar-height));
+  background: var(--bg);
+}
+
+.assessment-page {
+  display: grid;
+  width: 100%;
+  max-width: 1080px;
+  gap: 16px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.engine-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--faint);
+}
+
+.dot.ok {
+  background: var(--ok);
+}
+
+.dot.warn {
+  background: var(--warn);
+}
+
+.run-button {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.run-button:hover:not(:disabled) {
+  background: var(--text);
+}
+
+.run-button:disabled {
+  background: var(--surface-2);
+  color: var(--faint);
+  cursor: default;
+}
+
+.top-run {
+  width: 28px;
+  height: 28px;
+  min-width: 0;
+  padding: 0;
+  border-radius: 5px;
+}
+
+.page-error {
+  margin: 0;
+  border: 1px solid var(--bad);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--bad);
+  font-size: 13px;
+}
+
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  align-items: stretch;
+  gap: 16px;
+}
+
+@media (max-width: 680px) {
+  .assessment-page {
+    padding: 12px;
+  }
+
+  .run-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+}

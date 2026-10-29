@@ -192,7 +192,7 @@ describe('ChatUI', () => {
     const center = compiled.querySelector('.top-bar .bar-center');
 
     expect(center?.querySelector('.page-name')?.textContent?.trim()).toBe('Chat');
-    expect(center?.querySelector('.page-scope')?.textContent?.trim()).toBe('Assistant');
+    expect(center?.querySelector('.page-scope')?.textContent?.trim()).toBe('Luke');
     expect(center?.querySelector('.context-title')?.textContent).toContain('New chat');
   });
 
@@ -221,7 +221,9 @@ describe('ChatUI', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    const answers = compiled.querySelectorAll<HTMLButtonElement>('.answer-open');
+    const answers = compiled.querySelectorAll<HTMLButtonElement>(
+      'button[aria-label="Answer details"]',
+    );
     answers[answers.length - 1].click();
     fixture.detectChanges();
     await fixture.whenStable();

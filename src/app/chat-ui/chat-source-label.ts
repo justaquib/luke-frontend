@@ -7,6 +7,7 @@ const SOURCE_LABELS: Readonly<Record<string, string>> = {
   intent: 'Intent match',
   weather: 'Weather',
   wiki: 'Wikipedia',
+  web: 'Web page (unverified)',
   assistant_profile: 'Assistant profile',
   dictionary: 'Offline dictionary',
   learner: 'Curriculum',
@@ -19,6 +20,9 @@ const SOURCE_LABELS: Readonly<Record<string, string>> = {
   taught: 'Taught lesson',
   trainer: 'Trained',
   word_cards: 'Word meanings',
+  expressions: 'Taught expression',
+  generated: 'Written by Luke',
+  composed: 'Written from passages',
 };
 
 /** The human name of the path an answer took. */

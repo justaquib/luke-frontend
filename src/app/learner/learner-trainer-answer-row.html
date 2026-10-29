@@ -1,0 +1,66 @@
+<div class="learned-answer-content">
+  <span class="lesson-kind">Synced from Trainer · Approved</span>
+  <span
+    class="confidence-badge"
+    [class.high]="(item().confidence ?? 0.5) >= 0.75"
+    [class.low]="(item().confidence ?? 0.5) < 0.45"
+    title="How sure the assistant is about this answer"
+    >Confidence {{ (item().confidence ?? 0.5) * 100 | number: '1.0-0' }}%</span
+  >
+  <strong>{{ item().question }}</strong>
+  @if (editors.editingId() === item().id) {
+    <textarea
+      rows="3"
+      [ngModel]="editors.editingDraft()"
+      (ngModelChange)="editors.editingDraft.set($event)"
+      [name]="'trainerAnswer-' + item().id"
+      maxlength="1900"
+      aria-label="Edit Trainer-approved answer"
+    ></textarea>
+    <div class="learned-answer-actions">
+      <button
+        type="button"
+        class="primary small icon-only"
+        (click)="editors.save(item().id)"
+        [attr.aria-label]="
+          editors.savingId() === item().id ? 'Saving the answer' : 'Save the answer'
+        "
+        [title]="editors.savingId() === item().id ? 'Saving the answer' : 'Save the answer'"
+        [disabled]="editors.savingId() === item().id || !editors.editingDraft().trim()"
+      >
+        <app-icon name="check" [size]="14" />
+      </button>
+      <button
+        type="button"
+        class="ghost small icon-only"
+        (click)="editors.cancelEdit()"
+        aria-label="Cancel editing the answer"
+        title="Cancel editing the answer"
+      >
+        <app-icon name="x" [size]="14" />
+      </button>
+    </div>
+  } @else {
+    <p>{{ item().answer }}</p>
+    <div class="learned-answer-actions">
+      <button
+        type="button"
+        class="ghost small icon-only"
+        (click)="editors.beginEdit(item())"
+        aria-label="Edit the answer"
+        title="Edit the answer"
+      >
+        <app-icon name="pencil" [size]="14" />
+      </button>
+      <button
+        type="button"
+        class="danger small icon-only"
+        (click)="editors.promptRemoval(item().id, item().question)"
+        aria-label="Remove the answer"
+        title="Remove the answer"
+      >
+        <app-icon name="trash" [size]="14" />
+      </button>
+    </div>
+  }
+</div>

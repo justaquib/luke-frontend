@@ -1,0 +1,98 @@
+.learner-match-body {
+  display: grid;
+  gap: 12px;
+}
+
+.learner-match-question {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.learner-match-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.learner-match-options {
+  display: grid;
+  gap: 6px;
+}
+
+.learner-match-option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.learner-match-option app-icon {
+  grid-row: 1 / span 2;
+  align-self: center;
+}
+
+.learner-match-option:hover {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+
+.learner-match-option:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.learner-match-option strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.learner-match-option span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.learner-merge-tip {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-2);
+}
+
+.learner-merge-tip strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.learner-merge-tip p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.learner-merge-tip button {
+  justify-self: start;
+}
+
+.learner-match-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  padding-top: 4px;
+}

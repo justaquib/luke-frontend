@@ -17,11 +17,16 @@ export class ModelSettingsService {
   private readonly _settings = signal<ModelSettingsDocument | null>(null);
   private readonly _saving = signal(false);
   private readonly _error = signal<string | null>(null);
+  private readonly _saveError = signal<string | null>(null);
   private loading = false;
 
   readonly settings = this._settings.asReadonly();
   readonly saving = this._saving.asReadonly();
+  /** Why the last reading of the identity failed, or null. */
   readonly error = this._error.asReadonly();
+  /** Why the last saving of the identity failed, or null. Kept apart from the
+   *  reading failure so the card can name the one that actually happened. */
+  readonly saveError = this._saveError.asReadonly();
   readonly name = computed(() => this._settings()?.name ?? this.prefs.botName());
   readonly level = computed(() => this._settings()?.level ?? null);
   readonly versions = computed(() => this._settings()?.levels ?? []);
@@ -46,7 +51,7 @@ export class ModelSettingsService {
 
   save(name: string, startLevel: string): Observable<ModelSettingsDocument> {
     this._saving.set(true);
-    this._error.set(null);
+    this._saveError.set(null);
     return this.api.saveModelSettings(name, startLevel).pipe(
       tap({
         next: (settings) => {
@@ -55,7 +60,7 @@ export class ModelSettingsService {
         },
         error: (err: Error) => {
           this._saving.set(false);
-          this._error.set(err.message);
+          this._saveError.set(err.message);
         },
       }),
     );
@@ -64,6 +69,7 @@ export class ModelSettingsService {
   private apply(settings: ModelSettingsDocument): void {
     this._settings.set(settings);
     this._error.set(null);
+    this._saveError.set(null);
     // A reply without the name keeps the current one instead of refusing the
     // whole document, so a renamed model can never leave the chat unusable.
     if (typeof settings.name === 'string') {

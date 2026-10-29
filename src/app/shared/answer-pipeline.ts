@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import type { SourceConnection, WordReading } from '../core/api/api-models';
+import type { SourceConnection } from '../core/api/api-models';
 import { AppIcon } from './app-icon';
+import { AnswerText } from './answer-text';
 import type { AnswerTrace, PipelinePhase } from './answer-trace';
+import { AnswerReadingStage } from './answer-reading';
 
 const SOURCE_LABELS: Readonly<Record<string, string>> = {
   faq: 'Trainer-approved answers',
@@ -12,31 +14,16 @@ const SOURCE_LABELS: Readonly<Record<string, string>> = {
   fallback: 'Word meanings',
   weather: 'Weather',
   wiki: 'Wikipedia',
+  web: 'Web pages (unverified)',
   docs: 'Documents',
   pending: 'Pending questions',
-};
-
-const PARTS_OF_SPEECH: Readonly<Record<string, string>> = {
-  ADJ: 'adjective',
-  ADP: 'preposition',
-  ADV: 'adverb',
-  AUX: 'helper verb',
-  CCONJ: 'conjunction',
-  DET: 'determiner',
-  NOUN: 'noun',
-  NUM: 'number',
-  PART: 'particle',
-  PRON: 'pronoun',
-  PROPN: 'name',
-  SCONJ: 'conjunction',
-  VERB: 'verb',
 };
 
 /** The stages the backend reached for one answer, read top to bottom. */
 @Component({
   selector: 'app-answer-pipeline',
   standalone: true,
-  imports: [AppIcon],
+  imports: [AppIcon, AnswerReadingStage, AnswerText],
   templateUrl: './answer-pipeline.html',
   styleUrl: './answer-pipeline.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,6 +32,8 @@ export class AnswerPipeline {
   readonly trace = input.required<AnswerTrace>();
   readonly phase = input<PipelinePhase | null>(null);
   readonly live = input(false);
+  /** The answer as the model writes it, when the backend streams tokens. */
+  readonly text = input('');
 
   protected readonly activeLabel = computed(() => {
     if (!this.live()) return '';
@@ -65,22 +54,6 @@ export class AnswerPipeline {
 
   protected questionType(kind: string): string {
     return kind ? `${kind.toLowerCase()} question` : 'question type not read';
-  }
-
-  protected wordMeta(word: WordReading): string {
-    const parts: string[] = [];
-    const speech = word.part_of_speech
-      ? (PARTS_OF_SPEECH[word.part_of_speech] ?? word.part_of_speech.toLowerCase())
-      : '';
-    if (speech) parts.push(speech);
-    if (word.lemma && word.lemma.toLowerCase() !== word.word.toLowerCase()) {
-      parts.push(`→ ${word.lemma}`);
-    }
-    return parts.join(' · ');
-  }
-
-  protected synonymLine(word: WordReading): string {
-    return word.synonyms.length ? `same as ${word.synonyms.join(', ')}` : '';
   }
 
   protected matchLine(connection: SourceConnection): string {

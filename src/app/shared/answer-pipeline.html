@@ -1,22 +1,6 @@
 <section class="pipeline" role="status" aria-live="polite" [attr.aria-busy]="live()">
   @if (trace().reading; as reading) {
-    <div class="stage">
-      <p class="stage-label">Reading</p>
-      @if (reading.words.length) {
-        <ul class="words">
-          @for (word of reading.words; track $index) {
-            <li class="word">
-              <span class="word-text">{{ word.word }}</span>
-              <span class="word-meta">{{ wordMeta(word) }}</span>
-              <span class="word-meaning">{{ word.meaning }}</span>
-              <span class="word-synonyms">{{ synonymLine(word) }}</span>
-            </li>
-          }
-        </ul>
-      } @else {
-        <p class="stage-note">No words could be read from the question.</p>
-      }
-    </div>
+    <app-answer-reading [reading]="reading" />
   }
 
   @if (trace().thinking; as thinking) {
@@ -60,7 +44,13 @@
   @if (trace().writing; as model) {
     <div class="stage">
       <p class="stage-label">Writing</p>
-      <p class="stage-note">{{ model }} is writing the answer from the material above.</p>
+      <p class="stage-note">{{ model }} is writing the answer.</p>
+      @if (text(); as written) {
+        <div class="writing-text">
+          <app-answer-text [text]="written" />
+          <span class="writing-caret" aria-hidden="true"></span>
+        </div>
+      }
     </div>
   }
 

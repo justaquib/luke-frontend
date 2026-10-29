@@ -1,0 +1,70 @@
+<nav class="tool-tabs" aria-label="Training tools">
+  <button
+    type="button"
+    class="tool-tab"
+    [class.active]="store.tab() === 'new'"
+    (click)="select('new')"
+    [attr.aria-current]="store.tab() === 'new' ? 'page' : null"
+  >
+    <app-icon name="plus" [size]="14" />
+    New Q&amp;A
+  </button>
+  <button
+    type="button"
+    class="tool-tab"
+    [class.active]="store.tab() === 'inbox'"
+    (click)="select('inbox')"
+    [attr.aria-current]="store.tab() === 'inbox' ? 'page' : null"
+  >
+    <app-icon name="inbox" [size]="14" />
+    Inbox
+    <span class="tab-count" [hidden]="store.pendingCount() === 0">{{ store.pendingCount() }}</span>
+  </button>
+  <button
+    type="button"
+    class="tool-tab"
+    [class.active]="store.tab() === 'faqs'"
+    (click)="select('faqs')"
+    [attr.aria-current]="store.tab() === 'faqs' ? 'page' : null"
+  >
+    <app-icon name="book" [size]="14" />
+    Trained
+    <span class="tab-count" [hidden]="store.faqCount() === 0">{{ store.faqCount() }}</span>
+  </button>
+  <button
+    type="button"
+    class="tool-tab"
+    [class.active]="store.tab() === 'merge'"
+    (click)="select('merge')"
+    [attr.aria-current]="store.tab() === 'merge' ? 'page' : null"
+  >
+    <app-icon name="merge" [size]="14" />
+    Merge
+    <span class="tab-count" [hidden]="store.intentGroups().length === 0">{{
+      store.intentGroups().length
+    }}</span>
+  </button>
+  <button
+    type="button"
+    class="tool-tab"
+    [class.active]="store.tab() === 'base'"
+    (click)="select('base')"
+    [attr.aria-current]="store.tab() === 'base' ? 'page' : null"
+  >
+    <app-icon name="layers" [size]="14" />
+    Base model
+  </button>
+  <button
+    type="button"
+    class="tool-tab"
+    [class.active]="store.tab() === 'documents'"
+    (click)="select('documents')"
+    [attr.aria-current]="store.tab() === 'documents' ? 'page' : null"
+  >
+    <app-icon name="file" [size]="14" />
+    Documents
+    <span class="tab-count" [hidden]="store.documents().length === 0">{{
+      store.documents().length
+    }}</span>
+  </button>
+</nav>

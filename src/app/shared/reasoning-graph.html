@@ -1,0 +1,35 @@
+<svg
+  class="reasoning-graph"
+  viewBox="0 0 700 340"
+  role="img"
+  aria-label="Nodes the assistant visited while answering"
+>
+  @for (edge of edges(); track edge.source + edge.target + edge.label) {
+    <line
+      class="graph-edge"
+      [attr.x1]="point(edge.source).x"
+      [attr.y1]="point(edge.source).y"
+      [attr.x2]="point(edge.target).x"
+      [attr.y2]="point(edge.target).y"
+    />
+    <text
+      class="graph-edge-label"
+      [attr.x]="(point(edge.source).x + point(edge.target).x) / 2"
+      [attr.y]="(point(edge.source).y + point(edge.target).y) / 2 - 5"
+    >
+      {{ edge.label }}
+    </text>
+  }
+  @for (node of nodes(); track node.id) {
+    <g class="graph-node" [attr.data-type]="node.type">
+      <circle [attr.cx]="point(node.id).x" [attr.cy]="point(node.id).y" [attr.r]="radius(node)" />
+      <text
+        class="graph-node-label"
+        [attr.x]="point(node.id).x"
+        [attr.y]="point(node.id).y + radius(node) + 13"
+      >
+        {{ truncate(node.label) }}
+      </text>
+    </g>
+  }
+</svg>

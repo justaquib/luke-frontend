@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   inject,
   input,
@@ -16,9 +17,10 @@ import { AppModal } from '../shared/app-modal';
 import { ChatWordHeatmap } from './chat-word-heatmap';
 
 /**
- * The prediction lab: one word at a time from the selected model. Every word
- * shown is a word the backend measured; the animation only reveals the order
- * in which those measured words arrive.
+ * The prediction lab: one token at a time from the selected model. Every token
+ * shown is one the backend measured; the animation only reveals the order in
+ * which those measured tokens arrive. A BPE model writes pieces, so the page
+ * calls them pieces and joins them without adding spaces.
  */
 @Component({
   selector: 'app-prediction-lab',
@@ -42,6 +44,8 @@ export class PredictionLab {
   protected readonly error = signal<string | null>(null);
   protected readonly custom = signal('');
   protected readonly justPicked = signal(false);
+  protected readonly pieces = computed(() => this.prediction()?.next?.[0]?.piece === true);
+  protected readonly unit = computed(() => (this.pieces() ? 'piece' : 'word'));
 
   private readonly api = inject(ModelApiService);
   private subscription?: Subscription;
@@ -132,13 +136,16 @@ export class PredictionLab {
         this.loading.set(false);
       },
       error: (error: Error) => {
-        this.error.set(error.message || 'The model could not predict the next word.');
+        this.error.set(error.message || `The model could not predict the next ${this.unit()}.`);
         this.loading.set(false);
       },
     });
   }
 
   private text(): string {
-    return [this.prefix().trim(), ...this.words()].filter(Boolean).join(' ');
+    const head = this.prefix().trim();
+    const tail = this.words();
+    if (!tail.length) return head;
+    return this.pieces() ? `${head}${tail.join('')}` : `${head} ${tail.join(' ')}`.trim();
   }
 }

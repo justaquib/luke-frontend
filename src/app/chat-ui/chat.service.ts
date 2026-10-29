@@ -32,6 +32,8 @@ export class ChatService {
   readonly ratedMessages = signal<Record<number, boolean>>({});
   readonly liveTrace = signal<AnswerTrace>(emptyTrace());
   readonly livePhase = signal<PipelinePhase | null>(null);
+  /** The answer as it is written, so a generated answer appears word by word. */
+  readonly liveText = signal('');
 
   private subscription?: Subscription;
   private controller?: AbortController;
@@ -52,13 +54,14 @@ export class ChatService {
     if (!question || this.isTyping()) {
       return;
     }
+    const history = this.session.recentTurns();
     this.session.appendMessage({
       id: this.session.nextMessageId(),
       role: 'user',
       text: question,
       timestamp: new Date(),
     });
-    this.startStream(question, options);
+    this.startStream(question, { ...options, history });
   }
 
   /** Stops the live answer, if one is streaming; the page is closing. */
@@ -101,6 +104,7 @@ export class ChatService {
     this.isTyping.set(true);
     this.liveTrace.set(emptyTrace());
     this.livePhase.set('reading');
+    this.liveText.set('');
     const controller = new AbortController();
     this.controller = controller;
     this.subscription = this.streams
@@ -119,6 +123,10 @@ export class ChatService {
     }
     if (event.type === 'answer') {
       this.appendAnswer(question, event.answer);
+      return;
+    }
+    if (event.type === 'token') {
+      this.liveText.update((text) => text + event.text);
       return;
     }
     const phase = phaseFor(event);
@@ -153,6 +161,10 @@ export class ChatService {
       confidence: response.confidence,
       model: response.model,
       modelName: response.model_name,
+      modelVersion: response.model_version ?? null,
+      mode: response.mode ?? 'retrieved',
+      citations: response.citations ?? [],
+      tokensPerSecond: response.tokens_per_second ?? null,
       reveal: true,
     };
   }
@@ -187,6 +199,7 @@ export class ChatService {
   private clearTrace(): void {
     this.liveTrace.set(emptyTrace());
     this.livePhase.set(null);
+    this.liveText.set('');
   }
 
   private sendFeedback(message: ChatMessage, rating: 'like' | 'dislike'): void {

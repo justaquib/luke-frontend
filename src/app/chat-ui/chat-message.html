@@ -6,18 +6,11 @@
 >
   <div class="bubble">
     @if (message().role === 'assistant') {
-      <button
-        type="button"
-        class="answer-open"
-        (click)="openDetails.emit(message())"
-        title="Open answer details"
-      >
-        <app-answer-reveal
-          [text]="message().text"
-          [animate]="message().reveal === true"
-          (advanced)="revealAdvanced.emit()"
-        />
-      </button>
+      <app-answer-reveal
+        [text]="message().text"
+        [animate]="message().reveal === true"
+        (advanced)="revealAdvanced.emit()"
+      />
     } @else {
       <p class="msg-text">{{ message().text }}</p>
     }

@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
+import { BrowserHistoryService } from './browser-history.service';
 
 @Component({
   selector: 'app-back-to-chat',
@@ -12,18 +13,17 @@ import { Router } from '@angular/router';
 export class BackToChat {
   private readonly location = inject(Location);
   private readonly router = inject(Router);
+  private readonly history = inject(BrowserHistoryService);
 
-  protected readonly canGoBack = computed(() => true);
+  protected canGoBack(): boolean {
+    return this.history.canGoBack();
+  }
 
-  goBack(): void {
-    if (
-      window.history.length > 1 &&
-      document.referrer &&
-      document.referrer.includes(window.location.host)
-    ) {
+  protected goBack(): void {
+    if (this.history.canGoBack()) {
       this.location.back();
-    } else {
-      void this.router.navigateByUrl('/');
+      return;
     }
+    void this.router.navigateByUrl('/');
   }
 }

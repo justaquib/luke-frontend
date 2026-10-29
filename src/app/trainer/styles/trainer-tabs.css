@@ -1,0 +1,65 @@
+/* The tool strip that switches between the trainer's views. */
+:host {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.tool-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.tool-tab {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.tool-tab:hover {
+  color: var(--text);
+}
+
+.tool-tab.active {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
+.tool-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.tab-count {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tool-tab.active .tab-count {
+  background: none;
+  color: var(--accent);
+}
+
+@media (max-width: 680px) {
+  .tool-tabs {
+    padding: 0 8px;
+  }
+}

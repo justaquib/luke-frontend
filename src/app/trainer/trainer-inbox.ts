@@ -1,15 +1,20 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { AppIcon } from '../shared/app-icon';
 import { TrainerInboxActions } from './trainer-inbox.actions';
 import { TrainerInboxMerge } from './trainer-inbox-merge';
 import { TrainerStore } from './trainer.store';
-import { TRAINER_STYLES } from './trainer-styles';
 
+/** Pending questions waiting for a trained answer. */
 @Component({
   selector: 'app-trainer-inbox',
   standalone: true,
-  imports: [TrainerInboxMerge],
+  imports: [AppIcon, TrainerInboxMerge],
   templateUrl: './trainer-inbox.html',
-  styleUrls: [...TRAINER_STYLES],
+  styleUrls: [
+    './styles/trainer-common.css',
+    './styles/trainer-controls.css',
+    './styles/trainer-inbox.css',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TrainerInbox {

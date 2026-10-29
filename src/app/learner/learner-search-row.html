@@ -1,0 +1,117 @@
+<div class="learner-search-content">
+  <span class="lesson-kind"
+    >{{ result().badge }}
+    @if (result().grade) {
+      · {{ model.stageTitle(result().grade) }}
+    }
+  </span>
+  @if (duplicates.isDuplicate(result().lessonId)) {
+    <span class="duplicate-badge" title="This lesson repeats another one">D</span>
+  }
+  <span
+    class="confidence-badge"
+    [class.high]="result().confidence >= 0.75"
+    [class.low]="result().confidence < 0.45"
+    title="How sure the assistant is about this answer"
+    >Confidence {{ result().confidence * 100 | number: '1.0-0' }}%</span
+  >
+  @if (search.editKey() === result().key) {
+    <label [for]="'search-question-' + result().key">Question</label>
+    <textarea
+      [id]="'search-question-' + result().key"
+      rows="2"
+      [ngModel]="search.editQuestion()"
+      (ngModelChange)="search.editQuestion.set($event)"
+      [name]="'search-question-' + result().key"
+      maxlength="1000"
+      aria-label="Question"
+    ></textarea>
+    <label [for]="'search-answer-' + result().key">Answer</label>
+    <textarea
+      [id]="'search-answer-' + result().key"
+      rows="3"
+      [ngModel]="search.editAnswer()"
+      (ngModelChange)="search.editAnswer.set($event)"
+      [name]="'search-answer-' + result().key"
+      maxlength="1900"
+      aria-label="Answer"
+    ></textarea>
+    <label class="confidence-field">
+      <span>Confidence · {{ search.editConfidence() * 100 | number: '1.0-0' }}%</span>
+      <input
+        type="range"
+        min="0"
+        max="100"
+        step="5"
+        [value]="search.editConfidence() * 100"
+        (input)="onConfidenceInput($event)"
+        [attr.aria-label]="'Confidence of the answer ' + result().question"
+      />
+    </label>
+    <div class="learner-search-actions">
+      <button
+        type="button"
+        class="primary small icon-only"
+        (click)="search.save(result())"
+        [attr.aria-label]="
+          search.savingKey() === result().key ? 'Saving changes' : 'Save the changes'
+        "
+        [title]="search.savingKey() === result().key ? 'Saving changes' : 'Save the changes'"
+        [disabled]="
+          search.savingKey() === result().key ||
+          !search.editQuestion().trim() ||
+          !search.editAnswer().trim()
+        "
+      >
+        <app-icon name="check" [size]="14" />
+      </button>
+      <button
+        type="button"
+        class="ghost small icon-only"
+        (click)="search.cancelEdit()"
+        aria-label="Cancel editing"
+        title="Cancel editing"
+      >
+        <app-icon name="x" [size]="14" />
+      </button>
+    </div>
+  } @else {
+    <strong>{{ result().question }}</strong>
+    <p>{{ result().answer }}</p>
+    <div class="learner-search-actions">
+      @if (result().editable) {
+        <button
+          type="button"
+          class="ghost small icon-only"
+          (click)="search.beginEdit(result())"
+          aria-label="Edit the question and answer"
+          title="Edit the question and answer"
+        >
+          <app-icon name="pencil" [size]="14" />
+        </button>
+        <button
+          type="button"
+          class="danger small icon-only"
+          (click)="search.remove(result())"
+          aria-label="Remove the question and answer"
+          title="Remove the question and answer"
+        >
+          <app-icon name="trash" [size]="14" />
+        </button>
+      } @else {
+        <span class="learner-search-hint">Starter material · read-only</span>
+      }
+      @if (result().showInGrade) {
+        <button
+          type="button"
+          class="ghost small icon-only"
+          (click)="search.focusInGrade(result())"
+          aria-label="Show the question in its grade"
+          title="Show the question in its grade"
+        >
+          <app-icon name="arrow-right" [size]="14" />
+        </button>
+      }
+    </div>
+  }
+</div>

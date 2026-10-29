@@ -1,0 +1,53 @@
+<div class="curriculum-stages school-grade-list" aria-label="School grade progress">
+  @for (stage of model.stages(); track stage.id; let index = $index) {
+    <button
+      type="button"
+      class="curriculum-stage"
+      [class.current]="model.currentStageId() === stage.id"
+      [class.completed]="stage.completed"
+      [class.selected]="lessons.teachingStage() === stage.id"
+      [disabled]="lessons.isLocked(stage.id)"
+      (click)="lessons.selectStage(stage.id)"
+    >
+      <span class="curriculum-stage-number">
+        @if (stage.completed) {
+          <app-icon name="check" [size]="14" />
+        } @else {
+          {{ index + 1 }}
+        }
+      </span>
+      <span
+        ><strong>{{ stage.title }}</strong
+        ><small>{{ stageStatus(stage) }}</small></span
+      >
+      <span class="curriculum-stage-count">{{ stage.lesson_count }} Q&amp;A</span>
+    </button>
+  }
+</div>
+
+<section class="language-learning-card">
+  <app-card-info label="adding a lesson" [text]="lessons.cardInfo()">
+    <h3>Add a lesson · {{ lessons.stageTitle() }}</h3>
+  </app-card-info>
+  <app-lesson-form
+    [mode]="lessons.entryMode()"
+    (modeChange)="lessons.entryMode.set($event)"
+    [subject]="lessons.subjectDraft()"
+    (subjectChange)="lessons.subjectDraft.set($event)"
+    [question]="lessons.questionDraft()"
+    (questionChange)="lessons.questionDraft.set($event)"
+    [answer]="lessons.answerDraft()"
+    (answerChange)="lessons.answerDraft.set($event)"
+    [pairs]="lessons.pairsDraft()"
+    (pairsChange)="lessons.pairsDraft.set($event)"
+    [title]="lessons.titleDraft()"
+    (titleChange)="lessons.titleDraft.set($event)"
+    [passage]="lessons.passageDraft()"
+    (passageChange)="lessons.passageDraft.set($event)"
+    [subjects]="lessons.subjects()"
+    [saving]="lessons.saving()"
+    [stageTitle]="lessons.stageTitle()"
+    [description]="lessons.selectedStage()?.description ?? ''"
+    (submitted)="lessons.teach()"
+  />
+</section>

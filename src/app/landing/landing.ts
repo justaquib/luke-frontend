@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth.service';
 import { AppIcon, type IconName } from '../shared/app-icon';
@@ -21,6 +21,7 @@ interface Step {
   imports: [RouterLink, AppIcon],
   templateUrl: './landing.html',
   styleUrls: ['./landing.css', './landing-preview.css', './landing-sections.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Landing {
   protected readonly auth = inject(AuthService);

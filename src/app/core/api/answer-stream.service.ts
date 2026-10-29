@@ -11,7 +11,7 @@ import type {
   QueryResponse,
   SourceConnection,
 } from './api-models';
-import type { QueryOptions } from './chat-api.service';
+import { queryBody, type QueryOptions } from './chat-api.service';
 
 const SAFE_FAILURE = 'The answer stopped before it was finished. Please ask again.';
 
@@ -28,11 +28,11 @@ export class AnswerStreamService extends BaseApiService {
     options?: QueryOptions,
     signal?: AbortSignal,
   ): Observable<AnswerStreamEvent<QueryResponse>> {
-    const body: Record<string, unknown> = { question, n_results: nResults };
-    if (options?.apps) body['apps'] = options.apps;
-    if (options?.location) body['location'] = options.location;
-    if (options?.model) body['model'] = options.model;
-    return this.stream<QueryResponse>('/query/stream', body, signal);
+    return this.stream<QueryResponse>(
+      '/query/stream',
+      queryBody(question, nResults, options),
+      signal,
+    );
   }
 
   streamPreview(
@@ -107,7 +107,7 @@ export class AnswerStreamService extends BaseApiService {
         signal: controller.signal,
       });
       if (!response.ok) {
-        subscriber.error(new Error(await this.failureMessage(response)));
+        subscriber.error(new Error(await this.failureDetail(response)));
         return;
       }
       if (!response.body) {
@@ -182,7 +182,7 @@ export class AnswerStreamService extends BaseApiService {
   }
 
   private eventOf<T>(message: SseMessage): AnswerStreamEvent<T> | null {
-    const data = this.parse(message);
+    const data = this.frameData(message);
     switch (message.event) {
       case 'reading':
         return { type: 'reading', reading: data as AnswerReading };
@@ -190,36 +190,21 @@ export class AnswerStreamService extends BaseApiService {
         return { type: 'thinking', thinking: data as AnswerThinking };
       case 'connecting':
         return { type: 'connecting', connection: data as SourceConnection };
-      case 'writing': {
-        const model = (data as { model?: unknown }).model;
-        return { type: 'writing', model: typeof model === 'string' ? model : '' };
-      }
+      case 'writing':
+        return { type: 'writing', model: this.textOf(data, 'model') };
+      case 'token':
+        return { type: 'token', text: this.textOf(data, 'text') };
       case 'answer':
         return { type: 'answer', answer: data as T };
-      case 'error': {
-        const detail = (data as { message?: unknown }).message;
-        return { type: 'error', message: typeof detail === 'string' ? detail : SAFE_FAILURE };
-      }
+      case 'error':
+        return { type: 'error', message: this.textOf(data, 'message') || SAFE_FAILURE };
       default:
         return null;
     }
   }
 
-  private parse(message: SseMessage): unknown {
-    try {
-      return message.data ? JSON.parse(message.data) : {};
-    } catch {
-      return {};
-    }
-  }
-
-  private async failureMessage(response: Response): Promise<string> {
-    try {
-      const body = (await response.json()) as { detail?: unknown };
-      if (typeof body.detail === 'string') return body.detail;
-    } catch {
-      // An error body that is not JSON falls back to the status wording.
-    }
-    return this.statusMessage(response.status);
+  private textOf(data: unknown, key: string): string {
+    const value = (data as Record<string, unknown>)[key];
+    return typeof value === 'string' ? value : '';
   }
 }

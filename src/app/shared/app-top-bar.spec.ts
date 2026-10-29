@@ -65,7 +65,7 @@ describe('AppTopBar', () => {
     const { compiled } = render();
     const center = query<HTMLElement>(compiled, '.top-bar .bar-center');
 
-    expect(query(center, '.page-name').textContent?.trim()).toBe('Assistance brain');
+    expect(query(center, '.page-name').textContent?.trim()).toBe('Luke brain');
     expect(query(center, '.page-scope').textContent?.trim()).toBe('Model builder');
     expect(query(center, '.page-dot').getAttribute('aria-hidden')).toBe('true');
     expect(center.textContent).not.toContain('What the brain');

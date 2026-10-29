@@ -39,9 +39,25 @@ describe('AppSidebar', () => {
       '/dashboard/parenting',
       '/dashboard/learner',
       '/dashboard/brain',
+      '/dashboard/assessment',
+      '/dashboard/expressions',
       '/dashboard/design',
       '/dashboard/settings',
     ]);
+  });
+
+  it('names the brain and settings in Luke Lab terms', async () => {
+    const fixture = TestBed.createComponent(AppSidebar);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const labels = [...compiled.querySelectorAll('.nav-label')].map((label) =>
+      label.textContent?.trim(),
+    );
+    expect(labels).toContain('Luke brain');
+    expect(labels).toContain('Lab settings');
+    expect(labels).not.toContain('System Admin');
   });
 
   it('uses the same drawn icons as the other sidebars', async () => {

@@ -104,7 +104,7 @@ export class TrainerBase implements OnInit {
       next: (state) => {
         this.starting.set(false);
         this.wasRunning = true;
-        this.ui.success(`Fine-tuning ${model.name} on this tenant’s material.`);
+        this.ui.success(`Fine-tuning ${model.name} on the lab’s material.`);
         this.accept(state);
       },
       error: (error: Error) => {

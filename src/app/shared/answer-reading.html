@@ -1,0 +1,17 @@
+<div class="stage">
+  <p class="stage-label">Reading</p>
+  @if (reading().words.length) {
+    <ul class="words">
+      @for (word of reading().words; track $index) {
+        <li class="word">
+          <span class="word-text">{{ word.word }}</span>
+          <span class="word-meta">{{ wordMeta(word) }}</span>
+          <span class="word-meaning">{{ word.meaning }}</span>
+          <span class="word-synonyms">{{ synonymLine(word) }}</span>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="stage-note">No words could be read from the question.</p>
+  }
+</div>

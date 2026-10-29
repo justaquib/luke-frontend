@@ -1,0 +1,88 @@
+<app-modal
+  [open]="open()"
+  [title]="'Review ' + skillTitle()"
+  size="wide"
+  [closable]="!saving()"
+  (closed)="close()"
+>
+  @if (current(); as item) {
+    <div class="review-body">
+      <p class="waiting-line">
+        <span class="stamp">{{ waiting().length }} waiting</span>
+        <span class="topic">{{ item.topic }} · stage {{ item.stage }}</span>
+      </p>
+
+      <section class="fact">
+        <h3>Asked</h3>
+        <p class="prompt">{{ item.prompt }}</p>
+      </section>
+
+      <section class="fact">
+        <h3>Answered</h3>
+        <p class="response">{{ item.response || 'The run stored no answer for this item.' }}</p>
+      </section>
+
+      @if (item.criteria.length) {
+        <section class="fact">
+          <h3>What a good answer does</h3>
+          <ul class="criteria">
+            @for (line of item.criteria; track line) {
+              <li>{{ line }}</li>
+            }
+          </ul>
+        </section>
+      }
+
+      @if (item.reference) {
+        <section class="fact">
+          <h3>Reference answer</h3>
+          <p class="reference">{{ item.reference }}</p>
+        </section>
+      }
+
+      <div class="score-fields">
+        <label class="field">
+          Score (0–100)
+          <input
+            type="number"
+            name="rubric-score"
+            min="0"
+            max="100"
+            step="5"
+            [value]="percent()"
+            (input)="setPercent($event)"
+          />
+        </label>
+        <label class="field">
+          Note for the history
+          <input
+            type="text"
+            name="rubric-note"
+            [value]="note()"
+            (input)="setNote($event)"
+            placeholder="What decided this score"
+          />
+        </label>
+      </div>
+
+      <p class="hint">
+        The score is stored against this answer only, and a rubric is never filled in by the model
+        itself.
+      </p>
+    </div>
+  } @else {
+    <p class="empty">Nothing is waiting for review in this skill.</p>
+  }
+
+  <div modal-actions>
+    <button type="button" class="ghost small" [disabled]="saving()" (click)="close()">Close</button>
+    <button
+      type="button"
+      class="primary small"
+      [disabled]="saving() || !current()"
+      (click)="save()"
+    >
+      Save score
+    </button>
+  </div>
+</app-modal>

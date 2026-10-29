@@ -1,0 +1,23 @@
+<section class="system-overview" aria-labelledby="system-overview-title">
+  <div class="overview-copy">
+    <h2 id="system-overview-title">System overview</h2>
+    <p class="overview-note">
+      Every package the product is built with, and what it does. A package that is added, removed or
+      replaced is listed here in the same change.
+    </p>
+  </div>
+  @for (group of ['runtime', 'development']; track group) {
+    <h3>{{ group === 'runtime' ? 'Runtime packages' : 'Development tools' }}</h3>
+    <ul class="overview-list">
+      @for (item of packages; track item.name) {
+        @if (item.kind === group) {
+          <li>
+            <strong>{{ item.name }}</strong>
+            <span class="overview-area">{{ item.area }}</span>
+            <p>{{ item.purpose }}</p>
+          </li>
+        }
+      }
+    </ul>
+  }
+</section>

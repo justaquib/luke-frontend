@@ -56,11 +56,36 @@ export interface ModelReport {
   corpus?: { sentences?: number; instructions?: number };
 }
 
+/** The tokenizer a checkpoint was trained with, as its artifact records it. */
+export interface TokenizerReport {
+  kind: string;
+  default_kind: string;
+  id: string;
+  short_id: string;
+  vocab_size: number;
+  special_ids: Record<string, number>;
+  artifact_bytes: number;
+  present: boolean;
+  error: string | null;
+  corpus?: {
+    sentences?: number;
+    tokenizer_sentences?: number;
+    held_out_sentences?: number;
+    characters?: number;
+    tokens?: number;
+  };
+  tokens_per_character?: number | null;
+  created?: number;
+  licence?: string;
+  implementation?: string;
+}
+
 /** The word model adds the backend that serves and why. */
 export interface BrainWordReport extends ModelReport {
   backend?: 'neural' | 'untrained';
   backend_reason?: string;
   quality_ok?: boolean;
+  tokenizer?: TokenizerReport;
 }
 
 /** One training, as the short history keeps it. */

@@ -18,6 +18,7 @@ import type {
   BrainWordReport,
   LanguageBrainDocument,
   LanguageLevelApproval,
+  TokenizerReport,
   TrainingProgress,
 } from '../core/api/language-brain.types';
 import type { ModelLevel } from '../core/api/api.types';
@@ -32,6 +33,7 @@ import { BrainMeasurements } from './brain-measurements';
 import { BrainModels } from './brain-models';
 import { BrainRuns } from './brain-runs';
 import { BrainStore } from './brain-store';
+import { BrainTokenizer } from './brain-tokenizer';
 import { engineStatus, trainingSummary } from './brain-status';
 import { BrainTrainingPanel } from './brain-training-panel';
 import { AppIcon } from '../shared/app-icon';
@@ -62,6 +64,7 @@ interface CorpusRow {
     BrainRuns,
     BrainLadder,
     BrainStore,
+    BrainTokenizer,
     BrainTrainingPanel,
     AppIcon,
   ],
@@ -86,6 +89,9 @@ export class Brain implements OnInit, OnDestroy {
     () => this.brainState()?.engine ?? null,
   );
   protected readonly words = computed<BrainWordReport | null>(() => this.engine()?.words ?? null);
+  protected readonly tokenizer = computed<TokenizerReport | null>(
+    () => this.words()?.tokenizer ?? null,
+  );
   protected readonly runs = computed<BrainRun[]>(() => this.engine()?.runs ?? []);
   protected readonly level = computed<ModelLevel | null>(
     () => this.brainState()?.model_level ?? null,

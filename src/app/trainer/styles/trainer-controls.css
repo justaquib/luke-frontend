@@ -1,0 +1,206 @@
+/* Buttons, filters and status tags shared by the trainer views. */
+button {
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.approve,
+.decline,
+.primary,
+.ghost,
+.danger {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.primary,
+.approve {
+  border: 1px solid transparent;
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.primary:hover:not(:disabled),
+.approve:hover:not(:disabled) {
+  background: var(--text);
+}
+
+.ghost {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+}
+
+.ghost:hover:not(:disabled) {
+  border-color: var(--accent-line);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.danger,
+.decline {
+  border: 1px solid var(--bad);
+  background: transparent;
+  color: var(--bad);
+}
+
+.danger:hover:not(:disabled),
+.decline:hover:not(:disabled) {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+
+.primary.small,
+.approve.small,
+.decline.small,
+.ghost.small,
+.danger.small {
+  min-height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.primary.xsmall,
+.ghost.xsmall,
+.danger.xsmall {
+  min-height: 24px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
+.status-tag {
+  display: inline-block;
+  width: fit-content;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status-tag.small {
+  padding: 0 5px;
+  font-size: 11px;
+}
+
+.status-tag.pending {
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.status-tag.approved {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+.status-tag.declined {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.status-tag.duplicate {
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+.merge-badge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+}
+
+.merge-badge.canonical {
+  border: 1px solid var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.merge-badge.alias {
+  border: 1px dashed var(--muted);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.result-count {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* An action whose name lives in its aria-label and title rather than a visible
+   label: square, so a row of actions stays compact. */
+.approve.icon-only,
+.decline.icon-only,
+.primary.icon-only,
+.ghost.icon-only,
+.danger.icon-only {
+  width: 32px;
+  min-width: 32px;
+  padding: 0;
+}
+
+.approve.icon-only.small,
+.decline.icon-only.small,
+.primary.icon-only.small,
+.ghost.icon-only.small,
+.danger.icon-only.small {
+  width: 28px;
+  min-width: 28px;
+  padding: 0;
+}
+
+.primary.icon-only.xsmall,
+.ghost.icon-only.xsmall,
+.danger.icon-only.xsmall {
+  width: 24px;
+  min-width: 24px;
+  padding: 0;
+}

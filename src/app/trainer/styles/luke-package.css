@@ -1,6 +1,6 @@
-/* The Luke download card: the count, the material and the one action. */
 :host {
   display: block;
+  min-width: 0;
 }
 
 .package-card {
@@ -9,75 +9,75 @@
   gap: 8px;
   padding: 12px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--card-radius);
   background: var(--surface);
 }
 
 .package-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
 .package-head h3 {
-  margin: 0 0 4px;
+  margin: 0;
   color: var(--text);
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .facts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
   gap: 8px;
   margin: 0;
 }
 
 .fact {
   min-width: 0;
-  padding: 6px 8px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface-2);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
 }
 
-.fact dt {
+.fact dt,
+.base-identity dt {
   margin-bottom: 2px;
   color: var(--faint);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.fact dd {
-  overflow: hidden;
+.fact dd,
+.base-identity dd {
   margin: 0;
   color: var(--text);
   font-size: 12px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
-.fact dd.file {
-  overflow-wrap: anywhere;
-  white-space: normal;
+.base-identity {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.base-identity > div {
+  display: grid;
+  grid-template-columns: minmax(0, 120px) minmax(0, 1fr);
+  gap: 8px;
 }
 
 .kinds {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .chip {
-  display: inline-flex;
-  padding: 2px 7px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface-2);
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .actions {
@@ -93,6 +93,11 @@
   color: var(--muted);
   font-size: 13px;
   line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.hint:empty {
+  display: none;
 }
 
 .note {
@@ -103,9 +108,15 @@
   margin: 0;
   color: var(--bad);
   font-size: 12px;
+  overflow-wrap: anywhere;
 }
 
 .mono {
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
+}
+
+.choice-group:disabled .choice {
+  color: var(--faint);
+  cursor: not-allowed;
 }

@@ -4,7 +4,7 @@ import { provideHttpClientTesting, HttpTestingController } from '@angular/common
 import { provideRouter } from '@angular/router';
 import { Trainer } from './trainer';
 
-describe('Trainer intent explorer', () => {
+describe('Trainer intent groups', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Trainer],
@@ -12,35 +12,48 @@ describe('Trainer intent explorer', () => {
     }).compileComponents();
   });
 
-  it('shows the intent explorer after clicking the sidebar item', async () => {
+  it('shows an existing intent group in the merge view', () => {
     const fixture = TestBed.createComponent(Trainer);
+    const http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-    await fixture.whenStable();
+
+    http.expectOne((req) => req.url.includes('/faq/inbox')).flush([]);
+    http
+      .expectOne((req) => req.url.endsWith('/faq'))
+      .flush([
+        {
+          id: 1,
+          question: 'How many vacation days do we get?',
+          answer: 'Twenty days each year.',
+          status: 'approved',
+          created_at: '2026-01-01T00:00:00Z',
+          updated_at: '2026-01-02T00:00:00Z',
+        },
+        {
+          id: 2,
+          question: 'How much holiday do I have?',
+          answer: 'Twenty days each year.',
+          status: 'pending',
+          created_at: '2026-01-01T00:00:00Z',
+          updated_at: '2026-01-02T00:00:00Z',
+        },
+      ]);
+    http.expectOne((req) => req.url.endsWith('/documents')).flush([]);
+    fixture.detectChanges();
+
+    fixture.componentInstance.setTab('merge');
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    const navItems = [...compiled.querySelectorAll('.nav-item')] as HTMLButtonElement[];
-    console.log(
-      'NAV ITEMS:',
-      navItems.map((b) => b.textContent?.trim()),
+    const group = compiled.querySelector('.intent-group-card');
+    expect(group?.querySelector('.q')?.textContent?.trim()).toBe(
+      'How many vacation days do we get?',
     );
-    const intentButton = navItems.find((b) => b.textContent?.includes('Intent explorer'));
-    console.log('INTENT BUTTON FOUND:', !!intentButton);
-
-    intentButton?.click();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    console.log('TITLE:', compiled.querySelector('.editable-title')?.textContent?.trim());
-    console.log('SUBTITLE:', compiled.querySelector('.subtitle')?.textContent?.trim());
-    console.log('EXPLORER CARDS:', compiled.querySelectorAll('.intent-explorer-card').length);
-    console.log(
-      'CARD HEADINGS:',
-      [...compiled.querySelectorAll('.intent-explorer-card h3')].map((h) => h.textContent?.trim()),
-    );
-
-    const http = TestBed.inject(HttpTestingController);
-    http.match(() => true).forEach((req) => req.flush({} as any));
+    expect(
+      Array.from(group?.querySelectorAll('.alias-list li .alias-q') ?? []).map((node) =>
+        node.textContent?.trim(),
+      ),
+    ).toEqual(['How much holiday do I have?']);
+    http.verify();
   });
 });

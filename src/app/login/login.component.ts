@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../core/auth.service';
@@ -11,12 +11,13 @@ import { AppIcon } from '../shared/app-icon';
   imports: [CommonModule, RouterLink, AppIcon],
   templateUrl: './login.html',
   styleUrls: ['../shared/auth.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Login {
   private readonly auth = inject(AuthService);
   private readonly ui = inject(UiService);
 
-  googleSignIn() {
+  protected googleSignIn(): void {
     this.auth.loginWithGoogle();
   }
 }

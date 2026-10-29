@@ -2,11 +2,33 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
+import { of, Subject } from 'rxjs';
+import { DocumentsApiService } from '../core/api/documents-api.service';
+import type { IngestJob } from '../core/api/api-models';
 import { RightSidebarService } from '../shared/right-sidebar.service';
 import { Trainer } from './trainer';
 
 function text(node: Element): string {
   return node.textContent?.trim() ?? '';
+}
+
+function ingestJob(overrides: Partial<IngestJob> = {}): IngestJob {
+  return {
+    id: 7,
+    source: 'people.csv',
+    status: 'queued',
+    step: 'Waiting to start',
+    progress: 0,
+    done: 0,
+    total: 0,
+    chunks: 0,
+    duplicates: { stored: 0, exact: 0, near: 0 },
+    error: null,
+    created_at: null,
+    started_at: null,
+    finished_at: null,
+    ...overrides,
+  };
 }
 
 function query(root: ParentNode, selector: string): Element {
@@ -195,6 +217,7 @@ describe('Trainer', () => {
       {
         id: 3,
         question: 'How do I request a laptop?',
+        note: 'New answer: "Ask IT." — approved answer: "Use the portal."',
         occurrences: 2,
         resolved: false,
         created_at: '2026-01-01T00:00:00Z',
@@ -213,12 +236,29 @@ describe('Trainer', () => {
       'How do I request a laptop?',
     ]);
     expect(compiled.querySelector('.trainer-content textarea')).toBeTruthy();
+    expect(text(query(compiled, '.trainer-content .conflict-note'))).toBe(
+      'New answer: "Ask IT." — approved answer: "Use the portal."',
+    );
     http.verify();
   });
 
   it('puts the upload card first in the documents grid and uploads from it', () => {
     const fixture = TestBed.createComponent(Trainer);
     const http = TestBed.inject(HttpTestingController);
+    const api = TestBed.inject(DocumentsApiService);
+    vi.spyOn(api, 'watchIngestJob').mockReturnValue(
+      of(
+        ingestJob({
+          status: 'done',
+          step: 'Finished',
+          progress: 1,
+          done: 2,
+          total: 2,
+          chunks: 2,
+          duplicates: { stored: 2, exact: 0, near: 0 },
+        }),
+      ),
+    );
     fixture.detectChanges();
 
     http.expectOne((req) => req.url.includes('/faq/inbox')).flush([]);
@@ -230,6 +270,7 @@ describe('Trainer', () => {
 
     fixture.componentInstance.setTab('documents');
     fixture.detectChanges();
+    http.expectOne((req) => req.url.endsWith('/ingest/jobs')).flush([]);
 
     const compiled = fixture.nativeElement as HTMLElement;
     const grid = query(compiled, '.documents-grid');
@@ -250,8 +291,8 @@ describe('Trainer', () => {
     input.dispatchEvent(new Event('change'));
     fixture.detectChanges();
 
-    expect(text(query(cards[0], '.doc-name'))).toBe('Uploading…');
-    expect(text(query(cards[0], '.doc-meta'))).toBe('Reading and indexing the file');
+    expect(text(query(cards[0], '.doc-name'))).toBe('Indexing…');
+    expect(text(query(cards[0], '.doc-meta'))).toBe('Waiting to start');
     expect(input.disabled).toBe(true);
 
     const upload = http.expectOne((req) => req.url.endsWith('/upload'));
@@ -259,7 +300,7 @@ describe('Trainer', () => {
     const sent = (upload.request.body as FormData).get('file') as File;
     expect(sent.name).toBe('people.csv');
     expect(sent.size).toBe(file.size);
-    upload.flush({ source: 'people.csv', chunks: 2, status: 'ok' });
+    upload.flush({ job_id: 7, source: 'people.csv', status: 'queued' });
     http
       .expectOne((req) => req.url.endsWith('/documents'))
       .flush([
@@ -269,10 +310,67 @@ describe('Trainer', () => {
     fixture.detectChanges();
 
     const refreshed = Array.from(grid.querySelectorAll('.doc-card'));
-    expect(refreshed).toHaveLength(3);
+    expect(refreshed).toHaveLength(4);
     expect(text(query(refreshed[0], '.doc-name'))).toBe('Upload a document');
     expect(text(query(refreshed[1], '.doc-name'))).toBe('people.csv');
+    expect(text(query(refreshed[1], '.doc-meta'))).toBe('2 passages stored');
     expect(input.disabled).toBe(false);
+    http.verify();
+  });
+
+  it('restores a running read, stops it and retries it', () => {
+    const fixture = TestBed.createComponent(Trainer);
+    const http = TestBed.inject(HttpTestingController);
+    const api = TestBed.inject(DocumentsApiService);
+    const streams: Subject<IngestJob>[] = [];
+    vi.spyOn(api, 'watchIngestJob').mockImplementation(() => {
+      const stream = new Subject<IngestJob>();
+      streams.push(stream);
+      return stream.asObservable();
+    });
+    fixture.detectChanges();
+
+    http.expectOne((req) => req.url.includes('/faq/inbox')).flush([]);
+    http.expectOne((req) => req.url.endsWith('/faq')).flush([]);
+    http.expectOne((req) => req.url.endsWith('/documents')).flush([]);
+    fixture.componentInstance.setTab('documents');
+    fixture.detectChanges();
+    http
+      .expectOne((req) => req.url.endsWith('/ingest/jobs'))
+      .flush([
+        ingestJob({
+          status: 'running',
+          step: 'Storing the passages',
+          progress: 0.5,
+          done: 8,
+          total: 16,
+        }),
+      ]);
+
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    const card = query(compiled, '.job-card');
+    expect(text(query(card, '.doc-meta'))).toBe('Storing the passages · 8/16 passages');
+    const bar = query(card, '.job-progress');
+    expect(bar.getAttribute('aria-valuenow')).toBe('50');
+
+    (query(card, 'button[aria-label="Stop indexing the file"]') as HTMLButtonElement).click();
+    const cancel = http.expectOne((req) => req.url.endsWith('/ingest/jobs/7/cancel'));
+    expect(cancel.request.method).toBe('POST');
+    cancel.flush(ingestJob({ status: 'cancelled', step: 'Stopped by the trainer.' }));
+    streams[0].next(ingestJob({ status: 'cancelled', step: 'Stopped by the trainer.' }));
+    streams[0].complete();
+    fixture.detectChanges();
+
+    expect(text(query(compiled, '.job-card .doc-meta'))).toBe('Stopped before it finished.');
+
+    (query(compiled, 'button[aria-label="Retry indexing the file"]') as HTMLButtonElement).click();
+    const retry = http.expectOne((req) => req.url.endsWith('/ingest/jobs/7/retry'));
+    expect(retry.request.method).toBe('POST');
+    retry.flush(ingestJob({ status: 'queued' }));
+    fixture.detectChanges();
+    expect(text(query(compiled, '.job-card .doc-meta'))).toBe('Waiting to start');
+    expect((query(compiled, 'input[type=file]') as HTMLInputElement).disabled).toBe(true);
     http.verify();
   });
 });

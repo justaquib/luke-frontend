@@ -1,0 +1,65 @@
+/* The two answers a trainer has to choose between. */
+.conflict-note {
+  margin: 0;
+  padding: 8px;
+  border-left: 2px solid var(--warn);
+  border-radius: 4px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* The inline merge panel under a pending question. */
+.merge-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 8px;
+  border: 1px dashed var(--accent-line);
+  border-radius: 8px;
+  background: var(--accent-soft);
+}
+
+.merge-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.merge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.merge-row label {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.merge-q {
+  color: var(--text);
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.merge-answer {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text);
+  font-size: 13px;
+}

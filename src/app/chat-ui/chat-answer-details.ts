@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import type { QueryHit } from '../core/api/api-models';
 import { AnswerPipeline } from '../shared/answer-pipeline';
+import { AnswerText } from '../shared/answer-text';
 import { hasTrace, traceFromUnderstanding } from '../shared/answer-trace';
 import { AppIcon } from '../shared/app-icon';
 import { AnswerPrediction } from './answer-prediction';
@@ -11,7 +12,7 @@ import type { ChatMessage } from './chat.types';
 @Component({
   selector: 'app-chat-answer-details',
   standalone: true,
-  imports: [AnswerPipeline, AnswerPrediction, AnswerRecord, AppIcon],
+  imports: [AnswerPipeline, AnswerPrediction, AnswerRecord, AnswerText, AppIcon],
   templateUrl: './chat-answer-details.html',
   styleUrl: './styles/chat-answer-details.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,6 +22,8 @@ export class ChatAnswerDetails {
   readonly question = input<string | null>(null);
 
   protected readonly hits = computed<QueryHit[]>(() => this.message().hits ?? []);
+
+  protected readonly citations = computed(() => this.message().citations ?? []);
 
   protected readonly trace = computed(() => traceFromUnderstanding(this.message().understanding));
 
@@ -36,7 +39,7 @@ export class ChatAnswerDetails {
 
   protected readonly liveLink = computed<{ href: string; title: string } | null>(() => {
     const message = this.message();
-    if (message.source !== 'wiki') return null;
+    if (message.source !== 'wiki' && message.source !== 'web') return null;
     const href = this.textValue('url');
     if (!href) return null;
     return { href, title: this.textValue('title') || 'source' };

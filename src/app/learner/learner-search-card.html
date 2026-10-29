@@ -1,0 +1,62 @@
+<section class="language-learning-card learner-search-card" aria-labelledby="learner-search-title">
+  <div class="language-section-heading">
+    <app-card-info
+      label="the search"
+      text="Find any taught question or approved answer across every grade, then edit the wording or remove it."
+    >
+      <h3 id="learner-search-title">Search questions &amp; answers</h3>
+    </app-card-info>
+    <div class="learner-badges">
+      @if (search.query().trim()) {
+        <span class="grade-qa-total">{{ search.matchLabel() }}</span>
+      }
+      <button
+        type="button"
+        class="grade-qa-total grade-qa-button"
+        [class.has-duplicates]="duplicates.duplicateCount() > 0"
+        (click)="duplicates.openPanel()"
+        [attr.aria-label]="
+          'Review the ' + duplicates.duplicateCount() + ' duplicate questions and answers'
+        "
+      >
+        <app-icon name="copy" [size]="12" />
+        {{ duplicates.badgeLabel() }}
+      </button>
+    </div>
+  </div>
+  <div class="language-inline-form learner-search-form">
+    <input
+      [ngModel]="search.query()"
+      (ngModelChange)="search.setQuery($event)"
+      name="learnerSearch"
+      autocomplete="off"
+      maxlength="200"
+      placeholder="Search by question or answer, for example “circle”"
+      aria-label="Search questions and answers"
+    />
+    @if (search.query().trim()) {
+      <button
+        type="button"
+        class="ghost icon-only"
+        (click)="search.setQuery('')"
+        aria-label="Clear the search"
+        title="Clear the search"
+      >
+        <app-icon name="x" [size]="14" />
+      </button>
+    }
+  </div>
+  @if (search.query().trim()) {
+    @if (search.results().length) {
+      <ol class="learner-search-results">
+        @for (result of search.results(); track result.key) {
+          <li class="learner-search-row" [class.read-only]="!result.editable">
+            <app-learner-search-row [result]="result" />
+          </li>
+        }
+      </ol>
+    } @else {
+      <p class="empty">No questions or answers match “{{ search.query().trim() }}”.</p>
+    }
+  }
+</section>

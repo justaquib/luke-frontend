@@ -35,6 +35,8 @@ export function applyStreamEvent(trace: AnswerTrace, event: AnswerStreamEvent): 
       return { ...trace, connections: [...trace.connections, event.connection] };
     case 'writing':
       return { ...trace, writing: event.model };
+    case 'token':
+      return trace;
     case 'answer':
     case 'done':
     case 'error':
@@ -51,6 +53,8 @@ export function phaseFor(event: AnswerStreamEvent): PipelinePhase | null {
     case 'connecting':
       return 'connecting';
     case 'writing':
+      return 'writing';
+    case 'token':
       return 'writing';
     case 'answer':
       return 'answer';

@@ -40,11 +40,6 @@ export class TrainerInboxActions {
     });
   }
 
-  toggleIncludeResolved(): void {
-    this.store.includeResolved.update((value) => !value);
-    this.data.refresh();
-  }
-
   dismiss(pending: PendingItem): void {
     this.ui
       .confirmDialog({

@@ -25,6 +25,9 @@
   font-size: 14px;
   line-height: 1.6;
   overflow-wrap: anywhere;
+}
+
+.question {
   white-space: pre-wrap;
 }
 

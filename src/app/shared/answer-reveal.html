@@ -1,2 +1,4 @@
-<span class="sr-only">{{ text() }}</span>
-<span aria-hidden="true">{{ shown() }}</span>
+@if (revealing()) {
+  <span class="sr-only">{{ text() }}</span>
+}
+<app-answer-text [text]="text()" [revealedWords]="revealedWords()" />

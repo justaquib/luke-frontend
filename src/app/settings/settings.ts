@@ -24,7 +24,10 @@ import { AppCardInfo } from '../shared/app-card-info';
 import { AppEngineFacts, type EngineFact, type FactTone } from '../shared/app-engine-facts';
 import { AppShell } from '../shared/app-shell';
 import { AppIcon, type IconName } from '../shared/app-icon';
+import { FoundationCard } from './foundation-card';
 import { ModelIdentity } from './model-identity';
+import { SystemOverview } from './system-overview';
+import { WebSources } from './web-sources';
 
 interface ModeChoice {
   value: ColorMode;
@@ -43,14 +46,23 @@ interface FontOption {
 }
 
 /**
- * The settings of the whole product: the connection to the backend and the
- * live sources the assistant may fall back to. What the brain has learned and
- * what the store holds lives on the Brain page.
+ * The settings of the whole lab: the connection to the backend, the live
+ * sources the assistant may fall back to, the model identity and the packages
+ * the product is built with.
  */
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [AppShell, AppIcon, AppCardInfo, AppEngineFacts, ModelIdentity],
+  imports: [
+    AppShell,
+    AppIcon,
+    AppCardInfo,
+    AppEngineFacts,
+    FoundationCard,
+    ModelIdentity,
+    SystemOverview,
+    WebSources,
+  ],
   templateUrl: './settings.html',
   styleUrls: ['./settings.css', '../shared/controls.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -94,7 +106,10 @@ export class Settings implements OnInit {
   });
 
   protected readonly enabledSources = computed(
-    () => Number(this.integrations.weatherEnabled()) + Number(this.integrations.wikiEnabled()),
+    () =>
+      Number(this.integrations.weatherEnabled()) +
+      Number(this.integrations.wikiEnabled()) +
+      Number(this.integrations.webEnabled()),
   );
 
   protected readonly facts = computed<readonly EngineFact[]>(() => {
@@ -111,14 +126,17 @@ export class Settings implements OnInit {
       {
         label: 'Model',
         value: this.modelSettings.name(),
+        // A read that failed is not a read still in progress.
         note: this.modelSettings.level()
           ? `version ${this.modelSettings.level()}`
-          : 'reading the model…',
+          : this.modelSettings.error()
+            ? 'not read'
+            : 'reading the model…',
       },
       {
         label: 'Live sources',
-        value: `${this.enabledSources()}/2`,
-        note: 'weather and Wikipedia',
+        value: `${this.enabledSources()}/3`,
+        note: 'weather, Wikipedia and web',
       },
       {
         label: 'Appearance',

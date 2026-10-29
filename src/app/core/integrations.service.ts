@@ -6,6 +6,7 @@ const LOC_KEY = 'assistance.location.v1';
 interface Integrations {
   weather: boolean;
   wiki: boolean;
+  web: boolean;
 }
 
 interface LocationCache {
@@ -14,15 +15,16 @@ interface LocationCache {
   updatedAt: number;
 }
 
-const DEFAULTS: Integrations = { weather: false, wiki: false };
+const DEFAULTS: Integrations = { weather: false, wiki: false, web: false };
 const LOC_TTL_MS = 1000 * 60 * 60 * 12;
 
 @Injectable({ providedIn: 'root' })
 export class IntegrationsService {
   private readonly _state = signal<Integrations>(this.read());
   readonly state = this._state.asReadonly();
-  readonly weatherEnabled = () => this._state().weather;
-  readonly wikiEnabled = () => this._state().wiki;
+  readonly weatherEnabled = (): boolean => this._state().weather;
+  readonly wikiEnabled = (): boolean => this._state().wiki;
+  readonly webEnabled = (): boolean => this._state().web;
 
   private readonly _location = signal<LocationCache | null>(this.readLocation());
 
@@ -30,12 +32,16 @@ export class IntegrationsService {
     effect(() => this.write(this._state()));
   }
 
-  setWeather(on: boolean) {
+  setWeather(on: boolean): void {
     this._state.update((s) => ({ ...s, weather: on }));
   }
 
-  setWiki(on: boolean) {
+  setWiki(on: boolean): void {
     this._state.update((s) => ({ ...s, wiki: on }));
+  }
+
+  setWeb(on: boolean): void {
+    this._state.update((s) => ({ ...s, web: on }));
   }
 
   location(): LocationCache | null {
@@ -58,7 +64,9 @@ export class IntegrationsService {
           };
           try {
             localStorage.setItem(LOC_KEY, JSON.stringify(loc));
-          } catch {}
+          } catch {
+            // The location still works for this visit if storage is unavailable.
+          }
           this._location.set(loc);
           resolve(loc);
         },
@@ -76,16 +84,19 @@ export class IntegrationsService {
       return {
         weather: !!parsed.weather,
         wiki: !!parsed.wiki,
+        web: !!parsed.web,
       };
     } catch {
       return { ...DEFAULTS };
     }
   }
 
-  private write(state: Integrations) {
+  private write(state: Integrations): void {
     try {
       localStorage.setItem(KEY, JSON.stringify(state));
-    } catch {}
+    } catch {
+      // Storage can be unavailable in private browsing; the choice is optional.
+    }
   }
 
   private readLocation(): LocationCache | null {

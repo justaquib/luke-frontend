@@ -1,0 +1,55 @@
+/* The duplicate question groups under the trained-answer filters. */
+.duplicates {
+  padding: 8px 12px;
+  border: 1px dashed var(--accent-line);
+  border-radius: 8px;
+  background: var(--accent-soft);
+}
+
+.duplicates summary {
+  padding: 4px 0;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dup-card {
+  background: var(--surface-2);
+}
+
+.dup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  margin: 6px 0 0;
+  list-style: none;
+}
+
+.dup-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  font-size: 13px;
+}
+
+.dup-id {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.dup-answer {
+  flex: 1;
+  overflow: hidden;
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

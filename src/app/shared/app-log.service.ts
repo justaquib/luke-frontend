@@ -50,19 +50,23 @@ export class AppLogService {
     try {
       const value: unknown = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '[]');
       if (!Array.isArray(value)) return [];
-      return value
-        .filter(
-          (entry): entry is AppLogEntry =>
-            !!entry &&
-            typeof entry === 'object' &&
-            (entry.level === 'error' || entry.level === 'warning') &&
-            typeof entry.message === 'string' &&
-            typeof entry.time === 'string',
-        )
+      return (value as unknown[])
+        .filter((entry): entry is AppLogEntry => this.isEntry(entry))
         .slice(0, MAX_LOGS);
     } catch {
       return [];
     }
+  }
+
+  private isEntry(entry: unknown): entry is AppLogEntry {
+    if (typeof entry !== 'object' || entry === null) return false;
+    const record = entry as Record<string, unknown>;
+    return (
+      (record['level'] === 'error' || record['level'] === 'warning') &&
+      typeof record['source'] === 'string' &&
+      typeof record['message'] === 'string' &&
+      typeof record['time'] === 'string'
+    );
   }
 
   private persist(): void {

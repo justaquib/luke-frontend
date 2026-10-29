@@ -180,6 +180,7 @@ export type AnswerSource =
   | 'intent'
   | 'weather'
   | 'wiki'
+  | 'web'
   | 'assistant_profile'
   | 'dictionary'
   | 'learner'
@@ -306,22 +307,4 @@ export interface PendingItem {
   resolved: boolean;
   created_at: string;
   last_seen_at: string;
-}
-
-export interface Tenant {
-  id: number;
-  name: string;
-  slug: string;
-  created_at: string;
-}
-
-export interface Invite {
-  id: number;
-  tenant_id: number;
-  email: string;
-  role: string;
-  token: string;
-  expires_at: string;
-  used_at: string | null;
-  created_at: string;
 }

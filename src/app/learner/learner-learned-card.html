@@ -1,0 +1,124 @@
+<section class="language-learning-card learned-examples" aria-labelledby="learned-title">
+  <div class="language-section-heading">
+    <app-card-info
+      label="what it has learned"
+      text="Everything the learner holds right now, read from its saved state. The Search tab edits one question, and Questions by grade reviews a grade in place."
+    >
+      <h3 id="learned-title">What it has learned</h3>
+    </app-card-info>
+    <button
+      type="button"
+      class="ghost small icon-only"
+      (click)="model.refresh()"
+      [attr.aria-label]="model.loading() ? 'Refreshing the material' : 'Refresh the material'"
+      [title]="model.loading() ? 'Refreshing the material' : 'Refresh the material'"
+      [disabled]="model.loading()"
+    >
+      <app-icon name="refresh" [size]="14" />
+    </button>
+  </div>
+  <dl class="learned-metrics">
+    <div>
+      <dt>Questions held</dt>
+      <dd>{{ duplicates.totalQuestions() | number }}</dd>
+    </div>
+    <div>
+      <dt>Your lessons</dt>
+      <dd>{{ model.learnedTotals().ownLessons | number }}</dd>
+    </div>
+    <div>
+      <dt>Word meanings</dt>
+      <dd>{{ model.learnedTotals().wordCards | number }}</dd>
+    </div>
+    <div>
+      <dt>Trainer answers</dt>
+      <dd>{{ model.learnedTotals().trainerAnswers | number }}</dd>
+    </div>
+    <div>
+      <dt>Sentence examples</dt>
+      <dd>{{ model.learnedTotals().sentenceExamples | number }}</dd>
+    </div>
+  </dl>
+  <details>
+    <summary>Starter letters · {{ model.letters().length }}</summary>
+    <p class="learner-book-content">
+      {{ model.letters().toUpperCase().split('').join(' · ') }}
+    </p>
+  </details>
+  <details>
+    <summary>Word meanings · {{ model.wordCards().length }}</summary>
+    <ol>
+      @for (card of model.wordCards(); track card.word) {
+        <li>
+          <strong>{{ card.word }}</strong> — {{ card.meaning }}
+          @if (card.dictionary_meaning) {
+            <small class="dictionary-definition-note"
+              >Offline dictionary: {{ card.dictionary_meaning }}</small
+            >
+          }
+        </li>
+      }
+    </ol>
+  </details>
+  <details>
+    <summary>Sentence examples · {{ model.learnedTotals().sentenceExamples | number }}</summary>
+    @if (model.learnedTotals().sentenceExamples > model.examples().length) {
+      <p class="learned-note">
+        Showing the first {{ model.examples().length }} of
+        {{ model.learnedTotals().sentenceExamples | number }}.
+      </p>
+    }
+    <ol>
+      @for (example of model.examples(); track $index) {
+        <li>
+          <span class="lesson-kind">{{
+            example.kind === 'foundation' ? 'Starter book' : 'Your lesson'
+          }}</span
+          ><span>{{ example.text }}</span>
+        </li>
+      }
+    </ol>
+  </details>
+  @if (model.ownLessons().length) {
+    <details class="learned-answers-list">
+      <summary>Your lessons · {{ model.ownLessons().length }}</summary>
+      <ol>
+        @for (lesson of model.ownLessons(); track lesson.id ?? $index) {
+          <li class="learned-answer-row">
+            <div class="learned-answer-content">
+              <span class="lesson-kind"
+                >Taught by you · {{ model.stageTitle(lesson.grade_id ?? 'nursery') }}
+                @if (lesson.subject) {
+                  · {{ lesson.subject }}
+                }
+              </span>
+              @if (duplicates.isDuplicate(lesson.id)) {
+                <span class="duplicate-badge" title="This lesson repeats another one">D</span>
+              }
+              <strong>{{ lesson.question }}</strong>
+              <p>{{ lesson.answer }}</p>
+            </div>
+          </li>
+        }
+      </ol>
+    </details>
+  }
+  <details>
+    <summary>Starter lessons · {{ model.starterLessons().length }}</summary>
+    <ol>
+      @for (lesson of model.starterLessons(); track lesson.question) {
+        <li>
+          <span class="lesson-kind"
+            >{{ model.stageTitle(lesson.grade_id ?? 'nursery') }}
+            @if (lesson.subject) {
+              · {{ lesson.subject }}
+            }</span
+          ><span
+            ><strong>{{ lesson.question }}</strong> — {{ lesson.answer }}</span
+          >
+        </li>
+      }
+    </ol>
+  </details>
+  <app-learner-trainer-answers />
+</section>

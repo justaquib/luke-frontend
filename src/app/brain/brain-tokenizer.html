@@ -1,0 +1,46 @@
+<section class="panel" aria-labelledby="tokenizer-title">
+  <header class="panel-head">
+    <h2 id="tokenizer-title">Tokenizer</h2>
+    <span class="stamp">{{ stamp() }}</span>
+  </header>
+
+  @if (tokenizer(); as current) {
+    <dl class="rows">
+      <div class="row">
+        <dt>Kind</dt>
+        <dd>{{ kind() }}</dd>
+      </div>
+      <div class="row">
+        <dt>Vocabulary</dt>
+        <dd>{{ current.vocab_size }} {{ unit() }}</dd>
+      </div>
+      <div class="row">
+        <dt>Artifact</dt>
+        <dd class="mono">{{ current.kind === 'bpe' ? current.short_id : 'none' }}</dd>
+      </div>
+      <div class="row">
+        <dt>Characters</dt>
+        <dd>{{ characters() }}</dd>
+      </div>
+      <div class="row">
+        <dt>Tokens per character</dt>
+        <dd>{{ perCharacter() }}</dd>
+      </div>
+      <div class="row">
+        <dt>Artifact size</dt>
+        <dd>{{ artifactSize() }}</dd>
+      </div>
+      <div class="row">
+        <dt>Default for new training</dt>
+        <dd class="text">{{ selected() }}</dd>
+      </div>
+    </dl>
+
+    @if (current.error) {
+      <p class="page-error" role="alert">{{ current.error }}</p>
+      <button type="button" class="ghost small" (click)="retry.emit()">Check again</button>
+    }
+  } @else {
+    <p class="empty">No checkpoint names a tokenizer yet. Train the word model first.</p>
+  }
+</section>

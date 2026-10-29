@@ -11,8 +11,14 @@
             <strong class="q">{{ group.items[0].question }}</strong>
             <span class="meta">appears {{ group.items.length }}×</span>
           </div>
-          <button type="button" class="danger small" (click)="actions.deleteFaqs(group.items)">
-            Delete all
+          <button
+            type="button"
+            class="danger small icon-only"
+            (click)="actions.deleteFaqs(group.items)"
+            aria-label="Delete every copy in this group"
+            title="Delete every copy in this group"
+          >
+            <app-icon name="trash" [size]="14" />
           </button>
         </div>
         <ul class="dup-list">
@@ -21,8 +27,14 @@
               <span class="dup-id">#{{ faq.id }}</span>
               <span class="status-tag small {{ faq.status }}">{{ faq.status }}</span>
               <span class="dup-answer">{{ faq.answer }}</span>
-              <button type="button" class="danger small" (click)="actions.deleteFaq(faq)">
-                Delete
+              <button
+                type="button"
+                class="danger small icon-only"
+                (click)="actions.deleteFaq(faq)"
+                aria-label="Delete this answer"
+                title="Delete this answer"
+              >
+                <app-icon name="trash" [size]="14" />
               </button>
             </li>
           }

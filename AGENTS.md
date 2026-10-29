@@ -3,7 +3,7 @@
 The binding rule is **Design system (strict rule)** in `../CODE_STANDARDS.md`.
 Read it before changing any page. In short:
 
-- The Assistance Brain page (`src/app/brain/`) is the reference. Copy its
+- The Luke brain page (`src/app/brain/`) is the reference. Copy its
   density, tokens, card rows, header and typography, not a new look.
 - Use `app-shell` + `app-sidebar` + `app-top-bar`. A page has no header,
   description or actions band of its own: the top bar names the page and its
@@ -23,7 +23,7 @@ Read it before changing any page. In short:
   body carries a toggle.
 - Page identity is route metadata (`pageInfoForUrl`); `PageInfoService` reads
   it from router events. The top bar shows the route's name and scope (they can
-  differ from the panel title: `Assistance brain` / `Neural engine`). The info
+  differ from the panel title: `Luke brain` / `Neural engine`). The info
   control shows the page's title, description, registered facts and controls,
   and the engine facts; the details control shows the page's registered
   details. Facts register through `appPageInfoFacts`, actions through
@@ -121,7 +121,8 @@ Read it before changing any page. In short:
   with a measurement.
 - Settings: Model identity (name and starting version), then Engine connection,
   then Live sources, then Appearance (color mode, text size, typeface,
-  palette); one info button per card. The model name from Model identity is
+  palette), then the System overview package list; one info button per card.
+  The model name from Model identity is
   the name the top bar, greeting and level ladder use. Palettes come from
   `PaletteService` — four immutable built-ins plus custom pairs added on
   `/dashboard/design` — and Settings saves only the palette id. Shared strip
@@ -130,13 +131,15 @@ Read it before changing any page. In short:
   answered directly from the conversation pairs, which come from the backend
   and use the configured model name; the same pairs are training material. Do
   not hard-code the assistant's name in a component or template.
-- Brain: the page trains and reports the **word model** only. The answer writer,
-  its trace, the attention heatmap and the Hugging Face base-model tab are
-  retired; do not add a page, tab or API call for them.
+- Brain: the page reports the **word model**. The training room's Base model tab
+  fine-tunes a Hugging Face teacher, and the chat composer picks between Luke
+  and an installed teacher. An answer shown as generated must be labelled
+  generated, and must not invent a citation, an identity or a measurement.
 - Routes: `/chat` is the assistant surface. Every model-trainer and dashboard
   page lives under `/dashboard` (`trainer`, `parenting`, `learner`, `brain`,
-  `settings`, `design`, `tenants`), and `/dashboard` redirects to
+  `assessment`, `settings`, `design`), and `/dashboard` redirects to
   `/dashboard/trainer`.
+  There is one workspace and no tenant page or selector.
   The public entry pages stay at `/`, `/login`, `/systemadmin`, `/onboarding`.
   Add new builder pages below the guarded `/dashboard` route, never as flat
   routes; old flat paths are redirects only, and every internal link uses the
@@ -149,7 +152,7 @@ Read it before changing any page. In short:
   rule.
 
 Before changing or creating a frontend page, tab, sidebar item, link, or flow,
-inspect the existing Brain, Chat, Trainer and System Admin views and reuse
+inspect the existing Luke brain, Chat, Trainer and Lab settings views and reuse
 their patterns. If a reusable pattern is missing, add or extend the shared
 layer first, then use it.
 

@@ -3,7 +3,7 @@
   Groups of FAQs that already share the same answer. Each group is one intent that the assistant can
   answer in many ways.
 </p>
-@if (store.intentGroups().length === 0) {
+@if (store.intentGroups().length === 0 && !store.corpusError()) {
   <p class="empty">No merged intents yet. Use the search above to start grouping FAQs.</p>
 } @else {
   <ul class="list">
@@ -15,13 +15,19 @@
             <span class="status-tag {{ group.canonical.status }}">{{
               group.canonical.status
             }}</span>
-            <span class="meta">
-              canonical #{{ group.canonical.id }} · {{ group.aliases.length + 1 }} variants
-            </span>
+            <span class="meta"
+              >canonical #{{ group.canonical.id }} · {{ group.aliases.length + 1 }} variants</span
+            >
           </div>
           <div class="row-actions">
-            <button type="button" class="ghost small" (click)="refine(group.canonical.id)">
-              Refine
+            <button
+              type="button"
+              class="ghost small icon-only"
+              (click)="refine(group.canonical.id)"
+              aria-label="Refine this intent group"
+              title="Refine this intent group"
+            >
+              <app-icon name="pencil" [size]="14" />
             </button>
           </div>
         </header>

@@ -1,4 +1,10 @@
-import type { QueryHit, QuerySource, QuestionUnderstanding } from '../core/api/api-models';
+import type {
+  AnswerCitation,
+  AnswerMode,
+  QueryHit,
+  QuerySource,
+  QuestionUnderstanding,
+} from '../core/api/api-models';
 
 export type ChatRole = 'user' | 'assistant' | 'system';
 export type ChatSource = QuerySource;
@@ -22,6 +28,14 @@ export interface ChatMessage {
   /** The model that answered: `luke`, or an installed teacher's `hf:` id. */
   model?: string | null;
   modelName?: string | null;
+  /** The version of the loaded checkpoint, when Luke wrote the answer. */
+  modelVersion?: string | null;
+  /** How the answer was produced: read, written, or written from passages. */
+  mode?: AnswerMode;
+  /** The numbered passages a composed answer cites. */
+  citations?: AnswerCitation[];
+  /** The measured writing speed, when the backend timed the generation. */
+  tokensPerSecond?: number | null;
   /** True only for an answer that just arrived; reloaded messages never animate. */
   reveal?: boolean;
 }

@@ -48,9 +48,11 @@
   </p>
 
   @if (settings.error(); as message) {
-    <p class="model-error" role="alert">{{ message }}</p>
+    <p class="model-error" role="alert">The model identity could not be read: {{ message }}</p>
     <button type="button" class="ghost small model-retry" (click)="settings.load(true)">
       Retry reading the model
     </button>
+  } @else if (settings.saveError(); as message) {
+    <p class="model-error" role="alert">The model identity was not saved: {{ message }}</p>
   }
 </section>

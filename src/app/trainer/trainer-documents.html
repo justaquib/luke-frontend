@@ -1,82 +1,188 @@
-<div class="toolbar">
-  <label class="upload-label toolbar-upload">
+<div class="documents-grid">
+  <label
+    class="doc-card upload-card"
+    [class.busy]="store.uploading()"
+    [attr.aria-busy]="store.uploading() ? 'true' : null"
+    [attr.title]="store.uploading() ? 'Indexing the document' : 'Upload a document'"
+  >
     <input
       type="file"
       accept=".csv,.xlsx,.xls,.docx,.doc,.pdf,.txt"
       (change)="actions.uploadDocument($event)"
+      [attr.aria-label]="store.uploading() ? 'Indexing the document' : 'Upload a document'"
       [disabled]="store.uploading()"
     />
-    <span class="upload-btn">
-      @if (store.uploading()) {
-        Uploading…
-      } @else {
-        Upload file
-      }
+    <span class="doc-icon">
+      <app-icon name="upload" [size]="18" />
+    </span>
+    <span class="doc-body">
+      <span class="doc-name">{{ store.uploading() ? 'Indexing…' : 'Upload a document' }}</span>
+      <span class="doc-meta">{{ uploadMeta() }}</span>
     </span>
   </label>
-  <span class="meta">csv, xlsx, docx, doc, pdf, txt</span>
+
+  @if (store.uploadJob(); as job) {
+    <div
+      class="doc-card job-card"
+      [class.failed]="job.status === 'failed'"
+      [class.stopped]="job.status === 'cancelled'"
+    >
+      <div class="doc-icon">
+        <app-icon [name]="jobIcon(job)" [size]="18" />
+      </div>
+      <div class="doc-body">
+        <div class="doc-name" [title]="job.source">{{ job.source }}</div>
+        <div class="doc-meta">{{ jobLine(job) }}</div>
+        @if (job.status === 'queued' || job.status === 'running') {
+          <span
+            class="job-progress"
+            role="progressbar"
+            [attr.aria-valuenow]="percent(job)"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            [attr.aria-label]="job.step"
+          >
+            <span class="job-bar" [style.width.%]="percent(job)"></span>
+          </span>
+        }
+      </div>
+      <div class="doc-actions">
+        @if (job.status === 'queued' || job.status === 'running') {
+          <button
+            type="button"
+            class="ghost small icon-only"
+            (click)="actions.cancelUpload()"
+            aria-label="Stop indexing the file"
+            title="Stop indexing the file"
+          >
+            <app-icon name="stop" [size]="14" />
+          </button>
+        } @else if (job.status === 'failed' || job.status === 'cancelled') {
+          <button
+            type="button"
+            class="ghost small icon-only"
+            (click)="actions.retryUpload()"
+            aria-label="Retry indexing the file"
+            title="Retry indexing the file"
+          >
+            <app-icon name="refresh" [size]="14" />
+          </button>
+          <button
+            type="button"
+            class="ghost small icon-only"
+            (click)="actions.dismissUpload()"
+            aria-label="Dismiss the indexing result"
+            title="Dismiss the indexing result"
+          >
+            <app-icon name="x" [size]="14" />
+          </button>
+        } @else {
+          <button
+            type="button"
+            class="ghost small icon-only"
+            (click)="actions.dismissUpload()"
+            aria-label="Dismiss the indexing result"
+            title="Dismiss the indexing result"
+          >
+            <app-icon name="x" [size]="14" />
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  @for (document of store.documents(); track document.source) {
+    <div class="doc-card">
+      <div class="doc-icon">
+        <app-icon name="file" [size]="18" />
+      </div>
+      <div class="doc-body">
+        <div class="doc-name" title="{{ document.source }}">{{ document.source }}</div>
+        <div class="doc-meta">{{ document.chunks }} chunks</div>
+      </div>
+      <div class="doc-actions">
+        <button
+          type="button"
+          class="ghost small icon-only"
+          (click)="actions.viewDocument(document.source)"
+          aria-label="View the document"
+          title="View the document"
+          [disabled]="store.viewingSource() === document.source"
+        >
+          <app-icon name="eye" [size]="14" />
+        </button>
+        <button
+          type="button"
+          class="ghost small icon-only"
+          (click)="actions.downloadDocument(document.source)"
+          aria-label="Download the document"
+          title="Download the document"
+        >
+          <app-icon name="download" [size]="14" />
+        </button>
+        <button
+          type="button"
+          class="danger small icon-only"
+          (click)="actions.deleteDocument(document.source)"
+          [attr.aria-label]="
+            store.deletingSource() === document.source
+              ? 'Removing the document'
+              : 'Remove the document'
+          "
+          [title]="
+            store.deletingSource() === document.source
+              ? 'Removing the document'
+              : 'Remove the document'
+          "
+          [disabled]="store.deletingSource() === document.source"
+        >
+          <app-icon name="trash" [size]="14" />
+        </button>
+      </div>
+    </div>
+  }
 </div>
 
-@if (store.documents().length === 0) {
+@if (store.documents().length === 0 && !store.documentsError()) {
   <p class="empty">No documents uploaded yet. Upload a file to let the assistant answer from it.</p>
-} @else {
-  <div class="documents-grid">
-    @for (document of store.documents(); track document.source) {
-      <div class="doc-card">
-        <div class="doc-icon">
-          <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
-            <path
-              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M14 2v6h6M16 13H8M16 17H8M10 9H8"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </div>
-        <div class="doc-body">
-          <div class="doc-name" title="{{ document.source }}">{{ document.source }}</div>
-          <div class="doc-meta">{{ document.chunks }} chunks</div>
-        </div>
-        <div class="doc-actions">
+}
+
+@if (store.viewerUrl(); as url) {
+  <div class="viewer-overlay">
+    <button
+      type="button"
+      class="viewer-backdrop"
+      (click)="actions.closeViewer()"
+      aria-label="Close viewer"
+      title="Close viewer"
+    ></button>
+    <div class="viewer-modal" role="dialog" aria-modal="true" aria-label="Document viewer">
+      <div class="viewer-header">
+        <strong>{{ store.viewingSource() }}</strong>
+        <div class="viewer-actions">
           <button
             type="button"
-            class="ghost small"
-            (click)="actions.viewDocument(document.source)"
-            [disabled]="store.viewingSource() === document.source"
+            class="ghost small icon-only"
+            (click)="downloadViewing()"
+            aria-label="Download the document"
+            title="Download the document"
           >
-            View
+            <app-icon name="download" [size]="14" />
           </button>
           <button
             type="button"
-            class="ghost small"
-            (click)="actions.downloadDocument(document.source)"
+            class="icon-btn"
+            (click)="actions.closeViewer()"
+            aria-label="Close viewer"
+            title="Close viewer"
           >
-            Download
-          </button>
-          <button
-            type="button"
-            class="danger small"
-            (click)="actions.deleteDocument(document.source)"
-            [disabled]="store.deletingSource() === document.source"
-          >
-            @if (store.deletingSource() === document.source) {
-              Removing…
-            } @else {
-              Remove
-            }
+            <app-icon name="x" [size]="16" />
           </button>
         </div>
       </div>
-    }
+      <div class="viewer-body">
+        <iframe [src]="url | safeUrl" title="{{ store.viewingSource() }}"></iframe>
+      </div>
+    </div>
   </div>
 }

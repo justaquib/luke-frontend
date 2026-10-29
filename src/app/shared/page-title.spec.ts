@@ -2,22 +2,30 @@ import { describe, expect, it } from 'vitest';
 import { pageInfoForUrl } from './page-title';
 
 describe('page information', () => {
-  it('names the settings page and its engine scope', () => {
+  it('names the lab settings page and its engine scope', () => {
     expect(pageInfoForUrl('/dashboard/settings')).toMatchObject({
-      name: 'Settings',
-      title: 'Settings',
+      name: 'Lab settings',
+      title: 'Lab settings',
       scope: 'Engine setting',
       description:
-        'The engine connection, the live sources it may fall back to, and how this workspace looks.',
+        'The engine connection, the live sources it may fall back to, the model identity and how this lab looks.',
     });
     expect(pageInfoForUrl('/dashboard/settings?tab=appearance').scope).toBe('Engine setting');
   });
 
-  it('keeps the builder and assistant scopes on the other pages', () => {
+  it('names the assessment page and what it measures', () => {
+    expect(pageInfoForUrl('/dashboard/assessment')).toMatchObject({
+      name: 'Assessment',
+      title: 'Skill assessment',
+      scope: 'Model builder',
+    });
+  });
+
+  it('keeps the builder and Luke scopes on the other pages', () => {
     expect(pageInfoForUrl('/chat')).toMatchObject({
       name: 'Chat',
       title: 'Chat',
-      scope: 'Assistant',
+      scope: 'Luke',
     });
     expect(pageInfoForUrl('/dashboard/learner')).toMatchObject({
       name: 'Language learner',
@@ -25,15 +33,15 @@ describe('page information', () => {
       scope: 'Model builder',
     });
     expect(pageInfoForUrl('/unknown')).toMatchObject({
-      name: 'Assistant',
-      title: 'Assistant',
-      scope: 'Assistant',
+      name: 'Luke',
+      title: 'Luke',
+      scope: 'Luke',
     });
   });
 
   it('carries the neural engine header copy the sidebar shows', () => {
     expect(pageInfoForUrl('/dashboard/brain')).toMatchObject({
-      name: 'Assistance brain',
+      name: 'Luke brain',
       title: 'Neural engine',
       scope: 'Model builder',
       description:

@@ -3,6 +3,7 @@ import { BrowserService } from '../core/browser.service';
 import { AnswerReveal } from './answer-reveal';
 
 const ANSWER = 'Sunlight scatters blue light more strongly than red light in the sky above us.';
+const CODED = 'Here is the function.\n```python\ndef add(a, b):\n    return a + b\n```\nIt adds.';
 
 async function render(
   text: string,
@@ -15,7 +16,10 @@ async function render(
     providers: [
       {
         provide: BrowserService,
-        useValue: { prefersReducedMotion: (): boolean => reducedMotion },
+        useValue: {
+          prefersReducedMotion: (): boolean => reducedMotion,
+          copyText: async (): Promise<void> => {},
+        },
       },
     ],
   }).compileComponents();
@@ -29,12 +33,20 @@ async function render(
 
 function visibleText(fixture: ComponentFixture<AnswerReveal>): string {
   const compiled = fixture.nativeElement as HTMLElement;
-  return compiled.querySelector('[aria-hidden="true"]')?.textContent ?? '';
+  return (
+    Array.from(compiled.querySelectorAll<HTMLElement>('.prose'))
+      .map((node) => node.textContent ?? '')
+      .join('') ?? ''
+  );
 }
 
 function screenReaderText(fixture: ComponentFixture<AnswerReveal>): string {
   const compiled = fixture.nativeElement as HTMLElement;
   return compiled.querySelector('.sr-only')?.textContent ?? '';
+}
+
+function cards(fixture: ComponentFixture<AnswerReveal>): number {
+  return (fixture.nativeElement as HTMLElement).querySelectorAll('app-code-block').length;
 }
 
 describe('AnswerReveal', () => {
@@ -47,7 +59,7 @@ describe('AnswerReveal', () => {
     );
 
     expect(visibleText(fixture)).toBe(ANSWER);
-    expect(screenReaderText(fixture)).toBe(ANSWER);
+    expect(screenReaderText(fixture)).toBe('');
     expect(finished).toHaveBeenCalledTimes(1);
   });
 
@@ -92,6 +104,27 @@ describe('AnswerReveal', () => {
     const fixture = await render(ANSWER, true, true);
 
     expect(visibleText(fixture)).toBe(ANSWER);
-    expect(screenReaderText(fixture)).toBe(ANSWER);
+    expect(screenReaderText(fixture)).toBe('');
+  });
+
+  it('frames the code of an answer as one card instead of revealed words', async () => {
+    const fixture = await render(CODED, false);
+    const compiled = fixture.nativeElement as HTMLElement;
+
+    expect(cards(fixture)).toBe(1);
+    expect(compiled.querySelector('.code-text')?.textContent).toBe('def add(a, b):');
+    expect(visibleText(fixture)).toBe('Here is the function.It adds.');
+  });
+
+  it('brings the code card in whole once the reveal reaches it', async () => {
+    vi.useFakeTimers();
+    const fixture = await render(CODED, true);
+
+    expect(cards(fixture)).toBe(0);
+    vi.advanceTimersByTime(1600);
+    fixture.detectChanges();
+
+    expect(cards(fixture)).toBe(1);
+    expect(visibleText(fixture)).toBe('Here is the function.It adds.');
   });
 });

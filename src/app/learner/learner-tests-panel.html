@@ -1,0 +1,193 @@
+<section class="language-learning-card learner-test-card">
+  <div class="language-section-heading">
+    <app-card-info
+      label="the grade test"
+      text="Ask questions for {{
+        model.state()?.stage
+      }}, score each answer, and decide when the learner is ready to move on."
+    >
+      <h3>School-style grade test</h3>
+    </app-card-info>
+    <div class="test-start-actions">
+      <button
+        type="button"
+        class="ghost small"
+        (click)="tests.start('mock')"
+        aria-label="Start a mock test"
+        title="Practice a grade test; the result never moves the grade"
+        [disabled]="tests.busy() || !!tests.activeTest()"
+      >
+        <app-icon name="file" [size]="14" />
+        <span>Mock test</span>
+      </button>
+      <button
+        type="button"
+        class="primary small"
+        (click)="tests.start('exam')"
+        aria-label="Start the final exam"
+        title="Take the final exam; 80% or more advances the grade"
+        [disabled]="tests.busy() || !!tests.activeTest()"
+      >
+        <app-icon name="check" [size]="14" />
+        <span>Final exam</span>
+      </button>
+    </div>
+  </div>
+  <p class="test-hint">
+    A mock test is practice and never advances the grade. The final exam advances it once the
+    learner answers at least 80% of the questions correctly. A trainer-led test keeps your own
+    decision.
+  </p>
+  @if (tests.allPassed()) {
+    <p class="quiz-feedback correct" role="status">
+      The learner has passed all listed grade levels. Add a new lesson at Graduation or add more
+      grade levels to the curriculum later.
+    </p>
+  }
+  @if (tests.activeTest(); as test) {
+    <small class="quiz-progress"
+      >{{ tests.kindLabel(test.kind) }} · {{ model.stageTitle(test.stage) }} ·
+      {{ test.questions_asked }} asked · {{ test.answers_passed }} passed ·
+      {{ test.needs_learning }} need more learning</small
+    >
+    <form class="language-inline-form trainer-question-form" (ngSubmit)="tests.ask()">
+      <input
+        [ngModel]="tests.question()"
+        (ngModelChange)="tests.question.set($event)"
+        name="trainerQuestion"
+        autocomplete="off"
+        placeholder="Ask the learner a question…"
+        aria-label="Question to ask the learner"
+        [disabled]="test.awaiting_score || tests.busy()"
+      />
+      <button
+        type="submit"
+        class="primary icon-only"
+        [attr.aria-label]="tests.busy() ? 'Asking the question' : 'Ask the question'"
+        [title]="tests.busy() ? 'Asking the question' : 'Ask the question'"
+        [disabled]="!tests.question().trim() || test.awaiting_score || tests.busy()"
+      >
+        <app-icon name="send" [size]="14" />
+      </button>
+    </form>
+    @if (test.awaiting_score) {
+      <div class="learner-answer" role="status">
+        <small>Your question</small><strong>{{ test.last_question }}</strong>
+        <small
+          >Learner’s answer
+          <span class="lesson-kind">{{
+            test.last_source_detail || 'source not recorded'
+          }}</span></small
+        >
+        <p>{{ test.last_answer }}</p>
+        <div class="answer-score-actions">
+          <button
+            type="button"
+            class="primary small"
+            (click)="tests.score(true)"
+            aria-label="Pass this answer"
+            title="Pass this answer"
+            [disabled]="tests.busy()"
+          >
+            <app-icon name="check" [size]="14" />
+            <span>Pass</span>
+          </button>
+          <button
+            type="button"
+            class="ghost small"
+            (click)="tests.score(false)"
+            aria-label="Mark the answer as needing more learning"
+            title="Mark the answer as needing more learning"
+            [disabled]="tests.busy()"
+          >
+            <app-icon name="x" [size]="14" />
+            <span>Needs learning</span>
+          </button>
+        </div>
+      </div>
+    }
+    @if (test.questions_asked > 0 && !test.awaiting_score) {
+      <div class="stage-score-actions">
+        @switch (test.kind) {
+          @case ('mock') {
+            <p>This is practice. Finish it whenever you like; the grade never moves.</p>
+            <button
+              type="button"
+              class="primary small"
+              (click)="tests.finish(false)"
+              aria-label="Finish the mock test"
+              title="Finish the mock test; the grade never moves"
+              [disabled]="tests.busy()"
+            >
+              <app-icon name="check" [size]="14" />
+              <span>Finish practice</span>
+            </button>
+          }
+          @case ('exam') {
+            <p>The exam is measured: 80% or more of the answers advances the grade.</p>
+            <button
+              type="button"
+              class="primary small"
+              (click)="tests.finish(true)"
+              aria-label="Finish the final exam"
+              title="Finish the final exam and measure the result"
+              [disabled]="tests.busy()"
+            >
+              <app-icon name="check" [size]="14" />
+              <span>Finish exam</span>
+            </button>
+          }
+          @default {
+            <p>When you are satisfied with the test, decide whether this grade is ready to pass.</p>
+            <button
+              type="button"
+              class="primary small"
+              (click)="tests.finish(true)"
+              [attr.aria-label]="'Pass ' + model.stageTitle(test.stage)"
+              [title]="'Pass ' + model.stageTitle(test.stage)"
+              [disabled]="tests.busy()"
+            >
+              <app-icon name="check" [size]="14" />
+              <span>Pass grade</span>
+            </button>
+            <button
+              type="button"
+              class="ghost small"
+              (click)="tests.finish(false)"
+              aria-label="Keep learning at this grade"
+              title="Keep learning at this grade"
+              [disabled]="tests.busy()"
+            >
+              <app-icon name="book" [size]="14" />
+              <span>Keep learning</span>
+            </button>
+          }
+        }
+      </div>
+    }
+  }
+  @if (tests.result(); as result) {
+    <p
+      class="quiz-feedback"
+      [class.correct]="result.passed || result.kind === 'mock'"
+      role="status"
+    >
+      {{ tests.resultMessage(result) }}
+    </p>
+  }
+  @if (tests.history().length) {
+    <details class="test-history">
+      <summary>Previous tests · {{ tests.history().length }}</summary>
+      <ol>
+        @for (result of tests.history(); track $index) {
+          <li>
+            <strong>{{ tests.kindLabel(result.kind) }}</strong> ·
+            {{ model.stageTitle(result.stage) }} · {{ tests.historyOutcome(result) }} ·
+            {{ result.answers_passed }}/{{ result.questions_asked }} answers ·
+            {{ result.pass_rate * 100 | number: '1.0-0' }}%
+          </li>
+        }
+      </ol>
+    </details>
+  }
+</section>

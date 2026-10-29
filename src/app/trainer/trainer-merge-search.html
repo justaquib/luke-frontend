@@ -16,19 +16,23 @@
     />
     <button
       type="button"
-      class="primary small"
+      class="primary small icon-only"
+      [attr.aria-label]="store.mergeLoading() ? 'Searching for matches' : 'Find matches'"
+      [title]="store.mergeLoading() ? 'Searching for matches' : 'Find matches'"
       [disabled]="store.mergeLoading() || !store.mergeQuery().trim()"
       (click)="merge.runIntentSuggestions()"
     >
-      @if (store.mergeLoading()) {
-        Searching…
-      } @else {
-        Find matches
-      }
+      <app-icon name="search" [size]="14" />
     </button>
     @if (store.mergeSuggestions()) {
-      <button type="button" class="ghost small" (click)="merge.clearMergeSuggestions()">
-        Clear
+      <button
+        type="button"
+        class="ghost small icon-only"
+        (click)="merge.clearMergeSuggestions()"
+        aria-label="Clear the search"
+        title="Clear the search"
+      >
+        <app-icon name="x" [size]="14" />
       </button>
     }
   </div>
@@ -55,11 +59,13 @@
                   <div class="row-actions">
                     <button
                       type="button"
-                      class="primary small"
+                      class="primary small icon-only"
                       (click)="openFaq(faq)"
+                      aria-label="Merge into this answer"
+                      title="Merge into this answer"
                       [disabled]="!store.faqById(faq.faq_id)"
                     >
-                      Merge into this →
+                      <app-icon name="merge" [size]="14" />
                     </button>
                   </div>
                 </div>
@@ -84,18 +90,21 @@
                 <div class="row">
                   <div class="row-text">
                     <strong class="q">{{ pending.question }}</strong>
-                    <span class="meta">
-                      asked {{ pending.occurrences }}× · dist {{ pending.distance.toFixed(2) }}
-                    </span>
+                    <span class="meta"
+                      >asked {{ pending.occurrences }}× · dist
+                      {{ pending.distance.toFixed(2) }}</span
+                    >
                   </div>
                   <div class="row-actions">
                     <button
                       type="button"
-                      class="ghost small"
+                      class="ghost small icon-only"
                       (click)="openPending(pending)"
+                      aria-label="Open in the inbox"
+                      title="Open in the inbox"
                       [disabled]="!store.pendingById(pending.pending_id)"
                     >
-                      Open in Inbox
+                      <app-icon name="inbox" [size]="14" />
                     </button>
                   </div>
                 </div>

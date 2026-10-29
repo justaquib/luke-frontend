@@ -1,6 +1,7 @@
 import { Injectable, signal, effect, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import type { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { UiService } from '../shared/ui.service';
 
@@ -16,16 +17,39 @@ export interface User {
   created_at: string;
 }
 
-const TOKEN_KEY = 'assistance.token.v1';
-const USER_KEY = 'assistance.user.v1';
-const ROLE_KEY = 'assistance.role.v1';
-const TENANT_KEY = 'assistance.tenant.v1';
+interface GoogleCredentialResponse {
+  credential?: string;
+}
+
+interface GooglePromptNotification {
+  is_not_displayed(): boolean;
+  is_suppressed(): boolean;
+}
+
+interface GoogleIdentity {
+  initialize(options: {
+    client_id: string;
+    callback: (response: GoogleCredentialResponse) => void;
+    auto_select: boolean;
+    cancel_on_tap_outside: boolean;
+  }): void;
+  prompt(listener: (notification: GooglePromptNotification) => void): void;
+}
+
+interface SystemAdminStatus {
+  configured: boolean;
+  email?: string;
+}
 
 declare global {
   interface Window {
-    google?: any;
+    google?: { accounts: { id: GoogleIdentity } };
   }
 }
+
+const TOKEN_KEY = 'assistance.token.v1';
+const USER_KEY = 'assistance.user.v1';
+const ROLE_KEY = 'assistance.role.v1';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -50,13 +74,19 @@ export class AuthService {
     if (typeof window !== 'undefined') {
       effect(() => {
         const token = this._token();
-        if (token) localStorage.setItem(TOKEN_KEY, token);
-        else localStorage.removeItem(TOKEN_KEY);
+        if (token) {
+          localStorage.setItem(TOKEN_KEY, token);
+        } else {
+          localStorage.removeItem(TOKEN_KEY);
+        }
       });
       effect(() => {
         const user = this._user();
-        if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
-        else localStorage.removeItem(USER_KEY);
+        if (user) {
+          localStorage.setItem(USER_KEY, JSON.stringify(user));
+        } else {
+          localStorage.removeItem(USER_KEY);
+        }
       });
     }
   }
@@ -73,33 +103,38 @@ export class AuthService {
     script.defer = true;
     document.head.appendChild(script);
 
-    script.onload = () => {
-      if (!window.google) return;
+    script.onload = (): void => {
+      if (!window.google) {
+        return;
+      }
       window.google.accounts.id.initialize({
         client_id: environment.googleClientId,
-        callback: (response: any) => this.handleCredentialResponse(response, inviteToken),
+        callback: (response: GoogleCredentialResponse) =>
+          this.handleCredentialResponse(response, inviteToken),
         auto_select: false,
         cancel_on_tap_outside: false,
       });
-      window.google.accounts.id.prompt((notification: any) => {
+      window.google.accounts.id.prompt((notification: GooglePromptNotification) => {
         if (notification.is_not_displayed() || notification.is_suppressed()) {
           this.ui.error('Google Sign-In was blocked or not displayed.');
         }
       });
     };
 
-    script.onerror = () => {
+    script.onerror = (): void => {
       this.ui.error('Failed to load Google Sign-In.');
     };
   }
 
-  private handleCredentialResponse(response: any, inviteToken?: string) {
+  private handleCredentialResponse(response: GoogleCredentialResponse, inviteToken?: string): void {
     if (!response.credential) {
       this.ui.error('No credential returned from Google.');
       return;
     }
     const body: Record<string, string> = { id_token: response.credential };
-    if (inviteToken) body['invite_token'] = inviteToken;
+    if (inviteToken) {
+      body['invite_token'] = inviteToken;
+    }
 
     this.http.post<{ access_token: string }>(`${this.base}/auth/google`, body).subscribe({
       next: (res) => {
@@ -119,20 +154,20 @@ export class AuthService {
         this.fetchMe();
       },
       error: (err: Error) => {
-        this.ui.error(err.message || 'System admin login failed.');
+        this.ui.error(err.message || 'Lab administrator login failed.');
       },
     });
   }
 
-  systemAdminStatus() {
-    return this.http.get<{ configured: boolean; email?: string }>(
-      `${this.base}/auth/systemadmin/status`,
-    );
+  systemAdminStatus(): Observable<SystemAdminStatus> {
+    return this.http.get<SystemAdminStatus>(`${this.base}/auth/systemadmin/status`);
   }
 
   fetchMe(announce = true): void {
     const token = this._token();
-    if (!token) return;
+    if (!token) {
+      return;
+    }
     this.http
       .get<User>(`${this.base}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -140,13 +175,17 @@ export class AuthService {
       .subscribe({
         next: (user) => {
           this._user.set(user);
-          if (!announce) return;
+          if (!announce) {
+            return;
+          }
           this.ui.success('Signed in successfully.');
           this.redirectAfterLogin();
         },
         error: () => {
           this.clearSession();
-          if (announce) this.ui.error('Your account could not be read. Please sign in again.');
+          if (announce) {
+            this.ui.error('Your account could not be read. Please sign in again.');
+          }
         },
       });
   }
@@ -160,7 +199,9 @@ export class AuthService {
    */
   restoreSession(): void {
     const token = this._token();
-    if (!token) return;
+    if (!token) {
+      return;
+    }
     this.http
       .post<{ access_token: string }>(
         `${this.base}/auth/refresh`,
@@ -175,49 +216,44 @@ export class AuthService {
         error: () => {
           this.clearSession();
           this.ui.error('Your session has ended. Please sign in again.');
-          this.router.navigate(['/login']);
+          void this.router.navigate(['/login']);
         },
       });
   }
 
   /** Keep the page the user wanted, so they land there after they sign in. */
   rememberPage(url: string): void {
-    if (url && url !== '/login' && url !== '/systemadmin') this._returnUrl.set(url);
+    if (url && url !== '/login' && url !== '/systemadmin') {
+      this._returnUrl.set(url);
+    }
   }
 
   redirectAfterLogin(): void {
-    if (!this.isLoggedIn()) return;
-    const wanted = this._returnUrl();
-    this._returnUrl.set(null);
-    if (wanted) {
-      this.router.navigateByUrl(wanted);
+    if (!this.isLoggedIn()) {
       return;
     }
-    const user = this._user();
-    if (!user) return;
-    if (user.is_systemadmin) {
-      this.router.navigate(['/dashboard/tenants']);
-    } else if (user.role === 'trainer') {
-      this.router.navigate(['/dashboard/trainer']);
-    } else {
-      this.router.navigate(['/chat']);
-    }
+    const wanted = this._returnUrl();
+    this._returnUrl.set(null);
+    void this.router.navigateByUrl(wanted || '/chat');
   }
 
   /** Remember the experience the user picked on the onboarding page. */
   setRole(role: string): void {
     try {
       localStorage.setItem(ROLE_KEY, role);
-    } catch {}
+    } catch {
+      // Storage can be unavailable in private browsing; the choice is optional.
+    }
   }
 
   logout(): void {
     this.clearSession();
     try {
       localStorage.removeItem(ROLE_KEY);
-      localStorage.removeItem(TENANT_KEY);
-    } catch {}
-    this.router.navigate(['/']);
+    } catch {
+      // Storage can be unavailable in private browsing; the session is already gone.
+    }
+    void this.router.navigate(['/']);
   }
 
   /** Forget the session, without leaving the page the user is on. */
@@ -233,7 +269,9 @@ export class AuthService {
 
   private readToken(): string | null {
     try {
-      if (typeof window === 'undefined') return null;
+      if (typeof window === 'undefined') {
+        return null;
+      }
       return localStorage.getItem(TOKEN_KEY);
     } catch {
       return null;
@@ -242,9 +280,11 @@ export class AuthService {
 
   private readUser(): User | null {
     try {
-      if (typeof window === 'undefined') return null;
+      if (typeof window === 'undefined') {
+        return null;
+      }
       const raw = localStorage.getItem(USER_KEY);
-      return raw ? JSON.parse(raw) : null;
+      return raw ? (JSON.parse(raw) as User) : null;
     } catch {
       return null;
     }

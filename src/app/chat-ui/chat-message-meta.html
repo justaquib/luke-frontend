@@ -16,11 +16,39 @@
         >confidence <span class="mono">{{ score }}</span></span
       >
     }
+    @if (asOf(); as moment) {
+      <span class="provenance-sep" aria-hidden="true">|</span>
+      <span class="provenance-metric"
+        >as of <span class="mono">{{ moment }}</span></span
+      >
+    }
     @if (modelName(); as model) {
       <span class="provenance-sep" aria-hidden="true">|</span>
       <span class="provenance-metric"
         >model <span class="mono">{{ model }}</span></span
       >
     }
+    @if (modelVersion(); as version) {
+      <span class="provenance-sep" aria-hidden="true">|</span>
+      <span class="provenance-metric"
+        >version <span class="mono">{{ version }}</span></span
+      >
+    }
+    @if (citations(); as count) {
+      <span class="provenance-sep" aria-hidden="true">|</span>
+      <span class="provenance-metric"
+        >cited <span class="mono">{{ count }}</span></span
+      >
+    }
+    @if (tokensPerSecond(); as speed) {
+      <span class="provenance-sep" aria-hidden="true">|</span>
+      <span class="provenance-metric"
+        ><span class="mono">{{ speed }}</span> tok/s</span
+      >
+    }
   </p>
+}
+
+@if (modeNote(); as note) {
+  <p class="answer-mode-note">{{ note }}</p>
 }

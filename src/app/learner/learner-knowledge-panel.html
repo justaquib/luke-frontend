@@ -1,0 +1,73 @@
+<nav class="learner-subtabs" role="tablist" aria-label="What it knows sections">
+  <button
+    type="button"
+    role="tab"
+    id="knowledge-tab-search"
+    aria-controls="knowledge-panel-search"
+    [attr.aria-selected]="view.knowledgeTab() === 'search'"
+    (click)="view.setKnowledgeTab('search')"
+  >
+    <app-icon name="search" [size]="14" />
+    <span>Search</span>
+  </button>
+  <button
+    type="button"
+    role="tab"
+    id="knowledge-tab-grades"
+    aria-controls="knowledge-panel-grades"
+    [attr.aria-selected]="view.knowledgeTab() === 'grades'"
+    (click)="view.setKnowledgeTab('grades')"
+  >
+    <app-icon name="book" [size]="14" />
+    <span>Questions by grade</span>
+    <small>{{ model.lessonTotal() | number }}</small>
+  </button>
+  <button
+    type="button"
+    role="tab"
+    id="knowledge-tab-learned"
+    aria-controls="knowledge-panel-learned"
+    [attr.aria-selected]="view.knowledgeTab() === 'learned'"
+    (click)="view.setKnowledgeTab('learned')"
+  >
+    <app-icon name="file" [size]="14" />
+    <span>What it has learned</span>
+    <small>{{
+      model.learnedTotals().ownLessons + model.learnedTotals().trainerAnswers | number
+    }}</small>
+  </button>
+</nav>
+
+@if (view.knowledgeTab() === 'search') {
+  <div
+    id="knowledge-panel-search"
+    role="tabpanel"
+    aria-labelledby="knowledge-tab-search"
+    class="knowledge-panel"
+  >
+    <app-learner-search-card />
+    <app-learner-dictionary-card />
+  </div>
+}
+
+@if (view.knowledgeTab() === 'grades') {
+  <div
+    id="knowledge-panel-grades"
+    role="tabpanel"
+    aria-labelledby="knowledge-tab-grades"
+    class="knowledge-panel"
+  >
+    <app-learner-grade-browser />
+  </div>
+}
+
+@if (view.knowledgeTab() === 'learned') {
+  <div
+    id="knowledge-panel-learned"
+    role="tabpanel"
+    aria-labelledby="knowledge-tab-learned"
+    class="knowledge-panel"
+  >
+    <app-learner-learned-card />
+  </div>
+}

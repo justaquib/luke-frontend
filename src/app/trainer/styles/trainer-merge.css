@@ -1,0 +1,141 @@
+/* The merge search, the canonical target and the existing intent groups. */
+.merge-search-card h3 {
+  margin: 0 0 0.5rem;
+  color: var(--text);
+}
+
+.merge-results {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.merge-results section h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.match-card .a {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.merge-target-card {
+  border-color: var(--accent-line);
+}
+
+.merge-target-header,
+.intent-group-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.merge-target-header > div,
+.intent-group-header > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.merge-target-header .q,
+.intent-group-header .q {
+  flex-basis: 100%;
+}
+
+.merge-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  margin: 8px 0;
+  list-style: none;
+}
+
+.merge-faq-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.merge-faq-row.extra {
+  border-style: dashed;
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+}
+
+.merge-faq-row label {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.merge-target-card h5 {
+  margin: 12px 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.intent-group-card {
+  border-color: var(--accent-line);
+}
+
+.alias-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  margin: 8px 0 0;
+  list-style: none;
+}
+
+.alias-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.alias-q {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.new-merge-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--accent-line);
+}
+
+.new-merge-preview h4 {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+}

@@ -1,0 +1,26 @@
+<div class="code-card">
+  <div class="code-head">
+    <app-icon name="code" [size]="12" />
+    <span class="code-label">{{ label() }}</span>
+    <span class="code-count">{{ count() }}</span>
+    <button
+      type="button"
+      class="ghost icon-only small code-copy"
+      (click)="copy($event)"
+      [attr.aria-label]="copied() ? 'Code copied to clipboard' : 'Copy code'"
+      [title]="copied() ? 'Code copied to clipboard' : 'Copy code'"
+    >
+      <app-icon [name]="copied() ? 'check' : 'copy'" [size]="14" />
+    </button>
+  </div>
+  <div class="code-body">
+    <div class="code-lines">
+      @for (line of lines(); track $index) {
+        <div class="code-line">
+          <span class="code-num" aria-hidden="true">{{ $index + 1 }}</span>
+          <span class="code-text">{{ line }}</span>
+        </div>
+      }
+    </div>
+  </div>
+</div>

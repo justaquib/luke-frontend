@@ -19,17 +19,17 @@ export class AppPrefsService {
     }
   }
 
-  setUserName(name: string) {
+  setUserName(name: string): void {
     const trimmed = name.trim() || DEFAULTS.user;
     this.userSignal.set(trimmed);
   }
 
-  setBotName(name: string) {
+  setBotName(name: string): void {
     const trimmed = name.trim() || DEFAULTS.bot;
     this.botSignal.set(trimmed);
   }
 
-  reset() {
+  reset(): void {
     this.userSignal.set(DEFAULTS.user);
     this.botSignal.set(DEFAULTS.bot);
   }
@@ -43,10 +43,12 @@ export class AppPrefsService {
     }
   }
 
-  private write(key: string, value: string) {
+  private write(key: string, value: string): void {
     try {
       if (typeof window === 'undefined') return;
       localStorage.setItem(key, value);
-    } catch {}
+    } catch {
+      // Storage can be unavailable in private browsing; the choice is optional.
+    }
   }
 }

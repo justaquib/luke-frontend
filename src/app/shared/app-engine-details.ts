@@ -49,9 +49,10 @@ export class AppEngineDetails implements OnInit {
   });
 
   private versionFact(startLevel: string | undefined): EngineFact {
+    const unknown = this.model.error() ? 'not read' : 'Reading…';
     return {
       label: 'Version',
-      value: this.model.level() ?? startLevel ?? 'Reading…',
+      value: this.model.level() ?? startLevel ?? unknown,
       note: startLevel ? `starts at ${startLevel}` : undefined,
     };
   }

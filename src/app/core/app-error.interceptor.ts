@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { HttpErrorResponse, type HttpInterceptorFn } from '@angular/common/http';
 import { ErrorHandler, Injectable, inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { AppLogService } from '../shared/app-log.service';
@@ -9,13 +9,11 @@ export const appErrorLoggingInterceptor: HttpInterceptorFn = (request, next) => 
     catchError((error: unknown) => {
       if (error instanceof HttpErrorResponse) {
         const path = getRequestPath(request.url);
-        const detail = error.error?.detail;
+        const detail = readDetail(error.error);
         const message =
           error.status === 0
             ? 'Request failed: the API could not be reached or the browser blocked the connection.'
-            : typeof detail === 'string'
-              ? detail
-              : error.statusText || 'The request failed.';
+            : (detail ?? error.statusText ?? 'The request failed.');
         logs.record({
           level: error.status === 0 || error.status >= 500 ? 'error' : 'warning',
           source: `${request.method} API request`,
@@ -28,6 +26,14 @@ export const appErrorLoggingInterceptor: HttpInterceptorFn = (request, next) => 
     }),
   );
 };
+
+function readDetail(body: unknown): string | null {
+  if (typeof body !== 'object' || body === null) {
+    return null;
+  }
+  const detail = (body as Record<string, unknown>)['detail'];
+  return typeof detail === 'string' ? detail : null;
+}
 
 @Injectable()
 export class AppErrorHandler extends ErrorHandler {

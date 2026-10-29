@@ -5,9 +5,9 @@
   </div>
   <div class="learner-chat-answer">
     <small>Learner · {{ sourceLabel() }}</small>
-    <p>
+    <div class="answer-line">
       <app-answer-reveal [text]="turn().answer" [animate]="turn().reveal === true" />
-    </p>
+    </div>
     @if (showTrace()) {
       <div class="learner-chat-trace">
         <app-answer-pipeline [trace]="trace()" [live]="false" />

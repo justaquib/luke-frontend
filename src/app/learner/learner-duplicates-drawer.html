@@ -1,0 +1,194 @@
+<button
+  type="button"
+  class="duplicate-panel-backdrop"
+  (click)="duplicates.closePanel()"
+  aria-label="Close the duplicates"
+></button>
+<aside
+  class="duplicate-panel"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="duplicate-panel-title"
+>
+  <header class="duplicate-panel-header">
+    <div>
+      <span class="language-eyebrow">DUPLICATES</span>
+      <h2 id="duplicate-panel-title">Questions and answers that repeat</h2>
+    </div>
+    <button
+      type="button"
+      class="icon-btn"
+      (click)="duplicates.closePanel()"
+      aria-label="Close the duplicates"
+      title="Close the duplicates"
+    >
+      <app-icon name="x" [size]="16" />
+    </button>
+  </header>
+  <p class="duplicate-panel-help">
+    {{ duplicates.label() }} Accept the one to keep, remove the others, or improve the question, the
+    answer or the topic.
+  </p>
+
+  @if (duplicates.groups().length) {
+    <div class="duplicate-panel-groups">
+      @for (group of duplicates.groups(); track group.kind + $index) {
+        <section class="duplicate-group" [attr.aria-label]="group.label">
+          <header>
+            <div class="duplicate-group-heading">
+              <strong>{{ group.label }}</strong>
+              <span>{{ group.detail }}</span>
+            </div>
+            <button
+              type="button"
+              class="ghost small icon-only"
+              (click)="duplicates.acceptBoth(group)"
+              [attr.aria-label]="
+                duplicates.busyId() === group.key
+                  ? 'Accepting both questions'
+                  : 'Accept both questions as separate'
+              "
+              [title]="
+                duplicates.busyId() === group.key
+                  ? 'Accepting both questions'
+                  : 'Accept both questions as separate'
+              "
+              [disabled]="duplicates.busyId() === group.key"
+            >
+              <app-icon name="merge" [size]="14" />
+            </button>
+          </header>
+          @for (card of group.cards; track card.id) {
+            <article class="duplicate-card" [class.is-duplicate]="duplicates.isDuplicate(card.id)">
+              <div class="duplicate-card-head">
+                @if (duplicates.isDuplicate(card.id)) {
+                  <span class="duplicate-badge" title="This lesson repeats another one">D</span>
+                } @else {
+                  <span class="duplicate-keep-badge">Kept</span>
+                }
+                <span class="lesson-kind"
+                  >{{ model.stageTitle(card.grade_id) }}
+                  @if (card.subject) {
+                    · {{ card.subject }}
+                  }
+                </span>
+              </div>
+              <strong class="duplicate-question">{{ card.question }}</strong>
+              <p class="duplicate-answer">{{ card.answer }}</p>
+
+              @if (duplicates.editId() === card.id) {
+                <label [for]="'duplicate-question-' + card.id">Question</label>
+                <textarea
+                  [id]="'duplicate-question-' + card.id"
+                  rows="2"
+                  [ngModel]="duplicates.editQuestion()"
+                  (ngModelChange)="duplicates.setEditQuestion($event)"
+                  [name]="'duplicate-question-' + card.id"
+                  maxlength="1000"
+                  aria-label="Question"
+                ></textarea>
+                <label [for]="'duplicate-answer-' + card.id">Answer</label>
+                <textarea
+                  [id]="'duplicate-answer-' + card.id"
+                  rows="3"
+                  [ngModel]="duplicates.editAnswer()"
+                  (ngModelChange)="duplicates.setEditAnswer($event)"
+                  [name]="'duplicate-answer-' + card.id"
+                  maxlength="1900"
+                  aria-label="Answer"
+                ></textarea>
+                <label [for]="'duplicate-subject-' + card.id">Topic</label>
+                <input
+                  [id]="'duplicate-subject-' + card.id"
+                  [ngModel]="duplicates.editSubject()"
+                  (ngModelChange)="duplicates.setEditSubject($event)"
+                  [name]="'duplicate-subject-' + card.id"
+                  maxlength="240"
+                  placeholder="For example: Language, Poems"
+                />
+                <div class="duplicate-card-actions">
+                  <button
+                    type="button"
+                    class="primary small icon-only"
+                    (click)="duplicates.saveEdit()"
+                    [attr.aria-label]="
+                      duplicates.busyId() === card.id
+                        ? 'Saving the improvement'
+                        : 'Save the improvement'
+                    "
+                    [title]="
+                      duplicates.busyId() === card.id
+                        ? 'Saving the improvement'
+                        : 'Save the improvement'
+                    "
+                    [disabled]="
+                      duplicates.busyId() === card.id ||
+                      !duplicates.editQuestion().trim() ||
+                      !duplicates.editAnswer().trim()
+                    "
+                  >
+                    <app-icon name="check" [size]="14" />
+                  </button>
+                  <button
+                    type="button"
+                    class="ghost small icon-only"
+                    (click)="duplicates.cancelEdit()"
+                    aria-label="Cancel editing the duplicate"
+                    title="Cancel editing the duplicate"
+                  >
+                    <app-icon name="x" [size]="14" />
+                  </button>
+                </div>
+              } @else {
+                <div class="duplicate-card-actions">
+                  <button
+                    type="button"
+                    class="primary small icon-only"
+                    (click)="duplicates.accept(group, card)"
+                    aria-label="Accept this question"
+                    title="Accept this question"
+                    [disabled]="duplicates.busyId() === card.id"
+                  >
+                    <app-icon name="check" [size]="14" />
+                  </button>
+                  <button
+                    type="button"
+                    class="ghost small icon-only"
+                    (click)="duplicates.startEdit(card)"
+                    aria-label="Improve the question or answer"
+                    title="Improve the question or answer"
+                    [disabled]="duplicates.busyId() === card.id"
+                  >
+                    <app-icon name="pencil" [size]="14" />
+                  </button>
+                  <button
+                    type="button"
+                    class="ghost small icon-only"
+                    (click)="duplicates.startEdit(card)"
+                    aria-label="Change the topic"
+                    title="Change the topic"
+                    [disabled]="duplicates.busyId() === card.id"
+                  >
+                    <app-icon name="sliders" [size]="14" />
+                  </button>
+                  <button
+                    type="button"
+                    class="danger small icon-only"
+                    (click)="duplicates.remove(card)"
+                    aria-label="Remove this duplicate"
+                    title="Remove this duplicate"
+                    [disabled]="duplicates.busyId() === card.id"
+                  >
+                    <app-icon name="trash" [size]="14" />
+                  </button>
+                </div>
+              }
+            </article>
+          }
+        </section>
+      }
+    </div>
+  } @else {
+    <p class="empty">No lesson repeats another one. The learner is tidy.</p>
+  }
+</aside>

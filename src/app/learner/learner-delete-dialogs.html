@@ -1,0 +1,70 @@
+<app-modal
+  [open]="!!lessons.deletePrompt()"
+  title="Remove this learned lesson?"
+  (closed)="lessons.cancelRemoval()"
+>
+  @if (lessons.deletePrompt(); as lesson) {
+    <p class="learner-match-question">{{ lesson.question }}</p>
+    <p class="learner-match-help">
+      This removes the question and answer from this learner’s saved lessons. Built-in starter
+      lessons and Trainer-approved answers are not changed.
+    </p>
+  }
+  <div modal-actions class="learner-match-footer">
+    <button
+      type="button"
+      class="ghost icon-only"
+      (click)="lessons.cancelRemoval()"
+      aria-label="Cancel the removal"
+      title="Cancel the removal"
+      [disabled]="!!lessons.deletingId()"
+    >
+      <app-icon name="x" [size]="14" />
+    </button>
+    <button
+      type="button"
+      class="danger icon-only"
+      (click)="lessons.confirmRemoval()"
+      [attr.aria-label]="lessons.deletingId() ? 'Removing the lesson' : 'Remove the lesson'"
+      [title]="lessons.deletingId() ? 'Removing the lesson' : 'Remove the lesson'"
+      [disabled]="!!lessons.deletingId()"
+    >
+      <app-icon name="trash" [size]="14" />
+    </button>
+  </div>
+</app-modal>
+
+<app-modal
+  [open]="!!answers.deletePrompt()"
+  title="Remove this Trainer answer?"
+  (closed)="answers.cancelRemoval()"
+>
+  @if (answers.deletePrompt(); as item) {
+    <p class="learner-match-question">{{ item.question }}</p>
+    <p class="learner-match-help">
+      This permanently removes the approved answer from Trainer and the Learner’s synced knowledge.
+    </p>
+  }
+  <div modal-actions class="learner-match-footer">
+    <button
+      type="button"
+      class="ghost icon-only"
+      (click)="answers.cancelRemoval()"
+      aria-label="Cancel the removal"
+      title="Cancel the removal"
+      [disabled]="!!answers.deletingId()"
+    >
+      <app-icon name="x" [size]="14" />
+    </button>
+    <button
+      type="button"
+      class="danger icon-only"
+      (click)="answers.confirmRemoval()"
+      [attr.aria-label]="answers.deletingId() ? 'Removing the answer' : 'Remove the answer'"
+      [title]="answers.deletingId() ? 'Removing the answer' : 'Remove the answer'"
+      [disabled]="!!answers.deletingId()"
+    >
+      <app-icon name="trash" [size]="14" />
+    </button>
+  </div>
+</app-modal>

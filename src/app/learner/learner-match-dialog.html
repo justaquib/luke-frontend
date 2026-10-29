@@ -1,0 +1,56 @@
+<app-modal
+  [open]="!!chat.matchPrompt()"
+  title="Which question did you mean?"
+  size="wide"
+  (closed)="chat.askWithoutTrainer()"
+>
+  @if (chat.matchPrompt(); as prompt) {
+    <div class="learner-match-body">
+      <span class="language-eyebrow">TRAINER KNOWLEDGE</span>
+      <p class="learner-match-question">{{ prompt.question }}</p>
+      <p class="learner-match-help">
+        I found similar approved questions in Trainer. Choose the answer that matches your meaning.
+      </p>
+      <div class="learner-match-options">
+        @for (candidate of prompt.candidates; track candidate.faq_id) {
+          <button
+            type="button"
+            class="learner-match-option"
+            (click)="chat.chooseTrainerAnswer(candidate)"
+          >
+            <app-icon name="arrow-right" [size]="14" />
+            <strong>{{ candidate.question }}</strong
+            ><span>{{ candidate.answer }}</span>
+          </button>
+        }
+      </div>
+      <aside class="learner-merge-tip">
+        <strong>Why merge similar questions?</strong>
+        <p>
+          When several questions express the same intent, Trainer can group them under one canonical
+          answer. That keeps answers consistent and prevents duplicate knowledge.
+        </p>
+        <button
+          type="button"
+          class="ghost small icon-only"
+          (click)="chat.reviewInTrainer()"
+          aria-label="Review these questions in Merge Intents"
+          title="Review these questions in Merge Intents"
+        >
+          <app-icon name="merge" [size]="14" />
+        </button>
+      </aside>
+    </div>
+  }
+  <div modal-actions class="learner-match-footer">
+    <button
+      type="button"
+      class="ghost icon-only"
+      (click)="chat.askWithoutTrainer()"
+      aria-label="None of these; ask learner knowledge"
+      title="None of these; ask learner knowledge"
+    >
+      <app-icon name="arrow-right" [size]="14" />
+    </button>
+  </div>
+</app-modal>

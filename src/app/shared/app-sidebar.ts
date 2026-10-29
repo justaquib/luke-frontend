@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthService } from '../core/auth.service';
 import { DesignService, type SidebarMode } from '../core/design.service';
 import { AppBackgroundTaskStrip } from './app-background-task-strip';
 import { AppIcon, type IconName } from './app-icon';
@@ -9,7 +8,6 @@ interface NavItem {
   path: string;
   label: string;
   icon: IconName;
-  admin?: boolean;
 }
 
 interface ModeChoice {
@@ -23,10 +21,11 @@ const NAV_ITEMS: readonly NavItem[] = [
   { path: '/dashboard/trainer', label: 'Training room', icon: 'pencil' },
   { path: '/dashboard/parenting', label: 'Parenting Coach', icon: 'pin' },
   { path: '/dashboard/learner', label: 'Language Learner', icon: 'book' },
-  { path: '/dashboard/brain', label: 'Assistance Brain', icon: 'layers' },
+  { path: '/dashboard/brain', label: 'Luke brain', icon: 'layers' },
+  { path: '/dashboard/assessment', label: 'Assessment', icon: 'grid' },
+  { path: '/dashboard/expressions', label: 'Expressions', icon: 'send' },
   { path: '/dashboard/design', label: 'Design', icon: 'palette' },
-  { path: '/dashboard/settings', label: 'Settings', icon: 'sliders' },
-  { path: '/dashboard/tenants', label: 'System Admin', icon: 'shield', admin: true },
+  { path: '/dashboard/settings', label: 'Lab settings', icon: 'sliders' },
 ];
 
 /**
@@ -45,15 +44,10 @@ const NAV_ITEMS: readonly NavItem[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppSidebar {
-  private readonly auth = inject(AuthService);
   protected readonly design = inject(DesignService);
 
   protected readonly open = this.design.sidebarOpen;
-  private readonly isSystemAdmin = computed(() => this.auth.user()?.is_systemadmin ?? false);
-
-  protected readonly navItems = computed(() =>
-    NAV_ITEMS.filter((item) => !item.admin || this.isSystemAdmin()),
-  );
+  protected readonly navItems = NAV_ITEMS;
 
   protected readonly modes: readonly ModeChoice[] = [
     { value: 'push', label: 'Dock the sidebar beside the page', icon: 'sidebar' },

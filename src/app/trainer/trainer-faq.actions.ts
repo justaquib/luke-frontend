@@ -1,16 +1,39 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, type TemplateRef } from '@angular/core';
 import { TrainerApiService } from '../core/api/trainer-api.service';
 import type { FaqItem } from '../core/api/api-models';
+import { RightSidebarService } from '../shared/right-sidebar.service';
 import { UiService } from '../shared/ui.service';
 import { TrainerDataService } from './trainer-data.service';
+import { TRAINER_SIDEBAR_OWNER } from './trainer.constants';
 import { TrainerStore } from './trainer.store';
 
+/** Everything the trained-answer list and its detail panel do. */
 @Injectable({ providedIn: 'root' })
 export class TrainerFaqActions {
   private readonly api = inject(TrainerApiService);
   private readonly ui = inject(UiService);
   private readonly store = inject(TrainerStore);
   private readonly data = inject(TrainerDataService);
+  private readonly sidebar = inject(RightSidebarService);
+
+  openFaq(faq: FaqItem, details: TemplateRef<unknown>): void {
+    if (this.store.editingId() !== faq.id) {
+      this.cancelEdit();
+    }
+    this.store.selectedFaqId.set(faq.id);
+    this.sidebar.show({
+      owner: TRAINER_SIDEBAR_OWNER,
+      title: 'Trained answer',
+      subtitle: `Question and answer · #${faq.id}`,
+      template: details,
+    });
+  }
+
+  closeFaq(): void {
+    this.store.selectedFaqId.set(null);
+    this.cancelEdit();
+    this.sidebar.clearDetails(TRAINER_SIDEBAR_OWNER);
+  }
 
   startEdit(faq: FaqItem): void {
     this.store.editingId.set(faq.id);
@@ -20,6 +43,10 @@ export class TrainerFaqActions {
   cancelEdit(): void {
     this.store.editingId.set(null);
     this.store.editingAnswer.set('');
+  }
+
+  updateEditingAnswer(value: string): void {
+    this.store.editingAnswer.set(value);
   }
 
   saveEdit(faq: FaqItem): void {
@@ -89,6 +116,7 @@ export class TrainerFaqActions {
         this.api.deleteFaq(faq.id).subscribe({
           next: () => {
             this.ui.success('Trained answer deleted.');
+            this.forget([faq]);
             this.data.refresh();
           },
           error: (error: Error) => this.ui.error(error.message),
@@ -118,6 +146,7 @@ export class TrainerFaqActions {
             next: () => {
               if (--remaining === 0) {
                 this.ui.success(`${faqs.length} trained answers removed.`);
+                this.forget(faqs);
                 this.data.refresh();
               }
             },
@@ -141,7 +170,10 @@ export class TrainerFaqActions {
     this.store.faqSearch.set(value);
   }
 
-  updateEditingAnswer(value: string): void {
-    this.store.editingAnswer.set(value);
+  private forget(faqs: FaqItem[]): void {
+    const selected = this.store.selectedFaqId();
+    if (selected !== null && faqs.some((faq) => faq.id === selected)) {
+      this.closeFaq();
+    }
   }
 }

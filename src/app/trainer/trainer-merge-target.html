@@ -6,7 +6,15 @@
         <span class="status-tag {{ target.status }}">{{ target.status }}</span>
         <span class="meta">canonical id #{{ target.id }}</span>
       </div>
-      <button type="button" class="ghost small" (click)="merge.cancelFaqMerge()">Cancel</button>
+      <button
+        type="button"
+        class="ghost small icon-only"
+        (click)="merge.cancelFaqMerge()"
+        aria-label="Cancel the merge"
+        title="Cancel the merge"
+      >
+        <app-icon name="x" [size]="14" />
+      </button>
     </header>
     <p class="a">{{ target.answer }}</p>
 
@@ -15,7 +23,7 @@
     }
 
     <label class="merge-answer">
-      <span>Answer (overrides canonical if changed)</span>
+      <span class="field-label">Answer (overrides canonical if changed)</span>
       <textarea
         rows="3"
         [value]="store.faqMergeAnswer()"
@@ -25,15 +33,17 @@
     <div class="actions">
       <button
         type="button"
-        class="primary"
+        class="primary icon-only"
+        [attr.aria-label]="
+          store.faqMergeBusy() ? 'Merging and re-training aliases' : 'Merge and re-train aliases'
+        "
+        [title]="
+          store.faqMergeBusy() ? 'Merging and re-training aliases' : 'Merge and re-train aliases'
+        "
         [disabled]="store.faqMergeBusy()"
         (click)="merge.commitFaqMerge()"
       >
-        @if (store.faqMergeBusy()) {
-          Merging…
-        } @else {
-          Merge & re-train aliases
-        }
+        <app-icon name="merge" [size]="14" />
       </button>
     </div>
     <p class="hint">

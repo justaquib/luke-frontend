@@ -5,8 +5,8 @@ import {
   computed,
   inject,
   signal,
+  type OnInit,
 } from '@angular/core';
-import type { OnInit } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { LanguageModelApiService } from '../core/api/language-model-api.service';
 import type { StoreSummary } from '../core/api/api.types';

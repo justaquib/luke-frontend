@@ -44,6 +44,10 @@ export const ICONS = {
       d: 'M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1',
     },
   ],
+  code: [
+    { kind: 'path', d: 'M9 7l-5 5 5 5' },
+    { kind: 'path', d: 'M15 7l5 5-5 5' },
+  ],
   eye: [
     { kind: 'path', d: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z' },
     { kind: 'circle', cx: 12, cy: 12, r: 3 },

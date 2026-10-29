@@ -1,37 +1,46 @@
 <div class="card">
   <p class="hint">
-    New answers start as <strong>pending</strong>. Switch to the <em>Trained</em> tab and approve
-    them to make them available in chat.
+    New answers start as <strong>pending</strong>. Switch to the <strong>Trained</strong> tab and
+    approve them to make them available in chat.
   </p>
   <label>
-    <span>Question</span>
+    <span class="field-label">Question</span>
     <input
       type="text"
-      [ngModel]="store.newQuestion()"
-      (ngModelChange)="actions.setQuestion($event)"
+      [value]="store.newQuestion()"
+      (input)="actions.setQuestion($any($event.target).value)"
       placeholder="e.g. What are the office hours?"
     />
   </label>
   <label>
-    <span>Answer</span>
+    <span class="field-label">Answer</span>
     <textarea
       rows="4"
-      [ngModel]="store.newAnswer()"
-      (ngModelChange)="actions.setAnswer($event)"
+      [value]="store.newAnswer()"
+      (input)="actions.setAnswer($any($event.target).value)"
       placeholder="The correct, complete answer…"
     ></textarea>
   </label>
   <div class="actions">
     <button
       type="button"
-      class="ghost"
+      class="ghost icon-only"
       [disabled]="!store.newQuestion().trim()"
       (click)="actions.checkNewForMerge()"
+      aria-label="Check for similar intents"
+      title="Check for similar intents"
     >
-      Check for similar intents
+      <app-icon name="search" [size]="14" />
     </button>
-    <button type="button" class="primary" [disabled]="store.saving()" (click)="actions.createFaq()">
-      Save (pending)
+    <button
+      type="button"
+      class="primary icon-only"
+      [attr.aria-label]="store.saving() ? 'Saving the pending answer' : 'Save as pending'"
+      [title]="store.saving() ? 'Saving the pending answer' : 'Save as pending'"
+      [disabled]="store.saving()"
+      (click)="actions.createFaq()"
+    >
+      <app-icon name="check" [size]="14" />
     </button>
   </div>
 
@@ -54,11 +63,13 @@
                 <div class="row-actions">
                   <button
                     type="button"
-                    class="primary small"
-                    [disabled]="!canMerge(faq) || store.saving()"
+                    class="primary small icon-only"
+                    [disabled]="!store.faqById(faq.faq_id) || store.saving()"
                     (click)="actions.mergeNewIntoFaq(faq)"
+                    aria-label="Merge into this answer"
+                    title="Merge into this answer"
                   >
-                    Merge into this →
+                    <app-icon name="merge" [size]="14" />
                   </button>
                 </div>
               </div>
@@ -70,13 +81,19 @@
               <div class="row">
                 <div class="row-text">
                   <strong class="q">{{ pending.question }}</strong>
-                  <span class="meta">
-                    asked {{ pending.occurrences }}× · dist {{ pending.distance.toFixed(2) }}
-                  </span>
+                  <span class="meta"
+                    >asked {{ pending.occurrences }}× · dist {{ pending.distance.toFixed(2) }}</span
+                  >
                 </div>
                 <div class="row-actions">
-                  <button type="button" class="ghost small" (click)="openInbox()">
-                    Open in Inbox
+                  <button
+                    type="button"
+                    class="ghost small icon-only"
+                    (click)="openInbox()"
+                    aria-label="Open in the inbox"
+                    title="Open in the inbox"
+                  >
+                    <app-icon name="inbox" [size]="14" />
                   </button>
                 </div>
               </div>
@@ -85,7 +102,15 @@
         </ul>
       }
       <div class="actions">
-        <button type="button" class="ghost" (click)="actions.dismissSuggestions()">Dismiss</button>
+        <button
+          type="button"
+          class="ghost icon-only"
+          (click)="actions.dismissSuggestions()"
+          aria-label="Dismiss the similar intents"
+          title="Dismiss the similar intents"
+        >
+          <app-icon name="x" [size]="14" />
+        </button>
       </div>
     </div>
   }

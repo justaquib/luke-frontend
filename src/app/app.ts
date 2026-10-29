@@ -24,7 +24,7 @@ import { UiOverlay } from './shared/ui-overlay';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App implements OnInit {
-  protected readonly title = 'Assistance';
+  protected readonly title = 'Luke Lab';
   private readonly auth = inject(AuthService);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly tasks = inject(BackgroundTasksService);

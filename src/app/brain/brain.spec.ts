@@ -67,6 +67,8 @@ describe('Brain', () => {
       '/dashboard/parenting',
       '/dashboard/learner',
       '/dashboard/brain',
+      '/dashboard/assessment',
+      '/dashboard/expressions',
       '/dashboard/design',
       '/dashboard/settings',
     ]);

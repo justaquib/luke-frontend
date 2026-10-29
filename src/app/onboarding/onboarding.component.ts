@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../core/auth.service';
 import { AppIcon } from '../shared/app-icon';
@@ -9,18 +9,19 @@ import { AppIcon } from '../shared/app-icon';
   imports: [AppIcon],
   templateUrl: './onboarding.html',
   styleUrls: ['../shared/auth.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Onboarding {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  chooseTrainer() {
+  protected chooseTrainer(): void {
     this.auth.setRole('trainer');
-    this.router.navigate(['/dashboard/trainer']);
+    void this.router.navigate(['/dashboard/trainer']);
   }
 
-  chooseChat() {
+  protected chooseChat(): void {
     this.auth.setRole('chat');
-    this.router.navigate(['/chat']);
+    void this.router.navigate(['/chat']);
   }
 }

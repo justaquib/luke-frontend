@@ -1,0 +1,83 @@
+<ng-template #faqDetails>
+  @if (store.selectedFaq(); as faq) {
+    <article class="faq-detail">
+      <p class="detail-question">{{ faq.question }}</p>
+      <div class="row-meta">
+        <span class="status-tag {{ faq.status }}">{{ faq.status }}</span>
+        @if (store.isIntentCanonical(faq)) {
+          <span
+            class="merge-badge canonical"
+            [title]="
+              'Canonical FAQ for an intent with ' + store.intentVariantCount(faq) + ' variants'
+            "
+          >
+            Merged · {{ store.intentVariantCount(faq) }}
+          </span>
+        } @else if (store.isIntentAlias(faq)) {
+          <span
+            class="merge-badge alias"
+            [title]="'Alias of canonical FAQ #' + store.intentCanonicalId(faq)"
+          >
+            Alias · #{{ store.intentCanonicalId(faq) }}
+          </span>
+        }
+        <span class="meta">id #{{ faq.id }} · updated {{ faq.updated_at | date: 'short' }}</span>
+      </div>
+
+      @if (store.isIntentAlias(faq)) {
+        <p class="alias-hint">
+          Alias of canonical
+          @if (store.canonicalFaq(faq); as canonical) {
+            <strong>“{{ canonical.question }}”</strong>
+            <span class="meta">#{{ canonical.id }}</span>
+          } @else {
+            <strong>#{{ store.intentCanonicalId(faq) }}</strong>
+          }
+        </p>
+      }
+
+      <section class="detail-section">
+        <h3>Answer</h3>
+        @if (store.editingId() === faq.id) {
+          <textarea
+            rows="6"
+            class="edit-textarea"
+            [value]="store.editingAnswer()"
+            (input)="actions.updateEditingAnswer($any($event.target).value)"
+            aria-label="Edit the answer"
+          ></textarea>
+          <div class="actions">
+            <button
+              type="button"
+              class="primary small icon-only"
+              [attr.aria-label]="store.saving() ? 'Saving the answer' : 'Save the answer'"
+              [title]="store.saving() ? 'Saving the answer' : 'Save the answer'"
+              [disabled]="store.saving()"
+              (click)="actions.saveEdit(faq)"
+            >
+              <app-icon name="check" [size]="14" />
+            </button>
+            <button
+              type="button"
+              class="ghost small icon-only"
+              (click)="actions.cancelEdit()"
+              aria-label="Cancel editing the answer"
+              title="Cancel editing the answer"
+            >
+              <app-icon name="x" [size]="14" />
+            </button>
+          </div>
+        } @else {
+          <p class="a">{{ faq.answer }}</p>
+        }
+      </section>
+
+      <section class="detail-section">
+        <h3>Actions</h3>
+        <app-trainer-faq-actions-bar [faq]="faq" />
+      </section>
+    </article>
+  } @else {
+    <p class="empty">This answer is no longer in the list.</p>
+  }
+</ng-template>

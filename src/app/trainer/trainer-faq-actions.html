@@ -1,0 +1,64 @@
+<div class="detail-actions">
+  @if (store.editingId() !== faq().id) {
+    <button
+      type="button"
+      class="ghost small icon-only"
+      (click)="startEdit()"
+      aria-label="Edit the answer"
+      title="Edit the answer"
+    >
+      <app-icon name="pencil" [size]="14" />
+    </button>
+  }
+  @if (faq().status !== 'approved') {
+    <button
+      type="button"
+      class="approve small icon-only"
+      (click)="actions.approve(faq())"
+      aria-label="Approve this answer for the chat"
+      title="Approve this answer for the chat"
+    >
+      <app-icon name="check" [size]="14" />
+    </button>
+  }
+  @if (faq().status !== 'declined') {
+    <button
+      type="button"
+      class="decline small icon-only"
+      (click)="actions.decline(faq())"
+      aria-label="Decline this answer and hide it from chat"
+      title="Decline this answer and hide it from chat"
+    >
+      <app-icon name="x" [size]="14" />
+    </button>
+  }
+  @if (faq().status !== 'duplicate') {
+    <button
+      type="button"
+      class="ghost small icon-only"
+      (click)="actions.markDuplicate(faq())"
+      aria-label="Mark as a duplicate"
+      title="Mark as a duplicate"
+    >
+      <app-icon name="copy" [size]="14" />
+    </button>
+  }
+  <button
+    type="button"
+    class="ghost small icon-only"
+    (click)="mergeFaq()"
+    aria-label="Merge this answer with related ones"
+    title="Merge this answer with related ones"
+  >
+    <app-icon name="merge" [size]="14" />
+  </button>
+  <button
+    type="button"
+    class="danger small icon-only"
+    (click)="actions.deleteFaq(faq())"
+    aria-label="Delete this answer"
+    title="Delete this answer"
+  >
+    <app-icon name="trash" [size]="14" />
+  </button>
+</div>

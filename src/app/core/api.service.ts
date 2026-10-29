@@ -9,35 +9,34 @@ import type {
   IngestResponse,
   IntentItem,
   IntentSuggestions,
-  Invite,
   MergePreview,
   MergeResult,
   PendingItem,
   QueryResponse,
   StatsResponse,
-  Tenant,
 } from './api/api.types';
-import type { LanguagePreview } from './api/api-models';
 import { AuthService } from './auth.service';
+import type { LanguageDictionaryEntry, LanguageModelState } from './api/language-models';
 
 export * from './api/api.types';
+export type {
+  KnowledgeGraph,
+  LanguageDictionaryEntry,
+  LanguageExample,
+  LanguageLessonCard,
+  LanguageModelState,
+  LanguagePreviewResponse,
+  LanguageStage,
+  LanguageTest,
+  LanguageTestFinishResult,
+  LanguageTestKind,
+  LanguageTestResult,
+  LanguageTrainerAnswer,
+  LanguageWordCard,
+  ReasoningEdge,
+  ReasoningNode,
+} from './api/language-models';
 
-/**
- * The learner and trainer pages read a few dynamic response bags whose shape
- * is still being settled; they keep the loose aliases until that work lands.
- */
-export type KnowledgeGraph = any;
-export type LanguageModelState = any;
-export type LanguageDictionaryEntry = any;
-export type LanguagePreviewResponse = LanguagePreview;
-export type LanguageTest = any;
-export type LanguageTestFinishResult = any;
-export type QueryReasoning = any;
-export type ReasoningEdge = any;
-export type ReasoningNode = any;
-export type FaqItem2 = any;
-
-/** The answer a grade test run gives back. */
 export interface LanguageTestStart {
   state: LanguageModelState;
   message?: string;
@@ -271,24 +270,8 @@ export class ApiService {
     });
   }
 
-  listTenants(): Observable<Tenant[]> {
-    return this.http.get<Tenant[]>(`${this.base}/auth/tenants`, { headers: this.authHeaders() });
-  }
-
-  createInvite(email: string, role = 'user'): Observable<Invite> {
-    return this.http.post<Invite>(
-      `${this.base}/auth/invites`,
-      { email, role },
-      { headers: this.authHeaders() },
-    );
-  }
-
-  listInvites(): Observable<Invite[]> {
-    return this.http.get<Invite[]>(`${this.base}/auth/invites`, { headers: this.authHeaders() });
-  }
-
   private handleError(err: HttpErrorResponse): Observable<never> {
-    let message = 'Could not reach the assistance backend.';
+    let message = 'Could not reach the Luke Lab backend.';
     const detail: unknown = (err.error as { detail?: unknown } | null)?.detail;
     if (err.status === 0) {
       message += ' Is the API running on ' + this.base + '?';

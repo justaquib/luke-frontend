@@ -1,15 +1,21 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import type { FaqSuggestion, PendingSuggestionItem } from '../core/api/api-models';
+import { AppIcon } from '../shared/app-icon';
 import { TrainerInboxActions } from './trainer-inbox.actions';
 import { TrainerMergeActions } from './trainer-merge.actions';
 import { TrainerStore } from './trainer.store';
-import { TRAINER_STYLES } from './trainer-styles';
 
+/** Finds trained and pending questions that share an intent. */
 @Component({
   selector: 'app-trainer-merge-search',
   standalone: true,
+  imports: [AppIcon],
   templateUrl: './trainer-merge-search.html',
-  styleUrls: [...TRAINER_STYLES],
+  styleUrls: [
+    './styles/trainer-common.css',
+    './styles/trainer-controls.css',
+    './styles/trainer-merge.css',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TrainerMergeSearch {

@@ -10,9 +10,8 @@ const PAGES: Readonly<Record<string, PageInfo>> = {
   '/chat': {
     name: 'Chat',
     title: 'Chat',
-    scope: 'Assistant',
-    description:
-      'Ask the assistant what it has learned, and watch the answer come from the engine.',
+    scope: 'Luke',
+    description: 'Ask Luke what it has learned, and watch the answer come from the engine.',
   },
   '/dashboard/trainer': {
     name: 'Training room',
@@ -36,11 +35,25 @@ const PAGES: Readonly<Record<string, PageInfo>> = {
       'Teach the learner by grade, ask it school-style questions, and watch what it learns.',
   },
   '/dashboard/brain': {
-    name: 'Assistance brain',
+    name: 'Luke brain',
     title: 'Neural engine',
     scope: 'Model builder',
     description:
       'What the brain has learned, what it can do on its own, and what it still needs to be taught.',
+  },
+  '/dashboard/assessment': {
+    name: 'Assessment',
+    title: 'Skill assessment',
+    scope: 'Model builder',
+    description:
+      'The eight measured skills, the held-out items behind them, and the score of each mode kept apart.',
+  },
+  '/dashboard/expressions': {
+    name: 'Conversation expressions',
+    title: 'Conversation expressions',
+    scope: 'Model builder',
+    description:
+      'Teach Luke how to open, close, pause and resume a conversation in your own words.',
   },
   '/dashboard/design': {
     name: 'Workspace design',
@@ -49,17 +62,11 @@ const PAGES: Readonly<Record<string, PageInfo>> = {
     description: 'The palette, the frame and the measurements every dashboard page inherits.',
   },
   '/dashboard/settings': {
-    name: 'Settings',
-    title: 'Settings',
+    name: 'Lab settings',
+    title: 'Lab settings',
     scope: 'Engine setting',
     description:
-      'The engine connection, the live sources it may fall back to, and how this workspace looks.',
-  },
-  '/dashboard/tenants': {
-    name: 'Tenants',
-    title: 'Tenants',
-    scope: 'Model builder',
-    description: 'Every workspace this engine serves, and the packages the product is built with.',
+      'The engine connection, the live sources it may fall back to, the model identity and how this lab looks.',
   },
 };
 
@@ -73,10 +80,10 @@ const DASHBOARD_FALLBACK: PageInfo = {
 };
 
 const ASSISTANT_FALLBACK: PageInfo = {
-  name: 'Assistant',
-  title: 'Assistant',
-  scope: 'Assistant',
-  description: 'The assistant surface of this workspace.',
+  name: 'Luke',
+  title: 'Luke',
+  scope: 'Luke',
+  description: 'The assistant surface of this lab.',
 };
 
 function cleanPath(url: string): string {

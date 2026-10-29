@@ -29,11 +29,15 @@
 }
 
 .learner-chat-question p,
-.learner-chat-answer p {
+.learner-chat-answer p,
+.learner-chat-answer .answer-line {
   margin: 4px 0 0;
   color: var(--text);
   font-size: 13px;
   line-height: 1.5;
+}
+
+.learner-chat-question p {
   white-space: pre-wrap;
 }
 

@@ -8,13 +8,18 @@ import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import type { WordPrediction } from '../core/api/api-models';
 import { PredictionLab } from './prediction-lab';
 
-function prediction(text: string, words: string[] = ['blue', 'dark']): WordPrediction {
+function prediction(
+  text: string,
+  words: string[] = ['blue', 'dark'],
+  piece = false,
+): WordPrediction {
   const tokens = text.split(' ').filter(Boolean);
   return {
     tokens,
     attention: tokens.map((_token, row) => tokens.map((_word, column) => (row === column ? 1 : 0))),
     next: words.map((word, index) => ({
       word,
+      piece,
       probability: 0.42 - index * 0.1,
       count: null,
     })),
@@ -104,6 +109,28 @@ describe('PredictionLab', () => {
     const afterRemove = pending();
     expect(bodyOf(afterRemove).text).toBe('the sky is');
     afterRemove.flush(prediction('the sky is'));
+  });
+
+  it('calls a BPE subword a piece and joins it without adding a space', () => {
+    const fixture = openLab();
+    const compiled = fixture.nativeElement as HTMLElement;
+    pending().flush(prediction('the sky is', [' cow', 's'], true));
+    fixture.detectChanges();
+
+    expect(compiled.querySelector('.lab-lede')?.textContent).toContain('one piece at a time');
+    expect(compiled.querySelector('.next-text')?.textContent?.trim()).toBe('cow');
+
+    (compiled.querySelector('.next-word') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    const afterPick = pending();
+    expect(bodyOf(afterPick).text).toBe('the sky is cow');
+    afterPick.flush(prediction('the sky is cow', ['s'], true));
+    fixture.detectChanges();
+
+    (compiled.querySelector('.next-word') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    const afterSecond = pending();
+    expect(bodyOf(afterSecond).text).toBe('the sky is cows');
   });
 
   it('replaces the prediction with a typed word', () => {

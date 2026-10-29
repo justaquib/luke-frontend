@@ -55,6 +55,14 @@
                 />
                 <span>Wiki</span>
               </label>
+              <label class="source-row">
+                <input
+                  type="checkbox"
+                  [checked]="integrations.webEnabled()"
+                  (change)="setWeb($any($event.target).checked)"
+                />
+                <span>Web pages</span>
+              </label>
               <p class="sources-note">Used only when the taught material has no answer.</p>
             </div>
           </details>

@@ -1,0 +1,143 @@
+<div class="status-pills">
+  <button
+    type="button"
+    class="status-pill"
+    [class.active]="store.statusFilter() === 'all'"
+    [attr.aria-pressed]="store.statusFilter() === 'all'"
+    (click)="store.setStatusFilter('all')"
+  >
+    <app-icon name="sliders" [size]="14" />
+    All <span class="count">{{ store.statusCountText().all }}</span>
+  </button>
+  <button
+    type="button"
+    class="status-pill pending"
+    [class.active]="store.statusFilter() === 'pending'"
+    [attr.aria-pressed]="store.statusFilter() === 'pending'"
+    (click)="store.setStatusFilter('pending')"
+  >
+    <app-icon name="inbox" [size]="14" />
+    Pending <span class="count">{{ store.statusCountText().pending }}</span>
+  </button>
+  <button
+    type="button"
+    class="status-pill approved"
+    [class.active]="store.statusFilter() === 'approved'"
+    [attr.aria-pressed]="store.statusFilter() === 'approved'"
+    (click)="store.setStatusFilter('approved')"
+  >
+    <app-icon name="check" [size]="14" />
+    Approved <span class="count">{{ store.statusCountText().approved }}</span>
+  </button>
+  <button
+    type="button"
+    class="status-pill declined"
+    [class.active]="store.statusFilter() === 'declined'"
+    [attr.aria-pressed]="store.statusFilter() === 'declined'"
+    (click)="store.setStatusFilter('declined')"
+  >
+    <app-icon name="x" [size]="14" />
+    Declined <span class="count">{{ store.statusCountText().declined }}</span>
+  </button>
+  <button
+    type="button"
+    class="status-pill duplicate"
+    [class.active]="store.statusFilter() === 'duplicate'"
+    [attr.aria-pressed]="store.statusFilter() === 'duplicate'"
+    (click)="store.setStatusFilter('duplicate')"
+  >
+    <app-icon name="copy" [size]="14" />
+    Duplicate <span class="count">{{ store.statusCountText().duplicate }}</span>
+  </button>
+</div>
+
+<div class="search-row">
+  <input
+    type="search"
+    class="search"
+    placeholder="Search questions or answers…"
+    [value]="store.faqSearch()"
+    (input)="actions.updateSearch($any($event.target).value)"
+    aria-label="Search trained answers"
+  />
+  <button
+    type="button"
+    class="dup-toggle"
+    [class.on]="store.showDuplicatesOnly()"
+    [attr.aria-pressed]="store.showDuplicatesOnly()"
+    (click)="actions.toggleDuplicates()"
+  >
+    <app-icon name="copy" [size]="14" />
+    Duplicates only
+  </button>
+  <button
+    type="button"
+    class="ghost small icon-only"
+    (click)="actions.clearSearch()"
+    aria-label="Clear the filters"
+    title="Clear the filters"
+    [disabled]="!store.filtersActive()"
+  >
+    <app-icon name="x" [size]="14" />
+  </button>
+</div>
+
+@if (store.duplicateGroups().length > 0) {
+  <app-trainer-faq-duplicates />
+}
+
+@if (store.filteredFaqs().length === 0 && !store.corpusError()) {
+  <p class="empty">
+    @if (store.filtersActive()) {
+      No trained answers match your filter.
+    } @else {
+      No trained answers yet.
+    }
+  </p>
+} @else if (store.filteredFaqs().length > 0) {
+  <p class="result-count">Showing {{ store.filteredFaqs().length }} of {{ store.faqs().length }}</p>
+  <ul class="list faq-list">
+    @for (faq of store.filteredFaqs(); track faq.id) {
+      <li>
+        <button
+          type="button"
+          class="faq-row"
+          [class.intent-canonical]="store.isIntentCanonical(faq)"
+          [class.intent-alias]="store.isIntentAlias(faq)"
+          [class.selected]="store.selectedFaqId() === faq.id"
+          (click)="open(faq)"
+          [attr.aria-label]="'Open the details of: ' + faq.question"
+          title="Open the details in the sidebar"
+        >
+          <span class="q">{{ faq.question }}</span>
+          <span class="faq-row-meta">
+            <span class="status-tag {{ faq.status }}">{{ faq.status }}</span>
+            @if (store.isIntentCanonical(faq)) {
+              <span
+                class="merge-badge canonical"
+                [title]="
+                  'This is the canonical FAQ for an intent with ' +
+                  store.intentVariantCount(faq) +
+                  ' variants'
+                "
+              >
+                Merged · {{ store.intentVariantCount(faq) }}
+              </span>
+            } @else if (store.isIntentAlias(faq)) {
+              <span
+                class="merge-badge alias"
+                [title]="'Alias of canonical FAQ #' + store.intentCanonicalId(faq)"
+              >
+                Alias · #{{ store.intentCanonicalId(faq) }}
+              </span>
+            }
+            <span class="meta">#{{ faq.id }}</span>
+          </span>
+          <app-icon class="row-open-icon" name="arrow-right" [size]="14" />
+        </button>
+      </li>
+    }
+  </ul>
+}
+
+<app-trainer-faq-details />

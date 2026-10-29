@@ -1,0 +1,90 @@
+/* One fenced block from an answer, framed the way the editor frames a file. */
+:host {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  margin: 10px 0;
+}
+
+.code-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.code-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0 6px 0 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+.code-label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.code-count {
+  margin-left: auto;
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.code-copy {
+  flex: none;
+}
+
+.code-body {
+  max-height: 340px;
+  overflow: auto;
+  padding: 8px 0;
+}
+
+/* A table keeps every row as wide as the widest line, which is what gives the
+   sticky number cell room to stay pinned while the code scrolls under it. */
+.code-lines {
+  display: table;
+  width: 100%;
+}
+
+.code-line {
+  display: table-row;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.code-num {
+  display: table-cell;
+  position: sticky;
+  left: 0;
+  /* The narrow declared width keeps the gutter the same size in every card;
+     the table would otherwise share its spare width between the two columns. */
+  width: 1%;
+  white-space: nowrap;
+  min-width: 3ch;
+  padding: 0 10px 0 12px;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--faint);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+
+.code-text {
+  display: table-cell;
+  padding-right: 12px;
+  color: var(--text);
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+}

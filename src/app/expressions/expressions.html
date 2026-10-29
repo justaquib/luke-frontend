@@ -1,0 +1,160 @@
+<app-shell>
+  <ng-template appPageInfoFacts>
+    <h3 class="eyebrow">Conversation expressions</h3>
+    <app-engine-facts [facts]="facts()" label="Conversation expression state" />
+  </ng-template>
+
+  <ng-template appPageInfoActions>
+    <button type="button" class="primary small" (click)="openAdd()" [disabled]="!view()">
+      <app-icon name="plus" [size]="14" />
+      Teach an expression
+    </button>
+  </ng-template>
+
+  <main class="expressions-main">
+    <div class="expressions-page">
+      @if (error(); as message) {
+        <section class="expressions-card state-card" role="alert">
+          <h2>Could not read the expressions</h2>
+          <p>{{ message }}</p>
+          <button type="button" class="ghost small" (click)="load()">Try again</button>
+        </section>
+      } @else if (!view()) {
+        <section class="expressions-card state-card" aria-live="polite">
+          <p>Reading the taught expressions…</p>
+        </section>
+      } @else {
+        <div class="expression-grid">
+          @for (category of categories(); track category.id) {
+            <section
+              class="expressions-card"
+              [attr.aria-labelledby]="'expression-' + category.id + '-title'"
+            >
+              <header class="card-head">
+                <span class="category-icon" aria-hidden="true">
+                  <app-icon [name]="iconFor(category.id)" [size]="16" />
+                </span>
+                <app-card-info
+                  [label]="'the ' + category.label.toLowerCase() + ' expressions'"
+                  [text]="
+                    category.description +
+                    ' A taught phrase is matched against the whole message, so a question still reaches the lessons.'
+                  "
+                >
+                  <h2 [id]="'expression-' + category.id + '-title'">{{ category.label }}</h2>
+                </app-card-info>
+                <span class="count" [attr.aria-label]="category.count + ' taught'">{{
+                  category.count
+                }}</span>
+              </header>
+
+              @if (itemsFor(category.id).length) {
+                <ul class="expression-list">
+                  @for (item of itemsFor(category.id); track item.id) {
+                    <li class="expression-row">
+                      <div class="expression-text">
+                        <p class="phrase">{{ item.phrase }}</p>
+                        <p class="reply">{{ item.reply }}</p>
+                      </div>
+                      <span class="row-actions">
+                        <button
+                          type="button"
+                          class="ghost icon-only xsmall"
+                          (click)="openEdit(item)"
+                          [attr.aria-label]="'Edit ' + item.phrase"
+                          [title]="'Edit ' + item.phrase"
+                        >
+                          <app-icon name="pencil" [size]="13" />
+                        </button>
+                        <button
+                          type="button"
+                          class="ghost icon-only xsmall"
+                          (click)="remove(item)"
+                          [attr.aria-label]="'Remove ' + item.phrase"
+                          [title]="'Remove ' + item.phrase"
+                          [disabled]="removing() === item.id"
+                        >
+                          <app-icon name="trash" [size]="13" />
+                        </button>
+                      </span>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="empty">Nothing taught yet. Luke uses its own wording for this moment.</p>
+              }
+
+              <button type="button" class="ghost small add-row" (click)="openAdd(category.id)">
+                <app-icon name="plus" [size]="14" />
+                Add {{ category.label.toLowerCase() }} phrase
+              </button>
+            </section>
+          }
+        </div>
+      }
+    </div>
+  </main>
+
+  <app-modal
+    [open]="dialogOpen()"
+    [title]="dialogTitle()"
+    [closable]="!saving()"
+    (closed)="closeDialog()"
+  >
+    <form id="expression-form" class="expression-form" (submit)="$event.preventDefault(); save()">
+      <label class="field">
+        Moment
+        <select
+          name="expression-category"
+          [value]="draft().category"
+          (change)="updateDraft('category', $any($event.target).value)"
+        >
+          @for (category of categories(); track category.id) {
+            <option [value]="category.id">{{ category.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="field">
+        Phrase someone says
+        <input
+          type="text"
+          name="expression-phrase"
+          placeholder="Good morning, Luke"
+          [attr.maxlength]="limits()?.phrase ?? null"
+          [value]="draft().phrase"
+          (input)="updateDraft('phrase', $any($event.target).value)"
+        />
+      </label>
+
+      <label class="field">
+        Luke’s reply
+        <textarea
+          name="expression-reply"
+          rows="3"
+          placeholder="Good morning. What would you like to talk about?"
+          [attr.maxlength]="limits()?.reply ?? null"
+          [value]="draft().reply"
+          (input)="updateDraft('reply', $any($event.target).value)"
+        ></textarea>
+      </label>
+
+      @if (limits(); as limit) {
+        <p class="form-note">
+          A phrase is at most {{ limit.phrase }} characters and a reply at most {{ limit.reply }}.
+          The phrase has to match the whole message, so a question with the same opening words still
+          reaches its lesson.
+        </p>
+      }
+    </form>
+
+    <div modal-actions>
+      <button type="button" class="ghost small" [disabled]="saving()" (click)="closeDialog()">
+        Cancel
+      </button>
+      <button type="submit" form="expression-form" class="primary small" [disabled]="saving()">
+        {{ editing() ? 'Save expression' : 'Teach expression' }}
+      </button>
+    </div>
+  </app-modal>
+</app-shell>

@@ -1,8 +1,9 @@
 <app-modal [open]="open()" title="Prediction lab" size="wide" (closed)="close()">
   <div class="lab">
     <p class="lab-lede">
-      {{ modelName() }} continues one word at a time. Edit any word of the prefix, pick a suggested
-      next word, or type your own replacement. Every number here is what the model measured.
+      {{ modelName() }} continues one {{ unit() }} at a time. Edit any {{ unit() }} of the prefix,
+      pick a suggested next {{ unit() }}, or type your own replacement. Every number here is what
+      the model measured.
     </p>
 
     <label class="lab-field">
@@ -23,10 +24,10 @@
           class="picked-word"
           [class.fresh]="$index === words().length - 1 && justPicked()"
           (click)="removeFrom($index)"
-          [attr.aria-label]="'Remove ' + word + ' and continue from here'"
-          title="Remove this word and continue from here"
+          [attr.aria-label]="'Remove ' + word.trim() + ' and continue from here'"
+          title="Remove this token and continue from here"
         >
-          {{ word }}
+          {{ word.trim() }}
           <app-icon name="x" [size]="10" />
         </button>
       }
@@ -36,7 +37,9 @@
         </span>
       }
       @if (!words().length && !loading() && !prediction()) {
-        <span class="lab-waiting">The continuation appears here, word by word.</span>
+        <span class="lab-waiting"
+          >The continuation appears here, {{ unit() }} by {{ unit() }}.</span
+        >
       }
     </div>
 
@@ -48,13 +51,13 @@
             class="next-word"
             [style.animation-delay.ms]="index * 55"
             (click)="pick(next.word)"
-            [attr.aria-label]="'Use ' + next.word + ' next'"
+            [attr.aria-label]="'Use ' + next.word.trim() + ' next'"
           >
-            <span class="next-text">{{ next.word }}</span>
+            <span class="next-text">{{ next.word.trim() }}</span>
             <span class="next-prob mono">{{ percent(next.probability) }}</span>
           </button>
         } @empty {
-          <p class="lab-empty">The model gave no next word for this prefix.</p>
+          <p class="lab-empty">The model gave no next {{ unit() }} for this prefix.</p>
         }
       }
     </div>
@@ -66,8 +69,8 @@
         [value]="custom()"
         (input)="custom.set($any($event.target).value)"
         (keydown.enter)="useCustom()"
-        placeholder="Type a word to replace the prediction…"
-        aria-label="Your own next word"
+        [placeholder]="'Type a ' + unit() + ' to replace the prediction…'"
+        [attr.aria-label]="'Your own next ' + unit()"
       />
       <button
         type="button"
@@ -75,7 +78,7 @@
         (click)="useCustom()"
         [disabled]="!custom().trim()"
       >
-        Use word
+        Use {{ unit() }}
       </button>
       <button
         type="button"

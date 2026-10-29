@@ -1,0 +1,29 @@
+<section class="language-learning-card expression-learning-card">
+  <div class="language-section-heading">
+    <app-card-info
+      label="feelings and expressions"
+      text="The learner is taught useful phrases and what they mean. These are language lessons; they help it recognize and use expressions without claiming to feel emotions itself."
+    >
+      <span class="language-eyebrow">NURSERY · SOCIAL LANGUAGE</span>
+      <h3>Feelings, greetings &amp; expressions</h3>
+    </app-card-info>
+    <button
+      type="button"
+      class="primary icon-only"
+      (click)="teachAnother()"
+      aria-label="Teach another phrase"
+      title="Teach another phrase"
+    >
+      <app-icon name="plus" [size]="14" />
+    </button>
+  </div>
+  <div class="expression-example-grid">
+    @for (lesson of expressions(); track $index) {
+      <article class="expression-example">
+        <span class="lesson-kind">{{ model.stageTitle(lesson.grade_id ?? 'nursery') }}</span
+        ><strong>{{ lesson.question }}</strong>
+        <p>{{ lesson.answer }}</p>
+      </article>
+    }
+  </div>
+</section>

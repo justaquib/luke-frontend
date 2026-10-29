@@ -44,6 +44,7 @@
             [progress]="progress()"
           />
           <app-brain-models [words]="words()" />
+          <app-brain-tokenizer [tokenizer]="tokenizer()" (retry)="loadBrainState()" />
         </div>
         <div class="builder-column">
           <app-brain-measurements [level]="level()" />

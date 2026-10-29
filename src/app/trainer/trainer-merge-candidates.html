@@ -50,11 +50,12 @@
           <span class="status-tag small {{ match.status }}">{{ match.status }}</span>
           <button
             type="button"
-            class="ghost xsmall"
+            class="ghost xsmall icon-only"
             (click)="merge.removeExtraMatch(match.faq_id)"
-            aria-label="Remove from merge"
+            aria-label="Remove from the merge"
+            title="Remove from the merge"
           >
-            Remove
+            <app-icon name="x" [size]="14" />
           </button>
         </span>
       </li>
@@ -75,10 +76,12 @@
             <span class="status-tag small {{ candidate.status }}">{{ candidate.status }}</span>
             <button
               type="button"
-              class="primary xsmall"
+              class="primary xsmall icon-only"
               (click)="merge.addFaqMergeCandidate(candidate)"
+              aria-label="Add this answer to the merge"
+              title="Add this answer to the merge"
             >
-              + Add
+              <app-icon name="plus" [size]="14" />
             </button>
           </span>
         </li>

@@ -23,12 +23,16 @@ export interface FaqMergeRequest {
 @Injectable({ providedIn: 'root' })
 export class TrainerApiService extends BaseApiService {
   stats(): Observable<StatsResponse> {
-    return this.http.get<StatsResponse>(`${this.base}/stats`, { headers: this.authHeaders() });
+    return this.http
+      .get<StatsResponse>(`${this.base}/stats`, { headers: this.authHeaders() })
+      .pipe(catchError((err) => this.handleError(err)));
   }
 
   listFaqs(status?: FaqStatus): Observable<FaqItem[]> {
     const url = status ? `${this.base}/faq?status=${status}` : `${this.base}/faq`;
-    return this.http.get<FaqItem[]>(url, { headers: this.authHeaders() });
+    return this.http
+      .get<FaqItem[]>(url, { headers: this.authHeaders() })
+      .pipe(catchError((err) => this.handleError(err)));
   }
 
   createFaq(question: string, answer: string): Observable<FaqItem> {
@@ -56,9 +60,11 @@ export class TrainerApiService extends BaseApiService {
   }
 
   listInbox(resolved = false): Observable<PendingItem[]> {
-    return this.http.get<PendingItem[]>(`${this.base}/faq/inbox?resolved=${resolved}`, {
-      headers: this.authHeaders(),
-    });
+    return this.http
+      .get<PendingItem[]>(`${this.base}/faq/inbox?resolved=${resolved}`, {
+        headers: this.authHeaders(),
+      })
+      .pipe(catchError((err) => this.handleError(err)));
   }
 
   answerPending(id: number, answer: string): Observable<FaqItem> {
@@ -84,21 +90,27 @@ export class TrainerApiService extends BaseApiService {
   }
 
   previewMerge(pendingId: number): Observable<MergePreview> {
-    return this.http.get<MergePreview>(`${this.base}/faq/pending/${pendingId}/merge-preview`, {
-      headers: this.authHeaders(),
-    });
+    return this.http
+      .get<MergePreview>(`${this.base}/faq/pending/${pendingId}/merge-preview`, {
+        headers: this.authHeaders(),
+      })
+      .pipe(catchError((err) => this.handleError(err)));
   }
 
   mergePending(pendingId: number, pendingIds: number[], answer: string): Observable<MergeResult> {
-    return this.http.post<MergeResult>(
-      `${this.base}/faq/pending/${pendingId}/merge`,
-      { pending_ids: pendingIds, answer },
-      { headers: this.authHeaders() },
-    );
+    return this.http
+      .post<MergeResult>(
+        `${this.base}/faq/pending/${pendingId}/merge`,
+        { pending_ids: pendingIds, answer },
+        { headers: this.authHeaders() },
+      )
+      .pipe(catchError((err) => this.handleError(err)));
   }
 
   listIntents(): Observable<IntentItem[]> {
-    return this.http.get<IntentItem[]>(`${this.base}/intents`, { headers: this.authHeaders() });
+    return this.http
+      .get<IntentItem[]>(`${this.base}/intents`, { headers: this.authHeaders() })
+      .pipe(catchError((err) => this.handleError(err)));
   }
 
   createIntent(
@@ -106,35 +118,45 @@ export class TrainerApiService extends BaseApiService {
     responseTemplate: string,
     faqId: number | null,
   ): Observable<IntentItem> {
-    return this.http.post<IntentItem>(
-      `${this.base}/intents`,
-      { name, response_template: responseTemplate, faq_id: faqId },
-      { headers: this.authHeaders() },
-    );
+    return this.http
+      .post<IntentItem>(
+        `${this.base}/intents`,
+        { name, response_template: responseTemplate, faq_id: faqId },
+        { headers: this.authHeaders() },
+      )
+      .pipe(catchError((err) => this.handleError(err)));
   }
 
   deleteIntent(id: number): Observable<{ deleted: number }> {
-    return this.http.delete<{ deleted: number }>(`${this.base}/intents/${id}`, {
-      headers: this.authHeaders(),
-    });
+    return this.http
+      .delete<{ deleted: number }>(`${this.base}/intents/${id}`, {
+        headers: this.authHeaders(),
+      })
+      .pipe(catchError((err) => this.handleError(err)));
   }
 
   intentSuggestions(question: string): Observable<IntentSuggestions> {
-    return this.http.get<IntentSuggestions>(
-      `${this.base}/faq/intent-suggestions?question=${encodeURIComponent(question)}`,
-      { headers: this.authHeaders() },
-    );
+    return this.http
+      .get<IntentSuggestions>(
+        `${this.base}/faq/intent-suggestions?question=${encodeURIComponent(question)}`,
+        { headers: this.authHeaders() },
+      )
+      .pipe(catchError((err) => this.handleError(err)));
   }
 
   faqMergePreview(id: number): Observable<FaqMergePreview> {
-    return this.http.get<FaqMergePreview>(`${this.base}/faq/${id}/merge-preview`, {
-      headers: this.authHeaders(),
-    });
+    return this.http
+      .get<FaqMergePreview>(`${this.base}/faq/${id}/merge-preview`, {
+        headers: this.authHeaders(),
+      })
+      .pipe(catchError((err) => this.handleError(err)));
   }
 
   faqMerge(id: number, req: FaqMergeRequest): Observable<FaqMergeResult> {
-    return this.http.post<FaqMergeResult>(`${this.base}/faq/${id}/merge`, req, {
-      headers: this.authHeaders(),
-    });
+    return this.http
+      .post<FaqMergeResult>(`${this.base}/faq/${id}/merge`, req, {
+        headers: this.authHeaders(),
+      })
+      .pipe(catchError((err) => this.handleError(err)));
   }
 }

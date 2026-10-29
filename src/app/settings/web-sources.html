@@ -1,0 +1,132 @@
+<section class="settings-card" aria-labelledby="settings-web-title">
+  <app-card-info
+    label="the web evidence"
+    text="Luke reads only the sites you allow. A web answer quotes the page with its address and the date it was fetched, and is labelled unverified. A search result outside these sites waits in the inbox for a trainer and is never trained automatically."
+  >
+    <h2 id="settings-web-title">Web evidence</h2>
+  </app-card-info>
+
+  <label class="toggle-row">
+    <input
+      type="checkbox"
+      [checked]="policy()?.enabled ?? false"
+      [disabled]="busy() || !policy()"
+      (change)="toggleEnabled($any($event.target).checked)"
+    />
+    <span>
+      <strong>Read allowlisted pages</strong>
+      <small>Only when a question asks for the web, after the taught material.</small>
+    </span>
+  </label>
+
+  @if (error(); as message) {
+    <p class="web-error" role="alert">
+      {{ message }}
+      <button type="button" class="link-btn" (click)="load()">Try again</button>
+    </p>
+  }
+
+  @if (policy(); as current) {
+    <label class="web-field">
+      <span>Search</span>
+      <select
+        [value]="current.provider"
+        [disabled]="busy()"
+        (change)="chooseProvider($any($event.target).value)"
+      >
+        @for (provider of current.providers; track provider.id) {
+          <option [value]="provider.id">{{ provider.name }}</option>
+        }
+      </select>
+    </label>
+
+    @if (current.provider === 'searxng') {
+      <label class="web-field">
+        <span>Search address</span>
+        <span class="web-add">
+          <input
+            type="url"
+            [value]="endpointDraft()"
+            [disabled]="busy()"
+            placeholder="http://localhost:8080"
+            (input)="endpointDraft.set($any($event.target).value)"
+          />
+          <button type="button" class="small-btn" [disabled]="busy()" (click)="saveEndpoint()">
+            Save
+          </button>
+        </span>
+      </label>
+    } @else {
+      <p class="web-note">
+        The {{ current.provider_name }} key is read from the backend environment and never leaves
+        it.
+      </p>
+    }
+
+    <label class="web-field">
+      <span>Sources ({{ sources().length }}/{{ current.max_sources }})</span>
+      <span class="web-add">
+        <input
+          type="url"
+          [value]="sourceDraft()"
+          [disabled]="busy()"
+          placeholder="https://docs.example.com/guide"
+          (input)="sourceDraft.set($any($event.target).value)"
+        />
+        <button type="button" class="small-btn" [disabled]="busy()" (click)="addSource()">
+          Add
+        </button>
+      </span>
+    </label>
+
+    @if (sources().length) {
+      <ul class="web-sources">
+        @for (source of sources(); track source.id) {
+          <li>
+            <span class="web-domain">{{ source.domain }}</span>
+            <span class="web-state">{{ stateLabel(source) }}</span>
+            <span class="meta">{{ checkedLabel(source) }}</span>
+            <button
+              type="button"
+              class="icon-btn"
+              [disabled]="busy()"
+              [attr.aria-label]="'Remove ' + source.domain"
+              title="Remove this source"
+              (click)="removeSource(source)"
+            >
+              <app-icon name="trash" [size]="14" />
+            </button>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="web-note">
+        No page is allowlisted yet. Add the address of a documentation page you trust.
+      </p>
+    }
+
+    <div class="web-actions">
+      <button
+        type="button"
+        class="small-btn"
+        [disabled]="busy() || !current.enabled"
+        (click)="refreshNow()"
+      >
+        Check sources now
+      </button>
+      @if (counts(); as total) {
+        <span class="meta">
+          {{ total.indexed }} indexed · {{ total.candidate }} waiting · {{ total.superseded }}
+          replaced
+        </span>
+      }
+    </div>
+
+    @if (report(); as run) {
+      <p class="meta">
+        checked {{ run.checked }} · changed {{ run.changed }} · unchanged {{ run.unchanged }} ·
+        failed {{ run.failed }} · expired {{ run.expired }}
+      </p>
+    }
+  }
+</section>

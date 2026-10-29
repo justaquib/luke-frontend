@@ -24,7 +24,7 @@ function catalog(): Record<string, unknown> {
         id: TEACHER,
         name: 'SmolLM2 135M',
         kind: 'teacher',
-        detail: 'Fine-tuned on this tenant’s material.',
+        detail: 'Fine-tuned on the lab’s material.',
         ready: true,
       },
     ],
@@ -152,8 +152,8 @@ describe('ChatComposer', () => {
     fixture.detectChanges();
 
     const boxes = [...compiled.querySelectorAll<HTMLInputElement>('.source-row input')];
-    expect(boxes).toHaveLength(2);
-    expect(boxes.map((box) => box.checked)).toEqual([false, false]);
+    expect(boxes).toHaveLength(3);
+    expect(boxes.map((box) => box.checked)).toEqual([false, false, false]);
 
     boxes[1].checked = true;
     boxes[1].dispatchEvent(new Event('change'));
@@ -161,6 +161,13 @@ describe('ChatComposer', () => {
 
     expect(integrations.wikiEnabled()).toBe(true);
     expect(compiled.querySelector('.tool-pill')?.textContent).toContain('Sources · 1');
+
+    boxes[2].checked = true;
+    boxes[2].dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(integrations.webEnabled()).toBe(true);
+    expect(compiled.querySelector('.tool-pill')?.textContent).toContain('Sources · 2');
   });
 
   it('closes the source menu when the message box takes focus or Escape is pressed', () => {

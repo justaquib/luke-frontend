@@ -1,0 +1,153 @@
+:host {
+  display: block;
+}
+
+.skill-card {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius, 8px);
+  background: var(--surface);
+}
+
+.card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.card-head h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.state {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.state.ok {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.state.waiting {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+.score-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.score {
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.score.unmeasured {
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.verdict {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.rows {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 8px;
+  padding: 4px 0;
+  border-top: 1px solid var(--border);
+}
+
+dt {
+  color: var(--faint);
+  font-size: 11px;
+}
+
+dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.note {
+  display: block;
+  color: var(--faint);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.untested {
+  display: grid;
+  gap: 4px;
+}
+
+.untested .label {
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.untested ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.untested li {
+  padding: 1px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.untested .more {
+  border-style: dashed;
+  color: var(--faint);
+}
+
+.next {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.review {
+  justify-self: start;
+}

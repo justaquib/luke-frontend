@@ -38,7 +38,6 @@
   min-width: 0;
 }
 
-.words,
 .connections {
   display: flex;
   flex-direction: column;
@@ -49,35 +48,6 @@
   list-style: none;
 }
 
-.word {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 8px;
-}
-
-.word-text {
-  color: var(--text);
-  font-weight: 600;
-}
-
-.word-meta {
-  color: var(--faint);
-  font-size: 11px;
-}
-
-.word-meaning {
-  color: var(--muted);
-}
-
-.word-synonyms {
-  color: var(--faint);
-  font-size: 12px;
-}
-
-.word-meta:empty,
-.word-meaning:empty,
-.word-synonyms:empty,
 .connection-match:empty,
 .plan:empty {
   display: none;
@@ -214,6 +184,23 @@
   font-variant-numeric: tabular-nums;
 }
 
+.writing-text {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.writing-caret {
+  display: inline-block;
+  width: 6px;
+  height: 12px;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--accent);
+  animation: answer-blink 1s steps(1, end) infinite;
+}
+
 @keyframes answer-blink {
   0%,
   80%,
@@ -226,7 +213,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .active .dot {
+  .active .dot,
+  .writing-caret {
     animation: none;
     opacity: 1;
   }

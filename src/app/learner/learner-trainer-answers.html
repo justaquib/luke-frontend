@@ -1,0 +1,12 @@
+@if (model.trainerAnswers().length) {
+  <details class="learned-answers-list">
+    <summary>Trainer-approved answers · {{ model.trainerAnswers().length }}</summary>
+    <ol>
+      @for (item of model.trainerAnswers(); track item.id) {
+        <li class="learned-answer-row">
+          <app-learner-trainer-answer-row [item]="item" />
+        </li>
+      }
+    </ol>
+  </details>
+}

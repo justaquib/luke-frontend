@@ -1,0 +1,101 @@
+<article class="lesson-question-answer">
+  <div class="lesson-question-label">
+    <span class="lesson-kind">{{ lesson().kind === 'starter' ? 'Starter' : 'Your lesson' }}</span>
+    @if (duplicates.isDuplicate(lesson().id)) {
+      <span class="duplicate-badge" title="This lesson repeats another one">D</span>
+    }
+    @if (lesson().kind === 'trainer' && lesson().id && editors.editingId() !== lesson().id) {
+      <div class="lesson-icon-actions">
+        <button
+          type="button"
+          class="lesson-icon-btn"
+          (click)="editors.beginEdit(lesson())"
+          [attr.aria-label]="'Edit answer for ' + lesson().question"
+          title="Edit answer"
+        >
+          <app-icon name="pencil" [size]="14" />
+        </button>
+        <button
+          type="button"
+          class="lesson-icon-btn remove"
+          (click)="requestRemoval()"
+          [attr.aria-label]="'Remove lesson ' + lesson().question"
+          title="Remove lesson"
+        >
+          <app-icon name="trash" [size]="14" />
+        </button>
+      </div>
+    }
+  </div>
+  <div class="lesson-question-content">
+    <strong>Q</strong>
+    <span class="lesson-question-text">{{ lesson().question }}</span>
+  </div>
+  @if ((lesson().subjects?.length ?? 0) > 1) {
+    <div class="lesson-topic-tags">
+      @for (topic of lesson().subjects ?? []; track topic) {
+        <span class="lesson-topic-tag">{{ topic }}</span>
+      }
+    </div>
+  }
+  @if (editors.editingId() === lesson().id) {
+    <div class="lesson-answer-edit">
+      <label [for]="'edit-question-' + id()">Question</label
+      ><textarea
+        [id]="'edit-question-' + id()"
+        rows="2"
+        [ngModel]="editors.editingQuestion()"
+        (ngModelChange)="editors.editingQuestion.set($event)"
+        [name]="'lesson-question-' + id()"
+        maxlength="1000"
+      ></textarea>
+    </div>
+    <div class="lesson-answer-edit">
+      <label [for]="'edit-subject-' + id()">Topics, separated by commas</label
+      ><input
+        [id]="'edit-subject-' + id()"
+        [ngModel]="editors.editingSubject()"
+        (ngModelChange)="editors.editingSubject.set($event)"
+        [name]="'lesson-subject-' + id()"
+        maxlength="240"
+        placeholder="Language, Poems"
+      />
+    </div>
+    <div class="lesson-answer-edit">
+      <label [for]="'edit-answer-' + id()">Answer</label
+      ><textarea
+        [id]="'edit-answer-' + id()"
+        rows="3"
+        [ngModel]="editors.editingAnswer()"
+        (ngModelChange)="editors.editingAnswer.set($event)"
+        [name]="'lesson-answer-' + id()"
+        maxlength="1900"
+      ></textarea>
+    </div>
+    <div class="lesson-icon-actions">
+      <button
+        type="button"
+        class="primary small icon-only"
+        (click)="save()"
+        [attr.aria-label]="editors.savingId() === id() ? 'Saving the lesson' : 'Save the lesson'"
+        [title]="editors.savingId() === id() ? 'Saving the lesson' : 'Save the lesson'"
+        [disabled]="editors.savingId() === id() || !editors.editingAnswer().trim()"
+      >
+        <app-icon name="check" [size]="14" />
+      </button>
+      <button
+        type="button"
+        class="ghost small icon-only"
+        (click)="editors.cancelEdit()"
+        aria-label="Cancel editing the lesson"
+        title="Cancel editing the lesson"
+      >
+        <app-icon name="x" [size]="14" />
+      </button>
+    </div>
+  } @else {
+    <div class="lesson-answer-label">
+      <strong>A</strong><span>{{ lesson().answer }}</span>
+    </div>
+  }
+</article>

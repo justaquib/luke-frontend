@@ -3,6 +3,7 @@ import { DocumentsApiService } from '../core/api/documents-api.service';
 import { TrainerApiService } from '../core/api/trainer-api.service';
 import { TrainerStore } from './trainer.store';
 
+/** Loads the trainer's corpus and documents into the shared store. */
 @Injectable({ providedIn: 'root' })
 export class TrainerDataService {
   private readonly api = inject(TrainerApiService);
@@ -10,26 +11,28 @@ export class TrainerDataService {
   private readonly store = inject(TrainerStore);
 
   refresh(): void {
-    this.api.listInbox(this.store.includeResolved()).subscribe({
+    this.store.corpusError.set(null);
+    this.api.listInbox().subscribe({
       next: (rows) => this.store.inbox.set(rows),
-      error: (error: Error) => this.store.error.set(error.message),
+      error: (error: Error) => this.store.corpusError.set(error.message),
     });
     this.api.listFaqs().subscribe({
-      next: (rows) => this.store.faqs.set(rows),
-      error: (error: Error) => this.store.error.set(error.message),
-    });
-    this.api.stats().subscribe({
-      next: (stats) => this.store.stats.set({ faqs: stats.faqs, pending: stats.pending }),
-      error: () => {
-        // Stats are optional; keep the last known values when the request fails.
+      next: (rows) => {
+        this.store.faqs.set(rows);
+        const selected = this.store.selectedFaqId();
+        if (selected !== null && !rows.some((faq) => faq.id === selected)) {
+          this.store.selectedFaqId.set(null);
+        }
       },
+      error: (error: Error) => this.store.corpusError.set(error.message),
     });
   }
 
   refreshDocuments(): void {
+    this.store.documentsError.set(null);
     this.documents.listDocuments().subscribe({
       next: (rows) => this.store.documents.set(rows),
-      error: () => this.store.documents.set([]),
+      error: (error: Error) => this.store.documentsError.set(error.message),
     });
   }
 }

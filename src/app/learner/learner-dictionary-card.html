@@ -1,0 +1,62 @@
+<section class="language-learning-card dictionary-learning-card">
+  <div class="language-section-heading">
+    <app-card-info
+      label="the offline dictionary"
+      text="The grade curriculum starts with a small set of words enriched from local WordNet definitions. Look up a word and teach its meaning to {{
+        lessons.stageTitle()
+      }}; use the lesson form under Grades &amp; lessons for numbers, shapes, and other subject knowledge."
+    >
+      <h3>Teach a word from the offline dictionary</h3>
+    </app-card-info>
+  </div>
+  <form class="language-inline-form" (ngSubmit)="practice.lookupWord()">
+    <input
+      [ngModel]="practice.wordDraft()"
+      (ngModelChange)="practice.wordDraft.set($event)"
+      name="dictionaryWord"
+      autocomplete="off"
+      placeholder="For example, triangle"
+      aria-label="Word to look up"
+    />
+    <button
+      type="submit"
+      class="ghost icon-only"
+      [attr.aria-label]="practice.wordLoading() ? 'Looking up the word' : 'Look up the word'"
+      [title]="practice.wordLoading() ? 'Looking up the word' : 'Look up the word'"
+      [disabled]="practice.wordLoading() || !practice.wordDraft().trim()"
+    >
+      <app-icon name="search" [size]="14" />
+    </button>
+  </form>
+  @if (practice.wordEntry(); as entry) {
+    <div class="dictionary-entry">
+      <strong>{{ entry.word }}</strong
+      ><span class="lesson-kind">{{ entry.part_of_speech }}</span>
+      <fieldset>
+        <legend>Choose the meaning to teach</legend>
+        @for (definition of entry.definitions; track $index) {
+          <label class="dictionary-definition"
+            ><input
+              type="radio"
+              [name]="'meaning-' + entry.word"
+              [checked]="practice.definitionIndex() === $index"
+              (change)="practice.definitionIndex.set($index)"
+            /><span>{{ definition }}</span></label
+          >
+        }
+      </fieldset>
+      <button
+        type="button"
+        class="primary small icon-only"
+        (click)="practice.teachWord()"
+        [attr.aria-label]="
+          practice.wordSaving() ? 'Teaching the meaning' : 'Teach the selected meaning'
+        "
+        [title]="practice.wordSaving() ? 'Teaching the meaning' : 'Teach the selected meaning'"
+        [disabled]="practice.wordSaving()"
+      >
+        <app-icon name="plus" [size]="14" />
+      </button>
+    </div>
+  }
+</section>

@@ -1,0 +1,150 @@
+<app-shell>
+  <ng-template appTopBarActions>
+    <button
+      type="button"
+      class="icon-btn run-button top-run"
+      (click)="startRun()"
+      [disabled]="running() || starting()"
+      [attr.aria-label]="'Run the ' + modeLabel().toLowerCase() + ' check'"
+      [title]="'Run the ' + modeLabel().toLowerCase() + ' check'"
+    >
+      <app-icon name="play" [size]="15" />
+    </button>
+  </ng-template>
+
+  <ng-template appPageInfoFacts>
+    <h3 class="eyebrow">Held-out assessment</h3>
+    <app-engine-facts [facts]="facts()" label="Assessment state" />
+  </ng-template>
+
+  <ng-template appPageInfoActions>
+    <div class="header-controls">
+      <span class="engine-status" aria-live="polite">
+        <span class="dot" [class.ok]="run()?.status === 'done'" [class.warn]="running()"></span>
+        {{ statusLabel() }}
+      </span>
+      @if (running()) {
+        <button
+          type="button"
+          class="icon-btn"
+          (click)="cancelRun()"
+          aria-label="Stop the run"
+          title="Stop the run"
+        >
+          <app-icon name="stop" [size]="16" />
+        </button>
+      }
+      <button
+        type="button"
+        class="icon-btn"
+        (click)="refresh()"
+        aria-label="Read the assessment again"
+        title="Read the assessment again"
+      >
+        <app-icon name="refresh" [size]="16" />
+      </button>
+    </div>
+  </ng-template>
+
+  <main class="assessment-main">
+    <div class="assessment-page">
+      @if (error(); as message) {
+        <p class="page-error" role="alert">{{ message }}</p>
+      }
+
+      <section class="run-panel" aria-labelledby="run-title">
+        <header class="panel-head">
+          <h2 id="run-title">Held-out check</h2>
+          <span class="stamp">{{ runStamp() }}</span>
+        </header>
+
+        <div class="mode-tabs" role="tablist" aria-label="Assessment mode">
+          @for (choice of modes; track choice) {
+            <button
+              type="button"
+              role="tab"
+              class="mode-tab"
+              [class.active]="mode() === choice"
+              [attr.aria-selected]="mode() === choice"
+              (click)="selectMode(choice)"
+            >
+              {{ labelFor(choice) }}
+            </button>
+          }
+        </div>
+        <p class="mode-note">{{ modeNote() }}</p>
+
+        @if (run(); as current) {
+          <div class="run-state">
+            <div class="run-head">
+              <span class="run-step">{{ current.step }}</span>
+              <span class="stamp">{{ current.done }} / {{ current.total }}</span>
+            </div>
+            <div
+              class="bar"
+              role="progressbar"
+              [attr.aria-valuenow]="progress()"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              [attr.aria-label]="'Run progress: ' + progress() + ' percent'"
+            >
+              <span [style.width.%]="progress()"></span>
+            </div>
+          </div>
+
+          <dl class="run-rows">
+            <div class="run-row">
+              <dt>Status</dt>
+              <dd>{{ statusLabel() }}</dd>
+            </div>
+            <div class="run-row">
+              <dt>Checkpoint</dt>
+              <dd class="mono">{{ current.model_artifact }}</dd>
+            </div>
+            <div class="run-row">
+              <dt>Tokenizer</dt>
+              <dd class="mono">{{ current.tokenizer_id }}</dd>
+            </div>
+            <div class="run-row">
+              <dt>Bank</dt>
+              <dd>v{{ current.bank.version }} · {{ current.bank.eval_items }} held-out items</dd>
+            </div>
+          </dl>
+
+          @if (current.error; as reason) {
+            <p class="run-error" role="alert">{{ reason }}</p>
+          }
+        } @else if (error()) {
+          <p class="run-empty">
+            The measured skills could not be read, so this panel says nothing about a run.
+          </p>
+        } @else {
+          <p class="run-empty">
+            No {{ modeLabel().toLowerCase() }} run has been recorded yet. Run the check to measure
+            all eight skills against the held-out items.
+          </p>
+        }
+      </section>
+
+      @if (!sheet() && !error()) {
+        <section class="skill-panel state" aria-live="polite">
+          <p>Reading the measured skills…</p>
+        </section>
+      } @else {
+        <div class="skill-grid">
+          @for (card of cards(); track card.skill) {
+            <app-assessment-card [profile]="card" (review)="openReview($event)" />
+          }
+        </div>
+      }
+    </div>
+  </main>
+
+  <app-assessment-review
+    [open]="reviewOpen()"
+    [skillTitle]="reviewSkill()?.title ?? ''"
+    [results]="reviewResults()"
+    (closed)="closeReview()"
+    (saved)="reviewed()"
+  />
+</app-shell>
