@@ -112,6 +112,39 @@ export class ModelApiService extends BaseApiService {
       .pipe(catchError((err) => this.handleError(err)));
   }
 
+  searchHuggingFaceModels(query: string, limit = 10): Observable<Array<Record<string, unknown>>> {
+    return this.http
+      .get<Array<Record<string, unknown>>>(`${this.base}/language-model/huggingface/search`, {
+        headers: this.authHeaders(),
+        params: { q: query, limit: limit.toString() },
+      })
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  downloadHuggingFaceTeacher(
+    modelId: string,
+  ): Observable<{ folder: string; model_id: string; name: string }> {
+    return this.http
+      .post<{ folder: string; model_id: string; name: string }>(
+        `${this.base}/language-model/huggingface/teacher/download`,
+        { model_id: modelId },
+        { headers: this.authHeaders() },
+      )
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  uploadTrainingDataset(file: File): Observable<{ imported: number; errors: string[] }> {
+    const body = new FormData();
+    body.append('file', file, file.name);
+    return this.http
+      .post<{ imported: number; errors: string[] }>(
+        `${this.base}/language-model/huggingface/dataset`,
+        body,
+        { headers: this.authHeaders() },
+      )
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
   lukePackage(): Observable<LukePackagePreview> {
     return this.http
       .get<LukePackagePreview>(`${this.base}/language-model/export/preview`, {

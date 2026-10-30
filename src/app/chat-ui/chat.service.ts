@@ -5,6 +5,7 @@ import type { AnswerStreamEvent, QueryResponse } from '../core/api/api-models';
 import { AnswerStreamService } from '../core/api/answer-stream.service';
 import { ChatApiService, type QueryOptions } from '../core/api/chat-api.service';
 import { BrowserService } from '../core/browser.service';
+import { IntegrationsService } from '../core/integrations.service';
 import {
   type AnswerTrace,
   type PipelinePhase,
@@ -26,6 +27,7 @@ export class ChatService {
   private readonly session = inject(ChatSessionService);
   private readonly browser = inject(BrowserService);
   private readonly router = inject(Router);
+  private readonly integrations = inject(IntegrationsService);
 
   readonly isTyping = signal(false);
   readonly backendStatus = signal<'unknown' | 'online' | 'offline'>('unknown');
@@ -54,7 +56,7 @@ export class ChatService {
     if (!question || this.isTyping()) {
       return;
     }
-    const history = this.session.recentTurns();
+    const history = this.integrations.contextEnabled() ? this.session.recentTurns() : [];
     this.session.appendMessage({
       id: this.session.nextMessageId(),
       role: 'user',

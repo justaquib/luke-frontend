@@ -11,6 +11,7 @@ import { Landing } from './landing/landing';
 import { Login } from './login/login.component';
 import { Onboarding } from './onboarding/onboarding.component';
 import { Settings } from './settings/settings';
+import { System } from './system/system';
 import { SystemadminLogin } from './systemadmin-login/systemadmin-login.component';
 import { authGuard } from './core/auth.guard';
 
@@ -25,6 +26,7 @@ const dashboardRoutes: Routes = [
   { path: 'expressions', component: Expressions },
   { path: 'design', component: Design },
   { path: 'settings', component: Settings },
+  { path: 'system', component: System },
 ];
 
 export const routes: Routes = [
@@ -43,5 +45,6 @@ export const routes: Routes = [
   { path: 'brain', pathMatch: 'full', redirectTo: 'dashboard/brain' },
   { path: 'expressions', pathMatch: 'full', redirectTo: 'dashboard/expressions' },
   { path: 'settings', pathMatch: 'full', redirectTo: 'dashboard/settings' },
+  { path: 'system', pathMatch: 'full', redirectTo: 'dashboard/system' },
   { path: '**', redirectTo: '' },
 ];

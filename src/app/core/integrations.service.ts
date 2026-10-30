@@ -7,6 +7,7 @@ interface Integrations {
   weather: boolean;
   wiki: boolean;
   web: boolean;
+  context: boolean;
 }
 
 interface LocationCache {
@@ -15,7 +16,7 @@ interface LocationCache {
   updatedAt: number;
 }
 
-const DEFAULTS: Integrations = { weather: false, wiki: false, web: false };
+const DEFAULTS: Integrations = { weather: false, wiki: false, web: false, context: true };
 const LOC_TTL_MS = 1000 * 60 * 60 * 12;
 
 @Injectable({ providedIn: 'root' })
@@ -25,6 +26,7 @@ export class IntegrationsService {
   readonly weatherEnabled = (): boolean => this._state().weather;
   readonly wikiEnabled = (): boolean => this._state().wiki;
   readonly webEnabled = (): boolean => this._state().web;
+  readonly contextEnabled = (): boolean => this._state().context;
 
   private readonly _location = signal<LocationCache | null>(this.readLocation());
 
@@ -42,6 +44,10 @@ export class IntegrationsService {
 
   setWeb(on: boolean): void {
     this._state.update((s) => ({ ...s, web: on }));
+  }
+
+  setContext(on: boolean): void {
+    this._state.update((s) => ({ ...s, context: on }));
   }
 
   location(): LocationCache | null {
@@ -85,6 +91,7 @@ export class IntegrationsService {
         weather: !!parsed.weather,
         wiki: !!parsed.wiki,
         web: !!parsed.web,
+        context: parsed.context !== false,
       };
     } catch {
       return { ...DEFAULTS };

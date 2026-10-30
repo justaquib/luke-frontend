@@ -18,6 +18,8 @@ import type {
 } from '../core/api/training-models';
 import { AppIcon } from '../shared/app-icon';
 import { UiService } from '../shared/ui.service';
+import { HuggingFaceSearchResults } from './huggingface-search-results';
+import { HuggingFaceSearchService } from './huggingface-search.service';
 import { LukePackage } from './luke-package';
 import { SavedTeachers } from './saved-teachers';
 import { TrainerBaseDataset } from './trainer-base-dataset';
@@ -57,6 +59,7 @@ const BUTTONS: Record<TrainingOperation, string> = {
   standalone: true,
   imports: [
     AppIcon,
+    HuggingFaceSearchResults,
     LukePackage,
     SavedTeachers,
     TrainerBaseDataset,
@@ -78,10 +81,12 @@ export class TrainerBase implements OnInit {
   protected readonly selected = signal('');
   protected readonly operation = signal<TrainingOperation>('sft');
   protected readonly removing = signal<string | null>(null);
+  protected readonly uploading = signal(false);
 
   private readonly api = inject(ModelApiService);
   private readonly ui = inject(UiService);
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly huggingfaceSearch = inject(HuggingFaceSearchService);
   private timer?: ReturnType<typeof setTimeout>;
   private wasRunning = false;
 
@@ -200,6 +205,30 @@ export class TrainerBase implements OnInit {
           },
         });
       });
+  }
+
+  uploadDataset(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    this.uploading.set(true);
+    this.api.uploadTrainingDataset(file).subscribe({
+      next: (result) => {
+        this.uploading.set(false);
+        input.value = '';
+        const msg =
+          result.errors.length > 0
+            ? `Imported ${result.imported} pair(s) with ${result.errors.length} error(s).`
+            : `Imported ${result.imported} question-answer pair(s).`;
+        this.ui.success(msg);
+        this.loadDataset();
+      },
+      error: (error: Error) => {
+        this.uploading.set(false);
+        input.value = '';
+        this.ui.error(error.message || 'The upload failed.');
+      },
+    });
   }
 
   private loadDataset(): void {

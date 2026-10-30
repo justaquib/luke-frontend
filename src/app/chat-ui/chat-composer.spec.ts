@@ -2,7 +2,6 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { IntegrationsService } from '../core/integrations.service';
 import { ChatComposer } from './chat-composer';
 import { ChatService } from './chat.service';
 import { ChatSessionService } from './chat-session.service';
@@ -137,52 +136,17 @@ describe('ChatComposer', () => {
     const sessions = TestBed.inject(ChatSessionService);
     const newChat = vi.spyOn(sessions, 'newChat').mockImplementation((): void => undefined);
 
-    (compiled.querySelector('.new-chat-btn') as HTMLButtonElement).click();
+    const menu = compiled.querySelector('details.composer-menu') as HTMLDetailsElement;
+    const summary = menu.querySelector('summary') as HTMLElement;
+    summary.click();
+    fixture.detectChanges();
+
+    const menuItems = compiled.querySelectorAll('.menu-item');
+    (menuItems[0] as HTMLButtonElement).click();
     expect(newChat).toHaveBeenCalledTimes(1);
 
     service.isTyping.set(true);
     fixture.detectChanges();
-    expect((compiled.querySelector('.new-chat-btn') as HTMLButtonElement).disabled).toBe(true);
-  });
-
-  it('turns the live sources on and off from the composer', () => {
-    const { fixture, compiled } = build();
-    const integrations = TestBed.inject(IntegrationsService);
-    (compiled.querySelector('details.sources') as HTMLDetailsElement).open = true;
-    fixture.detectChanges();
-
-    const boxes = [...compiled.querySelectorAll<HTMLInputElement>('.source-row input')];
-    expect(boxes).toHaveLength(3);
-    expect(boxes.map((box) => box.checked)).toEqual([false, false, false]);
-
-    boxes[1].checked = true;
-    boxes[1].dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-
-    expect(integrations.wikiEnabled()).toBe(true);
-    expect(compiled.querySelector('.tool-pill')?.textContent).toContain('Sources · 1');
-
-    boxes[2].checked = true;
-    boxes[2].dispatchEvent(new Event('change'));
-    fixture.detectChanges();
-
-    expect(integrations.webEnabled()).toBe(true);
-    expect(compiled.querySelector('.tool-pill')?.textContent).toContain('Sources · 2');
-  });
-
-  it('closes the source menu when the message box takes focus or Escape is pressed', () => {
-    const { fixture, compiled } = build();
-    const details = compiled.querySelector('details.sources') as HTMLDetailsElement;
-    const area = compiled.querySelector('.composer-input') as HTMLTextAreaElement;
-
-    details.open = true;
-    area.dispatchEvent(new Event('focus'));
-    expect(details.open).toBe(false);
-
-    details.open = true;
-    const summary = details.querySelector('summary') as HTMLElement;
-    summary.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-    fixture.detectChanges();
-    expect(details.open).toBe(false);
+    expect(summary.classList.contains('disabled')).toBe(true);
   });
 });

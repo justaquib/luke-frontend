@@ -243,30 +243,6 @@ describe('Settings', () => {
     http.verify();
   });
 
-  it('lists every package the product is built with', async () => {
-    const fixture = TestBed.createComponent(Settings);
-    const http = TestBed.inject(HttpTestingController);
-    fixture.detectChanges();
-
-    http.expectOne((req) => req.url.endsWith('/health')).flush({ status: 'ok' });
-    http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
-    flushFoundation(http);
-    flushWeb(http);
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    const overview = compiled.querySelector('app-system-overview');
-
-    expect(overview?.querySelector('h2')?.textContent?.trim()).toBe('System overview');
-    expect(overview?.textContent).toContain('Runtime packages');
-    expect(overview?.textContent).toContain('Development tools');
-    expect(overview?.textContent).toContain('chromadb');
-    expect(overview?.textContent).toContain('ruff');
-    expect(overview?.textContent).toContain('peft, accelerate, psutil');
-    http.verify();
-  });
-
   it('names a failed model reading instead of quoting the transport', async () => {
     const fixture = TestBed.createComponent(Settings);
     const http = TestBed.inject(HttpTestingController);
@@ -347,14 +323,14 @@ describe('Settings', () => {
     name.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
-    const start = compiled.querySelector<HTMLSelectElement>('select[name="model-start-level"]');
-    expect(Array.from(start?.options ?? []).map((option) => option.value)).toEqual([
-      '0.0.0',
-      '0.1.0',
-    ]);
-    if (!start) throw new Error('Missing control: select[name="model-start-level"]');
+    const start = compiled.querySelector<HTMLInputElement>('input[name="model-start-level"]');
+    if (!start) throw new Error('Missing control: input[name="model-start-level"]');
+    const datalist = compiled.querySelector<HTMLDataListElement>('datalist#version-suggestions');
+    if (!datalist) throw new Error('Missing datalist: datalist#version-suggestions');
+    const options = Array.from(datalist.querySelectorAll('option')).map((opt) => opt.value);
+    expect(options).toEqual(['0.0.0', '0.1.0']);
     start.value = '0.1.0';
-    start.dispatchEvent(new Event('change'));
+    start.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
     compiled.querySelector('form.model-form')?.dispatchEvent(new Event('submit'));

@@ -63,6 +63,7 @@ describe('Application routes', () => {
       ['brain', 'dashboard/brain'],
       ['expressions', 'dashboard/expressions'],
       ['settings', 'dashboard/settings'],
+      ['system', 'dashboard/system'],
     ]);
   });
 

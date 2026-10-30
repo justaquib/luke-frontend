@@ -68,6 +68,12 @@ const PAGES: Readonly<Record<string, PageInfo>> = {
     description:
       'The engine connection, the live sources it may fall back to, the model identity and how this lab looks.',
   },
+  '/dashboard/system': {
+    name: 'System',
+    title: 'System',
+    scope: 'Product packages',
+    description: 'The packages and tools the product is built with.',
+  },
 };
 
 const DASHBOARD_PREFIX = '/dashboard';

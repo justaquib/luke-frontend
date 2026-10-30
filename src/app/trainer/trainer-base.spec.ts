@@ -165,7 +165,7 @@ describe('TrainerBase', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    const steps = compiled.querySelector('.input') as HTMLInputElement;
+    const steps = compiled.querySelector('.steps .input') as HTMLInputElement;
     steps.value = '50';
     steps.dispatchEvent(new Event('input'));
     fixture.detectChanges();

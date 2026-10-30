@@ -26,7 +26,6 @@ import { AppShell } from '../shared/app-shell';
 import { AppIcon, type IconName } from '../shared/app-icon';
 import { FoundationCard } from './foundation-card';
 import { ModelIdentity } from './model-identity';
-import { SystemOverview } from './system-overview';
 import { WebSources } from './web-sources';
 
 interface ModeChoice {
@@ -60,7 +59,6 @@ interface FontOption {
     AppEngineFacts,
     FoundationCard,
     ModelIdentity,
-    SystemOverview,
     WebSources,
   ],
   templateUrl: './settings.html',

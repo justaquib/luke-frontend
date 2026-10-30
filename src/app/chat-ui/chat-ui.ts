@@ -10,6 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { DesignService } from '../core/design.service';
+import { IntegrationsService } from '../core/integrations.service';
 import { AppEngineFacts, type EngineFact } from '../shared/app-engine-facts';
 import { AppRightSidebar } from '../shared/app-right-sidebar';
 import { AppTopBar } from '../shared/app-top-bar';
@@ -49,6 +50,7 @@ export class ChatUI {
   private readonly service = inject(ChatService);
   private readonly info = inject(PageInfoService);
   private readonly sidebar = inject(RightSidebarService);
+  private readonly integrations = inject(IntegrationsService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly selectedAnswer = signal<{
@@ -78,6 +80,7 @@ export class ChatUI {
   });
 
   constructor() {
+    void this.integrations.refreshLocation();
     effect(() => {
       const title = this.session.active().title;
       this.info.setContextTitle({

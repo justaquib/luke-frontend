@@ -26,6 +26,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { path: '/dashboard/expressions', label: 'Expressions', icon: 'send' },
   { path: '/dashboard/design', label: 'Design', icon: 'palette' },
   { path: '/dashboard/settings', label: 'Lab settings', icon: 'sliders' },
+  { path: '/dashboard/system', label: 'System', icon: 'monitor' },
 ];
 
 /**

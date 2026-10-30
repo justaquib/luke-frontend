@@ -16,7 +16,10 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 20px 16px;
+  padding: 20px 0px;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
 }
 
 .empty-state {
@@ -78,5 +81,47 @@
 @media (max-width: 680px) {
   .messages {
     padding: 16px 12px;
+  }
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.status-indicator .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.4s infinite ease-in-out;
+}
+
+.status-indicator .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.status-indicator .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.status-text {
+  margin-left: 4px;
+}
+
+@keyframes pulse {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
   }
 }

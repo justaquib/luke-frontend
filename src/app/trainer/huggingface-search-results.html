@@ -1,0 +1,30 @@
+@if (results().length > 0) {
+  <div class="search-results">
+    <p class="hint">Found {{ results().length }} model(s):</p>
+    @for (result of results(); track result.model_id) {
+      <div class="search-result-item">
+        <div class="result-info">
+          <strong>{{ result.name }}</strong>
+          <span class="mono">{{ result.model_id }}</span>
+          @if (result.parameters) {
+            <span class="chip mono">{{ result.parameters }}</span>
+          }
+        </div>
+        <button
+          type="button"
+          class="ghost small"
+          (click)="download.emit(result.model_id)"
+          [disabled]="downloading() === result.model_id"
+        >
+          @if (downloading() === result.model_id) {
+            <app-icon name="refresh" [size]="14" class="spin" />
+            <span>Downloading…</span>
+          } @else {
+            <app-icon name="download" [size]="14" />
+            <span>Download</span>
+          }
+        </button>
+      </div>
+    }
+  </div>
+}

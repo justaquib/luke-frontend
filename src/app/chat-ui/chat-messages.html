@@ -20,12 +20,12 @@
 
   @if (service.isTyping()) {
     <div class="message-row assistant">
-      <app-answer-pipeline
-        [trace]="service.liveTrace()"
-        [phase]="service.livePhase()"
-        [text]="service.liveText()"
-        [live]="true"
-      />
+      <div class="status-indicator">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="status-text">{{ statusText() }}</span>
+      </div>
     </div>
   }
 </div>

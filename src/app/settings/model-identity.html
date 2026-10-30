@@ -22,15 +22,19 @@
 
     <label class="model-field">
       Starting version
-      <select
+      <input
+        type="text"
         name="model-start-level"
+        list="version-suggestions"
         [value]="startLevel()"
-        (change)="setStartLevel($any($event.target).value)"
-      >
+        (input)="setStartLevel($any($event.target).value)"
+        placeholder="0.0.0"
+      />
+      <datalist id="version-suggestions">
         @for (version of settings.versions(); track version.level) {
           <option [value]="version.level">{{ version.title }} · {{ version.name }}</option>
         }
-      </select>
+      </datalist>
     </label>
 
     <button type="submit" class="primary small" [disabled]="!canSave()">

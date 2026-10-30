@@ -43,6 +43,7 @@ describe('AppSidebar', () => {
       '/dashboard/expressions',
       '/dashboard/design',
       '/dashboard/settings',
+      '/dashboard/system',
     ]);
   });
 

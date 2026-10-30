@@ -64,6 +64,7 @@ describe('Learner shell', () => {
       '/dashboard/expressions',
       '/dashboard/design',
       '/dashboard/settings',
+      '/dashboard/system',
     ]);
     http.verify();
   });

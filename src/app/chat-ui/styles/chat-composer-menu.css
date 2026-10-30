@@ -1,0 +1,72 @@
+.composer-menu {
+  position: relative;
+}
+
+.composer-menu summary {
+  list-style: none;
+}
+
+.composer-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.composer-menu summary.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.composer-menu-list {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 15%);
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.menu-item:hover {
+  background: var(--surface-2);
+}
+
+.menu-item app-icon {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.context-toggle {
+  transition: all 0.15s ease;
+}
+
+.context-toggle.active {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.context-toggle.active:hover {
+  background: var(--surface-2);
+}

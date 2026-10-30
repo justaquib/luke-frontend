@@ -38,6 +38,50 @@
       [held]="counts().held"
     />
 
+    <div class="field">
+      <span class="field-label">Upload training dataset</span>
+      <input
+        type="file"
+        accept=".jsonl,.csv"
+        (change)="uploadDataset($event)"
+        [disabled]="uploading()"
+        class="file-input"
+      />
+      <p class="hint">JSONL or CSV with <code>question</code> and <code>answer</code> columns.</p>
+    </div>
+
+    <div class="field">
+      <span class="field-label">Search HuggingFace for a teacher model</span>
+      <div class="search-row">
+        <input
+          class="input search-input"
+          type="text"
+          placeholder="e.g., Qwen, Llama, Mistral"
+          [value]="huggingfaceSearch.searchQuery()"
+          (input)="huggingfaceSearch.searchQuery.set($any($event.target).value)"
+          (keydown.enter)="huggingfaceSearch.search()"
+          [disabled]="huggingfaceSearch.searching()"
+        />
+        <button
+          type="button"
+          class="ghost small"
+          (click)="huggingfaceSearch.search()"
+          [disabled]="huggingfaceSearch.searching() || !huggingfaceSearch.searchQuery().trim()"
+        >
+          <app-icon name="search" [size]="14" />
+          {{ huggingfaceSearch.searching() ? 'Searching…' : 'Search' }}
+        </button>
+      </div>
+    </div>
+
+    @if (huggingfaceSearch.searchResults().length > 0) {
+      <app-huggingface-search-results
+        [results]="huggingfaceSearch.searchResults()"
+        [downloading]="huggingfaceSearch.downloading()"
+        (download)="huggingfaceSearch.downloadTeacher($event, () => refresh())"
+      />
+    }
+
     <label class="field">
       <span class="field-label">Base model</span>
       <select
@@ -47,9 +91,7 @@
         [disabled]="running()"
       >
         @for (model of models(); track model.id) {
-          <option [value]="model.id">
-            {{ model.name }} · {{ model.parameters }}{{ model.trained ? ' · saved' : '' }}
-          </option>
+          <option [value]="model.id">Luke 0.0.1{{ model.trained ? ' · saved' : '' }}</option>
         }
       </select>
     </label>

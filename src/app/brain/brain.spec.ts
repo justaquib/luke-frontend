@@ -71,6 +71,7 @@ describe('Brain', () => {
       '/dashboard/expressions',
       '/dashboard/design',
       '/dashboard/settings',
+      '/dashboard/system',
     ]);
   });
 

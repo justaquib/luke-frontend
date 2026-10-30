@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   type ElementRef,
-  computed,
   inject,
   signal,
   viewChild,
@@ -11,6 +10,7 @@ import type { QueryOptions } from '../core/api/chat-api.service';
 import { AppPrefsService } from '../core/app-prefs.service';
 import { IntegrationsService } from '../core/integrations.service';
 import { AppIcon } from '../shared/app-icon';
+import { UiService } from '../shared/ui.service';
 import { AnswerModelService } from './answer-model.service';
 import { ChatService } from './chat.service';
 import { ChatSessionService } from './chat-session.service';
@@ -23,7 +23,7 @@ const MIN_INPUT_HEIGHT = 26;
   standalone: true,
   imports: [AppIcon],
   templateUrl: './chat-composer.html',
-  styleUrls: ['./styles/chat-composer.css', './styles/chat-composer-sources.css'],
+  styleUrls: ['./styles/chat-composer.css', './styles/chat-composer-menu.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatComposer {
@@ -33,15 +33,8 @@ export class ChatComposer {
   protected readonly integrations = inject(IntegrationsService);
   protected readonly draft = signal('');
   private readonly sessions = inject(ChatSessionService);
+  private readonly ui = inject(UiService);
   private readonly input = viewChild.required<ElementRef<HTMLTextAreaElement>>('input');
-
-  protected readonly sourcesOn = computed(() => {
-    const state = this.integrations.state();
-    return Number(state.weather) + Number(state.wiki) + Number(state.web);
-  });
-  protected readonly sourcesLabel = computed(() =>
-    this.sourcesOn() ? `Sources · ${this.sourcesOn()}` : 'Sources',
-  );
 
   constructor() {
     this.models.load();
@@ -64,16 +57,12 @@ export class ChatComposer {
     this.sessions.newChat();
   }
 
-  setWeather(on: boolean): void {
-    this.integrations.setWeather(on);
+  comingSoon(feature: string): void {
+    this.ui.error(`${feature} — Coming soon.`);
   }
 
-  setWiki(on: boolean): void {
-    this.integrations.setWiki(on);
-  }
-
-  setWeb(on: boolean): void {
-    this.integrations.setWeb(on);
+  toggleContext(): void {
+    this.integrations.setContext(!this.integrations.contextEnabled());
   }
 
   send(): void {

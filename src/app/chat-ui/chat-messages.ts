@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   type ElementRef,
+  computed,
   effect,
   inject,
   output,
@@ -11,7 +12,6 @@ import {
 } from '@angular/core';
 import { AppPrefsService } from '../core/app-prefs.service';
 import { BrowserService } from '../core/browser.service';
-import { AnswerPipeline } from '../shared/answer-pipeline';
 import { AppIcon } from '../shared/app-icon';
 import { ChatMessage } from './chat-message';
 import { ChatService } from './chat.service';
@@ -21,7 +21,7 @@ import type { ChatMessage as ChatMessageModel } from './chat.types';
 @Component({
   selector: 'app-chat-messages',
   standalone: true,
-  imports: [AnswerPipeline, AppIcon, ChatMessage],
+  imports: [AppIcon, ChatMessage],
   templateUrl: './chat-messages.html',
   styleUrls: ['./styles/chat-messages.css', './styles/chat-bubble.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -35,6 +35,23 @@ export class ChatMessages implements AfterViewChecked {
   private readonly browser = inject(BrowserService);
 
   protected readonly showJumpToBottom = signal(false);
+
+  protected readonly statusText = computed(() => {
+    const phase = this.service.livePhase();
+    switch (phase) {
+      case 'reading':
+        return 'Reading the question';
+      case 'thinking':
+        return 'Planning where to look';
+      case 'connecting':
+        return 'Checking the sources';
+      case 'writing':
+        return 'Writing the answer';
+      case 'answer':
+      case null:
+        return '';
+    }
+  });
 
   private readonly scrollAnchor = viewChild<ElementRef<HTMLDivElement>>('scrollAnchor');
   private shouldScroll = true;

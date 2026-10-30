@@ -1,0 +1,14 @@
+.system-main {
+  padding: 24px 16px;
+}
+
+.system-page {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+@media (max-width: 680px) {
+  .system-main {
+    padding: 16px 12px;
+  }
+}
