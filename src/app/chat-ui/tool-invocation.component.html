@@ -1,0 +1,51 @@
+<div class="tool_invocation" [class]="invocation().status">
+  <div class="tool_invocation_header">
+    <app-icon name="code" [size]="16" />
+    <span class="tool_name">{{ invocation().tool }}</span>
+    <span class="tool_status">{{ statusLabel() }}</span>
+  </div>
+
+  @if (invocation().status === 'awaiting_confirmation') {
+    <div class="tool_confirmation">
+      <p>This tool requires your confirmation to execute.</p>
+      <div class="tool_params">
+        @for (param of paramEntries(); track param.key) {
+          <div class="param_row">
+            <span class="param_key">{{ param.key }}:</span>
+            <code class="param_value">{{ param.value }}</code>
+          </div>
+        }
+      </div>
+      <div class="tool_actions">
+        <button type="button" class="btn btn_primary" (click)="confirm.emit()">
+          <app-icon name="check" [size]="14" />
+          Confirm
+        </button>
+        <button type="button" class="btn btn_secondary" (click)="cancelExecution.emit()">
+          <app-icon name="x" [size]="14" />
+          Cancel
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (invocation().status === 'running') {
+    <div class="tool_running">
+      <app-icon name="refresh" [size]="16" class="spinning" />
+      <span>Executing...</span>
+    </div>
+  }
+
+  @if (invocation().result && invocation().status === 'completed') {
+    <div class="tool_result">
+      <pre class="result_output">{{ invocation().result?.output | json }}</pre>
+    </div>
+  }
+
+  @if (invocation().result && invocation().status === 'failed') {
+    <div class="tool_error">
+      <app-icon name="alert" [size]="16" />
+      <span>{{ invocation().result?.error }}</span>
+    </div>
+  }
+</div>

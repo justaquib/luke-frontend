@@ -194,6 +194,7 @@
   background: var(--surface-2);
   color: var(--bad);
 }
+
 .tool-btn:focus-visible,
 .tool-pill:focus-visible,
 .source-row input:focus-visible,

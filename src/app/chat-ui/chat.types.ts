@@ -6,7 +6,7 @@ import type {
   QuestionUnderstanding,
 } from '../core/api/api-models';
 
-export type ChatRole = 'user' | 'assistant' | 'system';
+export type ChatRole = 'user' | 'assistant' | 'system' | 'tool';
 export type ChatSource = QuerySource;
 
 export interface ChatMessage {

@@ -78,6 +78,25 @@ function flushFoundation(http: HttpTestingController): void {
   http.expectOne((req) => req.url.endsWith('/language-model/foundation')).flush(foundation());
 }
 
+function flushVoice(http: HttpTestingController): void {
+  http
+    .expectOne((req) => req.url.endsWith('/voice/status'))
+    .flush({
+      available: true,
+      active_module: 'melo-whisper',
+      tts_module: 'facebook/mms-tts-eng',
+      stt_module: 'openai/whisper-tiny',
+      voices: [{ id: 'default', name: 'Default' }],
+    });
+}
+
+function flushTools(http: HttpTestingController): void {
+  http.expectOne((req) => req.url.endsWith('/tools')).flush([]);
+  http.expectOne((req) => req.url.endsWith('/tools/permissions')).flush([]);
+  http.expectOne((req) => req.url.endsWith('/tools/apps')).flush([]);
+  http.expectOne((req) => req.url.endsWith('/tools/apps/allowlist')).flush([]);
+}
+
 describe('Settings', () => {
   beforeEach(async () => {
     localStorage.clear();
@@ -105,6 +124,8 @@ describe('Settings', () => {
     http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
     flushFoundation(http);
     flushWeb(http);
+    flushVoice(http);
+    flushTools(http);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -134,6 +155,8 @@ describe('Settings', () => {
     http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
     flushFoundation(http);
     flushWeb(http);
+    flushVoice(http);
+    flushTools(http);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -169,6 +192,8 @@ describe('Settings', () => {
         }),
       );
     flushWeb(http);
+    flushVoice(http);
+    flushTools(http);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -187,6 +212,8 @@ describe('Settings', () => {
     http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
     flushFoundation(http);
     flushWeb(http);
+    flushVoice(http);
+    flushTools(http);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -222,6 +249,8 @@ describe('Settings', () => {
     http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
     flushFoundation(http);
     flushWeb(http);
+    flushVoice(http);
+    flushTools(http);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -254,6 +283,8 @@ describe('Settings', () => {
       .error(new ErrorEvent('offline'));
     flushFoundation(http);
     flushWeb(http);
+    flushVoice(http);
+    flushTools(http);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -278,6 +309,8 @@ describe('Settings', () => {
     http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
     flushFoundation(http);
     flushWeb(http);
+    flushVoice(http);
+    flushTools(http);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -312,6 +345,8 @@ describe('Settings', () => {
     http.expectOne((req) => req.url.endsWith('/language-model/settings')).flush(modelSettings());
     flushFoundation(http);
     flushWeb(http);
+    flushVoice(http);
+    flushTools(http);
     await fixture.whenStable();
     fixture.detectChanges();
 

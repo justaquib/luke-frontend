@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { VoiceService } from '../core/voice.service';
 import { AnswerReveal } from '../shared/answer-reveal';
 import { AppIcon } from '../shared/app-icon';
 import { ChatMessageMeta } from './chat-message-meta';
@@ -19,6 +20,7 @@ export class ChatMessage {
   readonly revealAdvanced = output<void>();
 
   protected readonly service = inject(ChatService);
+  protected readonly voice = inject(VoiceService);
 
   protected canRate(): boolean {
     const message = this.message();
@@ -31,5 +33,9 @@ export class ChatMessage {
 
   protected formatTime(date: Date): string {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  protected playMessage(): void {
+    void this.voice.speak(this.message().text);
   }
 }

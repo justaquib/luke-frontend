@@ -24,6 +24,17 @@
 
   @if (message().role === 'assistant') {
     <div class="message-actions">
+      @if (voice.enabled()) {
+        <button
+          type="button"
+          class="ghost icon-only small"
+          (click)="playMessage()"
+          title="Play message"
+          aria-label="Play message"
+        >
+          <app-icon name="play" [size]="14" />
+        </button>
+      }
       <button
         type="button"
         class="ghost icon-only small"

@@ -26,6 +26,9 @@ import { AppShell } from '../shared/app-shell';
 import { AppIcon, type IconName } from '../shared/app-icon';
 import { FoundationCard } from './foundation-card';
 import { ModelIdentity } from './model-identity';
+import { VoiceCard } from './voice-card';
+import { ToolsCardComponent } from './tools-card.component';
+import { AppsCardComponent } from './apps-card.component';
 import { WebSources } from './web-sources';
 
 interface ModeChoice {
@@ -59,6 +62,9 @@ interface FontOption {
     AppEngineFacts,
     FoundationCard,
     ModelIdentity,
+    VoiceCard,
+    ToolsCardComponent,
+    AppsCardComponent,
     WebSources,
   ],
   templateUrl: './settings.html',

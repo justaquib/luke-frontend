@@ -53,6 +53,18 @@ describe('ChatComposer', () => {
     http
       .match((request) => request.url.endsWith('/language-model/models'))
       .forEach((request) => request.flush(catalog()));
+    http
+      .match((request) => request.url.endsWith('/voice/status'))
+      .forEach((request) =>
+        request.flush({
+          available: true,
+          active_module: 'melo-whisper',
+          tts_module: 'facebook/mms-tts-eng',
+          stt_module: 'openai/whisper-tiny',
+          voices: [{ id: 'default', name: 'Default' }],
+        }),
+      );
+    http.match((request) => request.url.endsWith('/tools')).forEach((request) => request.flush([]));
     fixture.detectChanges();
     return { fixture, compiled: fixture.nativeElement as HTMLElement };
   };

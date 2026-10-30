@@ -185,6 +185,16 @@ export const ICONS = {
   ],
   maximize: [{ kind: 'path', d: 'M9 4H4v5M15 4h5v5M15 20h5v-5M9 20H4v-5' }],
   minimize: [{ kind: 'path', d: 'M4 9h5V4M20 9h-5V4M20 15h-5v5M4 15h5v5' }],
+  mic: [
+    { kind: 'rect', x: 9, y: 3, width: 6, height: 12, rx: 3 },
+    { kind: 'path', d: 'M5 11a7 7 0 0 0 14 0' },
+    { kind: 'path', d: 'M12 18v3' },
+  ],
+  volume: [
+    { kind: 'path', d: 'M3 9v6h4l5 4V5L7 9H3z' },
+    { kind: 'path', d: 'M16 8a5 5 0 0 1 0 8' },
+    { kind: 'path', d: 'M19 5a9 9 0 0 1 0 14' },
+  ],
 } as const satisfies Record<string, readonly IconShape[]>;
 
 export type IconName = keyof typeof ICONS;

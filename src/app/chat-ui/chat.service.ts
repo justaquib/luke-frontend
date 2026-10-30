@@ -6,6 +6,7 @@ import { AnswerStreamService } from '../core/api/answer-stream.service';
 import { ChatApiService, type QueryOptions } from '../core/api/chat-api.service';
 import { BrowserService } from '../core/browser.service';
 import { IntegrationsService } from '../core/integrations.service';
+import { ToolsService, type ToolExecuteRequest } from '../core/tools.service';
 import {
   type AnswerTrace,
   type PipelinePhase,
@@ -28,6 +29,7 @@ export class ChatService {
   private readonly browser = inject(BrowserService);
   private readonly router = inject(Router);
   private readonly integrations = inject(IntegrationsService);
+  private readonly tools = inject(ToolsService);
 
   readonly isTyping = signal(false);
   readonly backendStatus = signal<'unknown' | 'online' | 'offline'>('unknown');
@@ -64,6 +66,38 @@ export class ChatService {
       timestamp: new Date(),
     });
     this.startStream(question, { ...options, history });
+  }
+
+  executeTool(request: ToolExecuteRequest): void {
+    if (this.isTyping()) {
+      return;
+    }
+    this.isTyping.set(true);
+    this.tools.executeTool(request).subscribe({
+      next: (result) => {
+        const toolMessage: ChatMessage = {
+          id: this.session.nextMessageId(),
+          role: 'tool',
+          text: JSON.stringify(result.output ?? result.error ?? 'Tool executed'),
+          timestamp: new Date(),
+        };
+        this.session.appendMessage(toolMessage);
+        this.isTyping.set(false);
+        if (result.status === 'succeeded') {
+          this.ui.success(`Tool ${request.tool} executed successfully`);
+        } else if (result.status === 'awaiting_confirmation') {
+          this.ui.info(`Tool ${request.tool} requires confirmation`);
+        } else {
+          this.ui.error(`Tool ${request.tool} failed: ${result.error}`);
+        }
+      },
+      error: (err: { error?: { detail?: string }; message?: string }) => {
+        this.isTyping.set(false);
+        this.ui.error(
+          `Tool execution failed: ${err.error?.detail || err.message || 'Unknown error'}`,
+        );
+      },
+    });
   }
 
   /** Stops the live answer, if one is streaming; the page is closing. */

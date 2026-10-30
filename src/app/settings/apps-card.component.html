@@ -1,0 +1,107 @@
+<section class="settings-card">
+  <div class="card-header">
+    <div class="card-title_group">
+      <h3 class="card_title">Applications</h3>
+      <p class="card_description">
+        Control which applications Luke can launch on your system. Only allowlisted apps can be
+        opened.
+      </p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="card_loading">
+      <app-icon name="refresh" [size]="20" class="spinning" />
+      <span>Loading applications...</span>
+    </div>
+  } @else if (error()) {
+    <div class="card_error">
+      <app-icon name="alert" [size]="16" />
+      <span>{{ error() }}</span>
+    </div>
+  } @else {
+    <div class="apps_section">
+      <div class="search_box">
+        <app-icon name="search" [size]="16" />
+        <input
+          type="text"
+          class="search_input"
+          placeholder="Search applications..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+        />
+      </div>
+
+      <div class="allowlist_section">
+        <h4 class="section_title">Allowlisted Applications</h4>
+        @if (allowlist().length === 0) {
+          <div class="section_empty">
+            <p>No applications allowlisted. Add apps from the list below.</p>
+          </div>
+        } @else {
+          <div class="allowlist_chips">
+            @for (app of allowlist(); track app) {
+              <div class="allowlist_chip">
+                <span class="chip_name">{{ app }}</span>
+                <button
+                  type="button"
+                  class="chip_remove"
+                  (click)="removeFromAllowlist(app)"
+                  aria-label="Remove from allowlist"
+                >
+                  <app-icon name="x" [size]="14" />
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="apps_list_section">
+        <h4 class="section_title">
+          Installed Applications
+          <span class="apps_count">{{ filteredApps().length }}</span>
+        </h4>
+        @if (filteredApps().length === 0) {
+          <div class="section_empty">
+            <app-icon name="inbox" [size]="20" />
+            <p>
+              @if (searchQuery()) {
+                No applications match "{{ searchQuery() }}"
+              } @else {
+                No applications found
+              }
+            </p>
+          </div>
+        } @else {
+          <div class="apps_list">
+            @for (app of filteredApps(); track app.path) {
+              <div class="app_row">
+                <div class="app_info">
+                  <div class="app_name">{{ app.name }}</div>
+                  <div class="app_path">{{ app.path }}</div>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn_sm"
+                  [class.btn_primary]="!isAllowlisted(app.name)"
+                  [class.btn_secondary]="isAllowlisted(app.name)"
+                  [disabled]="isAllowlisted(app.name)"
+                  (click)="addToAllowlist(app.name)"
+                >
+                  @if (isAllowlisted(app.name)) {
+                    <app-icon name="check" [size]="14" />
+                    <span>Allowlisted</span>
+                  } @else {
+                    <app-icon name="plus" [size]="14" />
+                    <span>Add</span>
+                  }
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</section>

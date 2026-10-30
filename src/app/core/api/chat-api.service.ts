@@ -9,7 +9,7 @@ export interface QueryOptions {
   /** The model that answers: `luke` or an installed teacher's `hf:` id. */
   model?: string;
   /** The recent turns, so a follow-up keeps the conversation in view. */
-  history?: { role: 'user' | 'assistant'; content: string }[];
+  history?: { role: 'user' | 'assistant' | 'tool'; content: string }[];
   /** Whether the uploaded documents are read for this answer. */
   retrieval?: boolean;
   /** Whether Luke writes from numbered passages instead of returning one. */

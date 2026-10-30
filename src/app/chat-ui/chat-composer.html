@@ -1,4 +1,12 @@
 <footer class="composer">
+  <app-slash-menu
+    [visible]="slashMenuVisible()"
+    [query]="slashQuery()"
+    [tools]="availableTools()"
+    (toolSelected)="onToolSelected($event)"
+    (dismissed)="closeSlashMenu()"
+  />
+
   <div class="composer-inner">
     <div class="composer-box" [class.answering]="service.isTyping()">
       <textarea
@@ -74,6 +82,30 @@
         </div>
 
         <div class="tools-end">
+          <button
+            type="button"
+            class="tool-btn voice-toggle"
+            (click)="toggleVoice()"
+            [class.active]="voice.enabled()"
+            [attr.aria-label]="voice.enabled() ? 'Voice mode on' : 'Voice mode off'"
+            [title]="voice.enabled() ? 'Voice mode on · replies speak' : 'Voice mode off'"
+          >
+            <app-icon name="volume" [size]="14" />
+          </button>
+
+          <button
+            type="button"
+            class="tool-btn mic-btn"
+            (mousedown)="startListening()"
+            (mouseup)="stopListening()"
+            (mouseleave)="stopListening()"
+            [class.recording]="voice.isRecording()"
+            [attr.aria-label]="'Hold to record'"
+            title="Hold to speak"
+          >
+            <app-icon name="mic" [size]="14" />
+          </button>
+
           <label
             class="model-pill"
             [title]="models.error() || 'The model that answers the next message'"

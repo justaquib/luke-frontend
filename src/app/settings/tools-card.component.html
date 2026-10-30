@@ -1,0 +1,52 @@
+<section class="settings-card">
+  <div class="card-header">
+    <div class="card-title_group">
+      <h3 class="card_title">Tools</h3>
+      <p class="card_description">
+        Tools extend Luke's capabilities. Enable or disable tools to control what Luke can do.
+      </p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="card_loading">
+      <app-icon name="refresh" [size]="20" class="spinning" />
+      <span>Loading tools...</span>
+    </div>
+  } @else if (error()) {
+    <div class="card_error">
+      <app-icon name="alert" [size]="16" />
+      <span>{{ error() }}</span>
+    </div>
+  } @else {
+    <div class="tools_list">
+      @for (tool of tools(); track tool.name) {
+        <div class="tool_row">
+          <div class="tool_info">
+            <div class="tool_name">
+              <code>/{{ tool.name }}</code>
+              @if (tool.requires_confirmation) {
+                <span class="tool_badge">Requires Confirmation</span>
+              }
+            </div>
+            <div class="tool_description">{{ tool.description }}</div>
+          </div>
+          <label class="toggle">
+            <input
+              type="checkbox"
+              [checked]="isEnabled(tool.name)"
+              (change)="toggleTool(tool.name, $event)"
+            />
+            <span class="toggle_slider"></span>
+          </label>
+        </div>
+      }
+      @if (tools().length === 0) {
+        <div class="card_empty">
+          <app-icon name="inbox" [size]="20" />
+          <p>No tools available</p>
+        </div>
+      }
+    </div>
+  }
+</section>

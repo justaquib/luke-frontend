@@ -223,4 +223,25 @@ export const SYSTEM_PACKAGES: SystemPackage[] = [
       'The linter and the formatter of the backend, and the structure check that keeps the modules apart.',
     kind: 'development',
   },
+  {
+    name: 'openai-whisper',
+    area: 'Backend',
+    purpose:
+      'The speech-to-text engine that transcribes voice input into text, using the tiny checkpoint for fast English recognition.',
+    kind: 'runtime',
+  },
+  {
+    name: 'soundfile',
+    area: 'Backend',
+    purpose:
+      'The audio file reader and writer the voice module uses to encode and decode WAV buffers for text-to-speech output.',
+    kind: 'runtime',
+  },
+  {
+    name: 'facebook/mms-tts-eng',
+    area: 'Backend',
+    purpose:
+      "The minimal English text-to-speech model from Hugging Face's Massively Multilingual Speech project, used by the voice module to synthesize spoken replies.",
+    kind: 'runtime',
+  },
 ];

@@ -1,0 +1,57 @@
+<section class="settings-card" aria-labelledby="settings-voice-title">
+  <app-card-info
+    label="the voice module"
+    text="When voice mode is on, Luke speaks its replies and listens to yours. The TTS and STT engines are swappable; the active choice is remembered on this device."
+  >
+    <h2 id="settings-voice-title">Voice</h2>
+  </app-card-info>
+
+  <label class="toggle-row">
+    <input
+      type="checkbox"
+      [checked]="voice.enabled()"
+      (change)="toggleVoiceMode($any($event.target).checked)"
+    />
+    <span>
+      <strong>Voice mode</strong>
+      <small>Replies speak aloud, and the mic button listens.</small>
+    </span>
+  </label>
+
+  <div class="voice-status">
+    <span class="status-label">Status</span>
+    <span class="status-value">{{ statusLine() }}</span>
+  </div>
+
+  @if (voice.status()?.available) {
+    @if (voice.status()!.voices.length > 1) {
+      <label class="voice-field">
+        <span>Voice</span>
+        <select
+          [value]="voice.activeVoice() ?? ''"
+          (change)="chooseVoice($any($event.target).value)"
+        >
+          @for (v of voice.status()!.voices; track v.id) {
+            <option [value]="v.id">{{ v.label }}</option>
+          }
+        </select>
+      </label>
+    }
+
+    @if (moduleOptions.length > 1) {
+      <label class="voice-field">
+        <span>Module</span>
+        <select [value]="voice.activeModule()" (change)="chooseModule($any($event.target).value)">
+          @for (m of moduleOptions; track m.id) {
+            <option [value]="m.id">{{ m.label }}</option>
+          }
+        </select>
+      </label>
+    }
+  } @else {
+    <p class="voice-note">
+      Voice module not installed.
+      <button type="button" class="link-btn" (click)="voice.loadStatus()">Check again</button>
+    </p>
+  }
+</section>

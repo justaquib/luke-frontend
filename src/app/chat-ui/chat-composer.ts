@@ -9,11 +9,14 @@ import {
 import type { QueryOptions } from '../core/api/chat-api.service';
 import { AppPrefsService } from '../core/app-prefs.service';
 import { IntegrationsService } from '../core/integrations.service';
+import { VoiceService } from '../core/voice.service';
+import { ToolsService, type Tool } from '../core/tools.service';
 import { AppIcon } from '../shared/app-icon';
 import { UiService } from '../shared/ui.service';
 import { AnswerModelService } from './answer-model.service';
 import { ChatService } from './chat.service';
 import { ChatSessionService } from './chat-session.service';
+import { SlashMenuComponent } from './slash-menu.component';
 
 const MAX_INPUT_HEIGHT = 180;
 const MIN_INPUT_HEIGHT = 26;
@@ -21,9 +24,13 @@ const MIN_INPUT_HEIGHT = 26;
 @Component({
   selector: 'app-chat-composer',
   standalone: true,
-  imports: [AppIcon],
+  imports: [AppIcon, SlashMenuComponent],
   templateUrl: './chat-composer.html',
-  styleUrls: ['./styles/chat-composer.css', './styles/chat-composer-menu.css'],
+  styleUrls: [
+    './styles/chat-composer.css',
+    './styles/chat-composer-menu.css',
+    './styles/chat-composer-voice.css',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatComposer {
@@ -31,18 +38,41 @@ export class ChatComposer {
   protected readonly prefs = inject(AppPrefsService);
   protected readonly models = inject(AnswerModelService);
   protected readonly integrations = inject(IntegrationsService);
+  protected readonly voice = inject(VoiceService);
+  protected readonly toolsService = inject(ToolsService);
   protected readonly draft = signal('');
+  protected readonly slashMenuVisible = signal(false);
+  protected readonly slashQuery = signal('');
+  protected readonly availableTools = signal<Tool[]>([]);
   private readonly sessions = inject(ChatSessionService);
   private readonly ui = inject(UiService);
   private readonly input = viewChild.required<ElementRef<HTMLTextAreaElement>>('input');
 
   constructor() {
     this.models.load();
+    void this.voice.loadStatus();
+    this.loadTools();
+  }
+
+  private loadTools(): void {
+    this.toolsService.getTools().subscribe({
+      next: (tools) => this.availableTools.set(tools),
+      error: () => this.availableTools.set([]),
+    });
   }
 
   onInput(element: HTMLTextAreaElement): void {
-    this.draft.set(element.value);
+    const value = element.value;
+    this.draft.set(value);
     this.fit(element);
+
+    if (value.startsWith('/')) {
+      this.slashMenuVisible.set(true);
+      this.slashQuery.set(value.slice(1));
+    } else {
+      this.slashMenuVisible.set(false);
+      this.slashQuery.set('');
+    }
   }
 
   onKeydown(event: KeyboardEvent): void {
@@ -63,6 +93,45 @@ export class ChatComposer {
 
   toggleContext(): void {
     this.integrations.setContext(!this.integrations.contextEnabled());
+  }
+
+  toggleVoice(): void {
+    this.voice.toggle();
+  }
+
+  async startListening(): Promise<void> {
+    const text = await this.voice.listen();
+    if (text) {
+      this.draft.set(text);
+      const textarea = this.input().nativeElement;
+      textarea.value = text;
+      this.fit(textarea);
+    }
+  }
+
+  stopListening(): void {
+    this.voice.stopListening();
+  }
+
+  onToolSelected(tool: Tool): void {
+    this.slashMenuVisible.set(false);
+    this.slashQuery.set('');
+    this.draft.set('');
+    const textarea = this.input().nativeElement;
+    textarea.value = '';
+    this.fit(textarea);
+
+    const request = {
+      tool: tool.name,
+      params: {},
+      conversation_id: this.sessions.activeId() || undefined,
+    };
+    this.service.executeTool(request);
+  }
+
+  closeSlashMenu(): void {
+    this.slashMenuVisible.set(false);
+    this.slashQuery.set('');
   }
 
   send(): void {

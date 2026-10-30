@@ -1,0 +1,22 @@
+@if (visible()) {
+  <div class="slash_menu" #menu>
+    @for (tool of filteredTools(); track tool.name) {
+      <button
+        type="button"
+        class="slash_menu_item"
+        [class.selected]="selectedIndex() === $index"
+        (click)="selectTool(tool)"
+        (mouseenter)="selectedIndex.set($index)"
+      >
+        <app-icon name="code" [size]="16" />
+        <div class="slash_menu_item_content">
+          <div class="slash_menu_item_name">/{{ tool.name }}</div>
+          <div class="slash_menu_item_desc">{{ tool.description }}</div>
+        </div>
+      </button>
+    }
+    @if (filteredTools().length === 0) {
+      <div class="slash_menu_empty">No matching tools</div>
+    }
+  </div>
+}

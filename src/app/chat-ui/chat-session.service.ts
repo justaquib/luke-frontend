@@ -185,10 +185,10 @@ export class ChatSessionService {
   }
 
   /** The last few turns, so a follow-up keeps the conversation in view. */
-  recentTurns(limit = 12): { role: 'user' | 'assistant'; content: string }[] {
+  recentTurns(limit = 12): { role: 'user' | 'assistant' | 'tool'; content: string }[] {
     return this.active()
       .messages.filter(
-        (message): message is ChatMessage & { role: 'user' | 'assistant' } =>
+        (message): message is ChatMessage & { role: 'user' | 'assistant' | 'tool' } =>
           message.role !== 'system' && !!message.text.trim(),
       )
       .slice(-limit)
