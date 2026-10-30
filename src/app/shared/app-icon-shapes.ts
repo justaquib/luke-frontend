@@ -122,6 +122,10 @@ export const ICONS = {
     { kind: 'circle', cx: 15, cy: 10, r: 0.6 },
   ],
   play: [{ kind: 'path', d: 'M8 5l11 7-11 7z' }],
+  pause: [
+    { kind: 'rect', x: 6, y: 5, width: 4, height: 14, rx: 1 },
+    { kind: 'rect', x: 14, y: 5, width: 4, height: 14, rx: 1 },
+  ],
   logout: [
     { kind: 'path', d: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4' },
     { kind: 'path', d: 'M16 17l5-5-5-5M21 12H9' },

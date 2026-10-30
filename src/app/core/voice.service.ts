@@ -40,6 +40,9 @@ export class VoiceService {
   private audioContext: AudioContext | null = null;
   private mediaRecorder: MediaRecorder | null = null;
   private currentAudio: HTMLAudioElement | null = null;
+  private currentAudioSource: AudioBufferSourceNode | null = null;
+  private playbackQueue: string[] = [];
+  private isProcessingQueue = false;
 
   readonly enabled = this._enabled.asReadonly();
   readonly activeVoice = this._activeVoice.asReadonly();
@@ -48,6 +51,8 @@ export class VoiceService {
   readonly isRecording = this._isRecording.asReadonly();
   readonly isSpeaking = this._isSpeaking.asReadonly();
   readonly available = (): boolean => this._status()?.available ?? false;
+  private readonly _currentlyPlayingText = signal<string | null>(null);
+  readonly currentlyPlayingText = this._currentlyPlayingText.asReadonly();
 
   constructor() {
     effect(() => saveVoiceEnabled(this._enabled()));
@@ -111,25 +116,82 @@ export class VoiceService {
 
   async speak(text: string): Promise<void> {
     if (!text.trim() || !this._enabled()) return;
+
+    // If already speaking this text, pause it
+    if (this._isSpeaking() && this._currentlyPlayingText() === text) {
+      this.pauseSpeaking();
+      return;
+    }
+
+    // Stop current playback and clear queue
     this.stopSpeaking();
-    this._isSpeaking.set(true);
-    try {
-      const wavBytes = await firstValueFrom(this.synthesize(text, this._activeVoice()));
-      await this.playWav(wavBytes);
-    } catch {
-      // Playback failed; the UI can check isSpeaking() to see if it's still going.
-    } finally {
-      this._isSpeaking.set(false);
+    this.playbackQueue = [];
+
+    // Add to queue and process
+    this.playbackQueue.push(text);
+    await this.processQueue();
+  }
+
+  private async processQueue(): Promise<void> {
+    if (this.isProcessingQueue || this.playbackQueue.length === 0) return;
+
+    this.isProcessingQueue = true;
+    while (this.playbackQueue.length > 0) {
+      const text = this.playbackQueue.shift()!;
+      this._currentlyPlayingText.set(text);
+      this._isSpeaking.set(true);
+      try {
+        const wavBytes = await firstValueFrom(this.synthesize(text, this._activeVoice()));
+        await this.playWav(wavBytes);
+      } catch {
+        // Playback failed
+      } finally {
+        this._isSpeaking.set(false);
+        this._currentlyPlayingText.set(null);
+      }
+    }
+    this.isProcessingQueue = false;
+  }
+
+  pauseSpeaking(): void {
+    if (this.currentAudio) {
+      this.currentAudio.pause();
+    }
+    if (this.currentAudioSource) {
+      try {
+        this.currentAudioSource.stop();
+      } catch {
+        // Already stopped
+      }
+    }
+    this._isSpeaking.set(false);
+  }
+
+  resumeSpeaking(): void {
+    if (this.currentAudio) {
+      void this.currentAudio.play();
+      this._isSpeaking.set(true);
     }
   }
 
   stopSpeaking(): void {
+    this.playbackQueue = [];
+    this.isProcessingQueue = false;
     if (this.currentAudio) {
       this.currentAudio.pause();
       this.currentAudio.currentTime = 0;
       this.currentAudio = null;
     }
+    if (this.currentAudioSource) {
+      try {
+        this.currentAudioSource.stop();
+      } catch {
+        // Already stopped
+      }
+      this.currentAudioSource = null;
+    }
     this._isSpeaking.set(false);
+    this._currentlyPlayingText.set(null);
   }
 
   async listen(): Promise<string> {
@@ -232,13 +294,29 @@ export class VoiceService {
     const source = this.audioContext.createBufferSource();
     source.buffer = audioBuffer;
     source.connect(this.audioContext.destination);
+    this.currentAudioSource = source;
+
     const audio = new Audio();
     audio.src = URL.createObjectURL(wavBytes);
     this.currentAudio = audio;
-    audio.onended = () => {
-      this._isSpeaking.set(false);
-      this.currentAudio = null;
-    };
-    await audio.play();
+
+    return new Promise<void>((resolve, reject) => {
+      source.onended = () => {
+        this._isSpeaking.set(false);
+        this._currentlyPlayingText.set(null);
+        this.currentAudio = null;
+        this.currentAudioSource = null;
+        resolve();
+      };
+      audio.onended = () => {
+        this._isSpeaking.set(false);
+        this._currentlyPlayingText.set(null);
+        this.currentAudio = null;
+        this.currentAudioSource = null;
+        resolve();
+      };
+      audio.onerror = () => reject(new Error('Audio playback failed'));
+      source.start();
+    });
   }
 }

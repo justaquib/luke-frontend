@@ -29,10 +29,14 @@
           type="button"
           class="ghost icon-only small"
           (click)="playMessage()"
-          title="Play message"
-          aria-label="Play message"
+          [title]="isMessagePlaying() ? 'Pause message' : 'Play message'"
+          [attr.aria-label]="isMessagePlaying() ? 'Pause message' : 'Play message'"
         >
-          <app-icon name="play" [size]="14" />
+          @if (isMessagePlaying()) {
+            <app-icon name="pause" [size]="14" />
+          } @else {
+            <app-icon name="play" [size]="14" />
+          }
         </button>
       }
       <button

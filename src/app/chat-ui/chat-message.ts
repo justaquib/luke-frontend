@@ -36,6 +36,23 @@ export class ChatMessage {
   }
 
   protected playMessage(): void {
-    void this.voice.speak(this.message().text);
+    const messageText = this.message().text;
+    const isCurrentlyPlaying = this.voice.currentlyPlayingText() === messageText;
+
+    if (isCurrentlyPlaying && this.voice.isSpeaking()) {
+      this.voice.pauseSpeaking();
+    } else if (isCurrentlyPlaying && !this.voice.isSpeaking()) {
+      this.voice.resumeSpeaking();
+    } else {
+      void this.voice.speak(messageText);
+    }
+  }
+
+  protected isMessagePlaying(): boolean {
+    return this.voice.currentlyPlayingText() === this.message().text && this.voice.isSpeaking();
+  }
+
+  protected isMessagePaused(): boolean {
+    return this.voice.currentlyPlayingText() === this.message().text && !this.voice.isSpeaking();
   }
 }

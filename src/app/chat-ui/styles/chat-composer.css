@@ -2,17 +2,16 @@
   display: block;
 }
 .composer {
+  position: relative;
   flex: 0 0 auto;
   padding: 10px 16px 18px;
   background: linear-gradient(to top, var(--bg) 72%, transparent);
 }
-
 .composer-inner {
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
 }
-
 .composer-box {
   display: flex;
   flex-direction: column;
@@ -26,18 +25,15 @@
     border-color 0.15s ease,
     box-shadow 0.15s ease;
 }
-
 .composer-box:focus-within,
 .composer-box.answering {
   border-color: var(--accent-line);
 }
-
 .composer-box:focus-within {
   box-shadow:
     0 0 0 3px var(--accent-soft),
     0 10px 30px rgb(0 0 0 / 18%);
 }
-
 .composer-input {
   width: 100%;
   min-height: 64px;
@@ -56,7 +52,6 @@
 .composer-input::placeholder {
   color: var(--faint);
 }
-
 .composer-tools {
   display: flex;
   align-items: center;
@@ -65,7 +60,6 @@
   padding-top: 9px;
   border-top: 1px dashed var(--border);
 }
-
 .tools-start,
 .tools-end {
   display: flex;
@@ -73,7 +67,6 @@
   align-items: center;
   gap: 6px;
 }
-
 .tool-btn,
 .tool-pill,
 .model-pill {
@@ -84,7 +77,6 @@
   gap: 6px;
   color: var(--muted);
 }
-
 .tool-btn {
   width: 36px;
   justify-content: center;
@@ -93,7 +85,6 @@
   background: transparent;
   cursor: pointer;
 }
-
 .tool-btn:hover:not(:disabled) {
   border-color: var(--accent-line);
   background: var(--surface-2);
@@ -103,7 +94,6 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
-
 .tool-pill,
 .model-pill {
   max-width: 100%;
@@ -111,13 +101,11 @@
   border: 1px solid transparent;
   border-radius: 10px;
 }
-
 .tool-pill {
   list-style: none;
   font-size: 13px;
   cursor: pointer;
 }
-
 .tool-pill:hover,
 .model-pill:hover {
   background: var(--surface-2);
@@ -128,7 +116,6 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-
 .model-select {
   min-width: 0;
   max-width: 190px;
@@ -144,14 +131,12 @@
   text-overflow: ellipsis;
   cursor: pointer;
 }
-
 .model-pill .chev,
 .tool-pill .chev {
   flex: 0 0 auto;
   pointer-events: none;
   transition: transform 0.15s ease;
 }
-
 .send-btn,
 .stop-btn {
   display: inline-flex;
@@ -167,12 +152,10 @@
     background 0.15s ease,
     transform 0.15s ease;
 }
-
 .send-btn {
   background: var(--accent);
   color: var(--bg);
 }
-
 .send-btn:hover:not(:disabled) {
   background: var(--text);
   transform: translateY(-1px);
@@ -182,19 +165,16 @@
   color: var(--faint);
   cursor: not-allowed;
 }
-
 .stop-btn {
   border: 1px solid var(--accent-line);
   background: var(--accent-soft);
   color: var(--text);
 }
-
 .stop-btn:hover {
   border-color: var(--bad);
   background: var(--surface-2);
   color: var(--bad);
 }
-
 .tool-btn:focus-visible,
 .tool-pill:focus-visible,
 .source-row input:focus-visible,
@@ -203,42 +183,34 @@
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
-
 @media (max-width: 680px) {
   .composer {
     padding: 8px 10px 12px;
   }
-
   .composer-box {
     padding: 10px 10px 8px 12px;
     border-radius: 18px;
   }
-
   .composer-input {
     min-height: 54px;
     font-size: 14px;
   }
-
   .tool-pill,
   .model-pill {
     padding: 0 8px;
   }
-
   .model-select {
     max-width: 118px;
   }
 }
-
 @media (max-width: 420px) {
   .model-pill > app-icon:first-child {
     display: none;
   }
-
   .model-select {
     max-width: 96px;
   }
 }
-
 @media (prefers-reduced-motion: reduce) {
   .composer-box,
   .send-btn,
