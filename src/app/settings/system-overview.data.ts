@@ -142,7 +142,7 @@ export const SYSTEM_PACKAGES: SystemPackage[] = [
     name: 'peft, accelerate, psutil',
     area: 'Backend',
     purpose:
-      'The small-adapter libraries for the next training step: peft adds and saves a LoRA adapter over the pinned checkpoint instead of retraining it, accelerate is its declared companion and psutil the memory checks it needs. Installed and proven against the real checkpoint — a rank-4 adapter trains, saves and serves — but nothing in the app uses them yet, so today they change no answer.',
+      'The small-adapter libraries behind training: peft adds and saves a LoRA adapter over the pinned checkpoint instead of retraining it, accelerate is its declared companion and psutil measures memory during a run. The training operations use them, and the assessment can load a saved adapter to measure it; no adapter changes an answer unless one is explicitly attached.',
     kind: 'runtime',
   },
   {

@@ -1,4 +1,4 @@
-import type { TeacherInfo } from './api-models';
+import type { TeacherInfo } from './training-models';
 
 /** One question a knowledge transfer would ask an installed teacher. */
 export interface TransferSample {

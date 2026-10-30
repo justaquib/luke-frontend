@@ -1,0 +1,27 @@
+@if (loading()) {
+  <p class="hint">Reading the dataset…</p>
+}
+@if (error(); as failure) {
+  <p class="error">{{ failure }}</p>
+}
+@if (dataset(); as data) {
+  <div class="dataset">
+    <span class="chip mono">{{ data.sources }} source(s)</span>
+    <span class="chip mono">{{ data.examples }} example(s)</span>
+    <span class="chip mono">{{ train() }} training</span>
+    <span class="chip mono">{{ held() }} held out</span>
+  </div>
+  <p class="hint">
+    Counts are for {{ task() }}. The split is taken per source, so a held-out source has no example
+    on the training side.
+  </p>
+  @if (!data.split_taken) {
+    <p class="error">Nothing is held out yet, so no run could be measured.</p>
+  }
+  @if (data.leakage.length) {
+    <p class="error">
+      {{ data.leakage.length }} held-out source(s) also sit on the training side:
+      {{ data.leakage.join(', ') }}.
+    </p>
+  }
+}

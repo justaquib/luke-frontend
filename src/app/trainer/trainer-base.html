@@ -4,9 +4,9 @@
       <div>
         <h3>Train a Hugging Face model on your material</h3>
         <p class="hint">
-          A small base model is fine-tuned on every trained answer, document and lesson. One run at
-          a time; the weights stay on this machine, and the chat answers with them once you choose
-          them.
+          One named operation at a time on this workspace's material. The held-out sources are
+          measured, never trained on; the weights stay on this machine, and the chat answers with a
+          teacher once you choose it.
         </p>
       </div>
       <button
@@ -29,6 +29,15 @@
       </div>
     }
 
+    <app-base-dataset
+      [dataset]="dataset()"
+      [error]="datasetError()"
+      [loading]="datasetLoading()"
+      [operation]="operation()"
+      [train]="counts().train"
+      [held]="counts().held"
+    />
+
     <label class="field">
       <span class="field-label">Base model</span>
       <select
@@ -48,6 +57,21 @@
       <p class="hint">{{ model.note }}</p>
     }
 
+    <label class="field">
+      <span class="field-label">Operation</span>
+      <select
+        class="select"
+        [value]="operation()"
+        (change)="setOperation($any($event.target).value)"
+        [disabled]="running()"
+      >
+        @for (kind of operations; track kind) {
+          <option [value]="kind">{{ labels[kind] }}</option>
+        }
+      </select>
+    </label>
+    <p class="hint">{{ notes[operation()] }}</p>
+
     <div class="train-row">
       <label class="field steps">
         <span class="field-label">Steps</span>
@@ -61,11 +85,19 @@
           [disabled]="running()"
         />
       </label>
-      <button type="button" class="primary" (click)="train()" [disabled]="running() || !chosen()">
+      <button
+        type="button"
+        class="primary"
+        (click)="train()"
+        [disabled]="running() || !chosen() || !runnable()"
+      >
         <app-icon name="play" [size]="14" />
-        {{ running() ? 'Training…' : 'Fine-tune on my material' }}
+        {{ running() ? 'Training…' : buttons[operation()] }}
       </button>
     </div>
+    @if (!runnable() && !running() && !datasetLoading()) {
+      <p class="hint">{{ blocked() }}</p>
+    }
 
     @if (!models().length) {
       <p class="empty">The machine has no base models to offer.</p>
@@ -73,40 +105,7 @@
   </div>
 
   @if (progress(); as run) {
-    <div class="base-card">
-      <h3>
-        @if (run.stage === 'failed') {
-          The last run failed
-        } @else if (running()) {
-          This run
-        } @else {
-          The last run
-        }
-      </h3>
-      <div class="stages">
-        @for (key of ['download', 'tune']; track key) {
-          <span class="stage-chip" [attr.data-status]="stageStatus(run, key)">
-            {{ key }} · {{ stageStatus(run, key) }}
-          </span>
-        }
-      </div>
-      <div
-        class="progress-bar"
-        role="progressbar"
-        [attr.aria-valuenow]="percent()"
-        aria-valuemin="0"
-        aria-valuemax="100"
-      >
-        <span [style.width.%]="percent()"></span>
-      </div>
-      <p class="run-line mono">{{ runLine(run) }}</p>
-      @if (run.error) {
-        <p class="error">{{ run.error }}</p>
-      }
-      @if (run.examples) {
-        <p class="hint">{{ run.examples }} examples from your material.</p>
-      }
-    </div>
+    <app-base-run [run]="run" [running]="running()" />
   }
 
   <app-saved-teachers

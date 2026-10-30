@@ -1,0 +1,43 @@
+<div class="base-card">
+  <h3>
+    @if (run().stage === 'failed') {
+      The last run failed
+    } @else if (running()) {
+      This run
+    } @else {
+      The last run
+    }
+  </h3>
+  @if (run().operation) {
+    <p class="hint mono">{{ run().operation }} · {{ kind() }} · {{ run().folder }}</p>
+  }
+  <div class="stages">
+    @for (key of stages; track key) {
+      <span class="stage-chip" [attr.data-status]="stageStatus(key)">
+        {{ stageLabel(key) }} · {{ stageStatus(key) }}
+      </span>
+    }
+  </div>
+  <div
+    class="progress-bar"
+    role="progressbar"
+    [attr.aria-valuenow]="percent()"
+    aria-valuemin="0"
+    aria-valuemax="100"
+  >
+    <span [style.width.%]="percent()"></span>
+  </div>
+  <p class="run-line mono">{{ runLine() }}</p>
+  @if (run().error) {
+    <p class="error">{{ run().error }}</p>
+  }
+  @if (facts()) {
+    <p class="hint">{{ facts() }}</p>
+  }
+  @if (run().kind === 'adapter' && run().written) {
+    <p class="hint">
+      Saved for measurement beside the teacher. An adapter is promoted only if it beats the
+      baseline; the chat still answers with the teacher.
+    </p>
+  }
+</div>

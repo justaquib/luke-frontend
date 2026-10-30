@@ -33,16 +33,38 @@ function state(overrides: Record<string, unknown> = {}): Record<string, unknown>
     ],
     last_run: {
       model_id: MODEL,
+      operation: 'sft',
+      kind: 'weights',
+      folder: TEACHER,
       stage: 'done',
-      stages: { download: 'done', tune: 'done' },
+      stages: { load: 'done', tune: 'done', save: 'done' },
       steps_done: 200,
       steps_total: 200,
       loss: 1.2345,
       finished: 1790000000,
-      examples: 42,
+      rows: 42,
+      sources: 12,
+      trainable_percent: 100,
+      written: true,
     },
     progress: null,
     running: false,
+    ...overrides,
+  };
+}
+
+function dataset(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    sources: 12,
+    examples: 40,
+    split_taken: true,
+    salt: 'luke-split',
+    share: 0.2,
+    splits: { train: 9, held_out: 3 },
+    counts: { sft_train: 30, sft_held_out: 10, pretrain_train: 2, pretrain_held_out: 1 },
+    passage_sources: 1,
+    answer_sources: 11,
+    leakage: [],
     ...overrides,
   };
 }
@@ -73,6 +95,12 @@ describe('TrainerBase', () => {
       });
   };
 
+  const flushDataset = (body: Record<string, unknown> = dataset()): void => {
+    http
+      .expectOne((request) => request.url.endsWith('/language-model/huggingface/dataset'))
+      .flush(body);
+  };
+
   const flushPackage = (): void => {
     http
       .expectOne((request) => request.url.endsWith('/language-model/export/preview'))
@@ -88,27 +116,34 @@ describe('TrainerBase', () => {
       });
   };
 
-  const render = (initial: Record<string, unknown> = state()): HTMLElement => {
+  const render = (
+    initial: Record<string, unknown> = state(),
+    corpus: Record<string, unknown> = dataset(),
+  ): HTMLElement => {
     const fixture = TestBed.createComponent(TrainerBase);
     fixture.detectChanges();
     http.expectOne((request) => request.url.endsWith('/language-model/huggingface')).flush(initial);
+    flushDataset(corpus);
     flushTransfer();
     flushPackage();
     fixture.detectChanges();
     return fixture.nativeElement as HTMLElement;
   };
 
-  it('reads the machine, the last run and the saved teachers from the backend', () => {
+  it('reads the machine, the dataset, the last run and the saved teachers', () => {
     const compiled = render();
 
     expect(compiled.textContent).toContain('mps');
     expect(compiled.textContent).toContain('transformers 5.20.2');
     expect((compiled.querySelector('.select') as HTMLSelectElement).value).toBe(MODEL);
-    expect(compiled.querySelector('.stage-chip')?.textContent).toContain('download · done');
+    expect(compiled.textContent).toContain('12 source(s)');
+    expect(compiled.textContent).toContain('30 training');
+    expect(compiled.textContent).toContain('10 held out');
+    expect(compiled.querySelector('.stage-chip')?.textContent).toContain('load model · done');
     expect(compiled.querySelector('.progress-bar')?.getAttribute('aria-valuenow')).toBe('100');
     expect(compiled.textContent).toContain('step 200 / 200');
     expect(compiled.textContent).toContain('loss 1.2345');
-    expect(compiled.textContent).toContain('42 examples from your material.');
+    expect(compiled.textContent).toContain('42 example(s) from 12 source(s).');
 
     const teacher = compiled.querySelector('.teacher');
     expect(teacher?.textContent).toContain('SmolLM2 135M');
@@ -124,6 +159,7 @@ describe('TrainerBase', () => {
     http
       .expectOne((request) => request.url.endsWith('/language-model/huggingface'))
       .flush(state({ teachers: [], last_run: null }));
+    flushDataset();
     flushTransfer();
     flushPackage();
     fixture.detectChanges();
@@ -142,7 +178,7 @@ describe('TrainerBase', () => {
     const request = http.expectOne((call) =>
       call.url.endsWith('/language-model/huggingface/train'),
     );
-    expect(request.request.body).toEqual({ model_id: MODEL, steps: 50 });
+    expect(request.request.body).toEqual({ model_id: MODEL, operation: 'sft', steps: 50 });
     request.flush(
       state({
         teachers: [],
@@ -150,8 +186,10 @@ describe('TrainerBase', () => {
         running: true,
         progress: {
           model_id: MODEL,
+          operation: 'sft',
+          kind: 'weights',
           stage: 'tune',
-          stages: { download: 'done', tune: 'running' },
+          stages: { load: 'done', tune: 'running', save: 'waiting' },
           steps_done: 10,
           steps_total: 50,
         },
@@ -168,6 +206,7 @@ describe('TrainerBase', () => {
     const fixture = TestBed.createComponent(TrainerBase);
     fixture.detectChanges();
     http.expectOne((request) => request.url.endsWith('/language-model/huggingface')).flush(state());
+    flushDataset();
     flushTransfer();
     flushPackage();
     fixture.detectChanges();
@@ -184,5 +223,97 @@ describe('TrainerBase', () => {
     fixture.detectChanges();
 
     expect(compiled.textContent).toContain('No teacher is saved yet');
+  });
+
+  it('asks for an adapter as its own operation', () => {
+    const fixture = TestBed.createComponent(TrainerBase);
+    fixture.detectChanges();
+    http
+      .expectOne((request) => request.url.endsWith('/language-model/huggingface'))
+      .flush(state({ teachers: [], last_run: null }));
+    flushDataset();
+    flushTransfer();
+    flushPackage();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const operation = [...compiled.querySelectorAll<HTMLSelectElement>('.select')][1];
+    operation.value = 'lora';
+    operation.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    const start = [...compiled.querySelectorAll<HTMLButtonElement>('button')].find((button) =>
+      button.textContent?.includes('Train an adapter'),
+    );
+    start?.click();
+
+    const request = http.expectOne((call) =>
+      call.url.endsWith('/language-model/huggingface/train'),
+    );
+    expect(request.request.body).toEqual({ model_id: MODEL, operation: 'lora', steps: 200 });
+    request.flush(
+      state({
+        teachers: [],
+        last_run: null,
+        running: true,
+        progress: {
+          model_id: MODEL,
+          operation: 'lora',
+          kind: 'adapter',
+          stage: 'tune',
+          stages: { load: 'done', tune: 'running', save: 'waiting' },
+          steps_done: 5,
+          steps_total: 200,
+        },
+      }),
+    );
+    fixture.detectChanges();
+    expect(compiled.textContent).toContain('lora · adapter');
+    fixture.destroy();
+  });
+
+  it('will not start a run while nothing is held out', () => {
+    const compiled = render(
+      state({ teachers: [], last_run: null }),
+      dataset({ split_taken: false, counts: {} }),
+    );
+
+    const start = [...compiled.querySelectorAll<HTMLButtonElement>('button')].find((button) =>
+      button.textContent?.includes('Fine-tune'),
+    );
+    expect(start?.disabled).toBe(true);
+    expect(compiled.textContent).toContain('Nothing is held out yet');
+  });
+
+  it('names a held-out source that also sits on the training side', () => {
+    const compiled = render(state(), dataset({ leakage: ['lesson:a'] }));
+
+    expect(compiled.textContent).toContain('1 held-out source(s) also sit on the training side');
+    expect(compiled.textContent).toContain('lesson:a');
+    const start = [...compiled.querySelectorAll<HTMLButtonElement>('button')].find((button) =>
+      button.textContent?.includes('Fine-tune'),
+    );
+    expect(start?.disabled).toBe(true);
+  });
+
+  it('names a dataset that could not be read and keeps the run button closed', () => {
+    const fixture = TestBed.createComponent(TrainerBase);
+    fixture.detectChanges();
+    http
+      .expectOne((request) => request.url.endsWith('/language-model/huggingface'))
+      .flush(state({ teachers: [], last_run: null }));
+    http
+      .expectOne((request) => request.url.endsWith('/language-model/huggingface/dataset'))
+      .flush({ detail: 'The corpus reader failed.' }, { status: 500, statusText: 'Server Error' });
+    flushTransfer();
+    flushPackage();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('The corpus reader failed.');
+    const start = [...compiled.querySelectorAll<HTMLButtonElement>('button')].find((button) =>
+      button.textContent?.includes('Fine-tune'),
+    );
+    expect(start?.disabled).toBe(true);
   });
 });

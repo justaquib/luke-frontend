@@ -7,7 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import type { TeacherInfo } from '../core/api/api-models';
+import type { TeacherInfo } from '../core/api/training-models';
 import type { TransferRun, TransferState } from '../core/api/transfer-models';
 import { ModelApiService } from '../core/api/model-api.service';
 import { AppIcon } from '../shared/app-icon';

@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { catchError, map, type Observable } from 'rxjs';
 import { BaseApiService } from './base-api.service';
+import type { AnswerModelCatalog, WordPrediction } from './api-models';
 import type {
-  AnswerModelCatalog,
   HuggingFaceRun,
   HuggingFaceState,
-  WordPrediction,
-} from './api-models';
+  TrainingDataset,
+  TrainingOperation,
+} from './training-models';
 import type { LukePackageMode, LukePackagePreview } from './luke-package';
 import type { TransferState } from './transfer-models';
 
@@ -46,11 +47,23 @@ export class ModelApiService extends BaseApiService {
       );
   }
 
-  trainBaseModel(modelId: string, steps: number): Observable<HuggingFaceState> {
+  trainingDataset(): Observable<TrainingDataset> {
+    return this.http
+      .get<TrainingDataset>(`${this.base}/language-model/huggingface/dataset`, {
+        headers: this.authHeaders(),
+      })
+      .pipe(catchError((err) => this.handleError(err)));
+  }
+
+  trainBaseModel(
+    modelId: string,
+    operation: TrainingOperation,
+    steps: number,
+  ): Observable<HuggingFaceState> {
     return this.http
       .post<HuggingFaceState>(
         `${this.base}/language-model/huggingface/train`,
-        { model_id: modelId, steps },
+        { model_id: modelId, operation, steps },
         { headers: this.authHeaders() },
       )
       .pipe(

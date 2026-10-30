@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import type { TeacherInfo } from '../core/api/api-models';
+import type { TeacherInfo } from '../core/api/training-models';
 import { AppIcon } from '../shared/app-icon';
 
 /** The teachers already fine-tuned on this machine, and their measured facts. */

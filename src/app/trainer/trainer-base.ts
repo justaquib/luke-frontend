@@ -7,41 +7,76 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { ModelApiService } from '../core/api/model-api.service';
 import type {
   BaseModelInfo,
   HuggingFaceRun,
   HuggingFaceState,
   TeacherInfo,
-} from '../core/api/api-models';
-import { ModelApiService } from '../core/api/model-api.service';
+  TrainingDataset,
+  TrainingOperation,
+} from '../core/api/training-models';
 import { AppIcon } from '../shared/app-icon';
 import { UiService } from '../shared/ui.service';
 import { LukePackage } from './luke-package';
 import { SavedTeachers } from './saved-teachers';
+import { TrainerBaseDataset } from './trainer-base-dataset';
+import { TrainerBaseRun } from './trainer-base-run';
 import { TrainerTransfer } from './trainer-transfer';
 
 const DEFAULT_STEPS = 200;
 const POLL_MS = 2000;
+const OPERATIONS: readonly TrainingOperation[] = ['sft', 'lora', 'pretrain'];
+
+const LABELS: Record<TrainingOperation, string> = {
+  sft: 'Supervised fine-tune (all weights)',
+  lora: 'Adapter (LoRA)',
+  pretrain: 'Continue pretraining',
+};
+
+const NOTES: Record<TrainingOperation, string> = {
+  sft: 'Every weight moves, and the result replaces the saved teacher for this base model.',
+  lora: 'Only a small set of added matrices move. The adapter is saved beside the teacher and is promoted only if it beats the baseline.',
+  pretrain:
+    'Reads the uploaded documents as passages rather than questions. It changes nothing until documents are stored.',
+};
+
+const BUTTONS: Record<TrainingOperation, string> = {
+  sft: 'Fine-tune on my material',
+  lora: 'Train an adapter',
+  pretrain: 'Continue pretraining',
+};
 
 /**
- * The Base model tab: fine-tune a small Hugging Face model on this tenant's
- * material, watch the run the backend records, and remove saved teachers.
- * Every number on the tab is read from the run that measured it.
+ * The Base model tab: start one of the three training operations on this
+ * workspace's material, watch the run the backend records, and remove saved
+ * teachers. Every number on the tab is read from the run that measured it.
  */
 @Component({
   selector: 'app-trainer-base',
   standalone: true,
-  imports: [AppIcon, LukePackage, SavedTeachers, TrainerTransfer],
+  imports: [
+    AppIcon,
+    LukePackage,
+    SavedTeachers,
+    TrainerBaseDataset,
+    TrainerBaseRun,
+    TrainerTransfer,
+  ],
   templateUrl: './trainer-base.html',
   styleUrls: ['./styles/trainer-base.css', '../shared/controls.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TrainerBase implements OnInit {
   protected readonly state = signal<HuggingFaceState | null>(null);
+  protected readonly dataset = signal<TrainingDataset | null>(null);
+  protected readonly datasetError = signal<string | null>(null);
   protected readonly loading = signal(false);
+  protected readonly datasetLoading = signal(false);
   protected readonly starting = signal(false);
   protected readonly steps = signal(DEFAULT_STEPS);
   protected readonly selected = signal('');
+  protected readonly operation = signal<TrainingOperation>('sft');
   protected readonly removing = signal<string | null>(null);
 
   private readonly api = inject(ModelApiService);
@@ -50,6 +85,10 @@ export class TrainerBase implements OnInit {
   private timer?: ReturnType<typeof setTimeout>;
   private wasRunning = false;
 
+  protected readonly operations = OPERATIONS;
+  protected readonly labels = LABELS;
+  protected readonly notes = NOTES;
+  protected readonly buttons = BUTTONS;
   protected readonly models = computed<BaseModelInfo[]>(() => this.state()?.base_models ?? []);
   protected readonly teachers = computed<TeacherInfo[]>(() => this.state()?.teachers ?? []);
   protected readonly running = computed(() => !!this.state()?.running || this.starting());
@@ -59,13 +98,30 @@ export class TrainerBase implements OnInit {
   protected readonly progress = computed<HuggingFaceRun | null>(
     () => this.state()?.progress ?? this.state()?.last_run ?? null,
   );
-  protected readonly percent = computed(() => {
-    const run = this.progress();
-    if (!run) return 0;
-    if (run.finished && run.stage !== 'failed') return 100;
-    const total = run.steps_total ?? 0;
-    const done = run.steps_done ?? 0;
-    return total ? Math.min(100, Math.round((done / total) * 100)) : 0;
+  protected readonly leaks = computed(() => this.dataset()?.leakage ?? []);
+  protected readonly counts = computed(() => {
+    const counts = this.dataset()?.counts ?? {};
+    const task = this.operation() === 'pretrain' ? 'pretrain' : 'sft';
+    return { train: counts[`${task}_train`] ?? 0, held: counts[`${task}_held_out`] ?? 0 };
+  });
+  protected readonly runnable = computed(
+    () => !!this.dataset()?.split_taken && this.counts().train > 0 && !this.leaks().length,
+  );
+  protected readonly blocked = computed(() => {
+    const data = this.dataset();
+    if (!data) return this.datasetError() ?? 'The dataset has not been read yet.';
+    if (!data.split_taken) {
+      return 'Nothing is held out yet: teach material from at least two different sources first.';
+    }
+    if (this.leaks().length) {
+      return `${this.leaks().length} held-out source(s) also sit on the training side; the split has to be clean before any weight moves.`;
+    }
+    if (this.counts().train === 0) {
+      return this.operation() === 'pretrain'
+        ? 'No passage is stored yet: upload a document in Documents to continue-pretrain.'
+        : 'No taught answer is stored yet: approve an answer in the inbox first.';
+    }
+    return '';
   });
 
   constructor() {
@@ -74,6 +130,7 @@ export class TrainerBase implements OnInit {
 
   ngOnInit(): void {
     this.refresh();
+    this.loadDataset();
   }
 
   refresh(): void {
@@ -91,6 +148,10 @@ export class TrainerBase implements OnInit {
     this.selected.set(modelId);
   }
 
+  setOperation(value: string): void {
+    if (value === 'sft' || value === 'lora' || value === 'pretrain') this.operation.set(value);
+  }
+
   setSteps(value: string): void {
     const steps = Number(value);
     this.steps.set(Number.isFinite(steps) ? Math.min(2000, Math.max(1, Math.round(steps))) : 1);
@@ -98,18 +159,19 @@ export class TrainerBase implements OnInit {
 
   train(): void {
     const model = this.chosen();
-    if (!model || this.running()) return;
+    const operation = this.operation();
+    if (!model || this.running() || !this.runnable()) return;
     this.starting.set(true);
-    this.api.trainBaseModel(model.id, this.steps()).subscribe({
+    this.api.trainBaseModel(model.id, operation, this.steps()).subscribe({
       next: (state) => {
         this.starting.set(false);
         this.wasRunning = true;
-        this.ui.success(`Fine-tuning ${model.name} on the lab’s material.`);
+        this.ui.success(`Started ${LABELS[operation].toLowerCase()} on ${model.name}.`);
         this.accept(state);
       },
       error: (error: Error) => {
         this.starting.set(false);
-        this.ui.error(error.message || 'The fine-tune could not start.');
+        this.ui.error(error.message || 'The run could not start.');
       },
     });
   }
@@ -140,16 +202,21 @@ export class TrainerBase implements OnInit {
       });
   }
 
-  protected stageStatus(run: HuggingFaceRun, key: string): string {
-    return run.stages?.[key] ?? 'waiting';
-  }
-
-  protected runLine(run: HuggingFaceRun): string {
-    const parts = [`step ${run.steps_done ?? 0} / ${run.steps_total ?? 0}`];
-    if (run.loss !== null && run.loss !== undefined) parts.push(`loss ${run.loss}`);
-    if (run.eta_seconds) parts.push(`${run.eta_seconds}s left`);
-    if (run.seconds) parts.push(`${run.seconds}s elapsed`);
-    return parts.join(' · ');
+  private loadDataset(): void {
+    this.datasetLoading.set(true);
+    this.datasetError.set(null);
+    this.api.trainingDataset().subscribe({
+      next: (data) => {
+        this.dataset.set(data);
+        this.datasetLoading.set(false);
+      },
+      error: (error: Error) => {
+        this.dataset.set(null);
+        this.datasetLoading.set(false);
+        this.datasetError.set(error.message || 'The training dataset could not be read.');
+        this.ui.error(error.message || 'The training dataset could not be read.');
+      },
+    });
   }
 
   private accept(state: HuggingFaceState): void {
@@ -170,13 +237,25 @@ export class TrainerBase implements OnInit {
     if (!this.wasRunning || state.running) return;
     this.wasRunning = false;
     const run = state.progress;
-    if (run && run.stage === 'failed') {
-      this.ui.error(run.error || 'The fine-tune failed.');
+    if (run?.finished) this.announceRun(run);
+  }
+
+  private announceRun(run: HuggingFaceRun): void {
+    if (run.stage === 'failed') {
+      this.ui.error(run.error || 'The run failed.');
       return;
     }
-    if (run?.finished) {
-      this.ui.success('Fine-tune finished; the teacher is ready in the chat.');
+    if (run.stage !== 'done') {
+      this.ui.error(`The run stopped after step ${run.steps_done ?? 0}; nothing was written.`);
+      return;
     }
+    if (run.kind === 'adapter') {
+      this.ui.success(
+        'Adapter finished and saved for measurement. It is promoted only if it beats the baseline; the chat still answers with the teacher.',
+      );
+      return;
+    }
+    this.ui.success('Fine-tune finished; the teacher is ready in the chat.');
   }
 
   private schedulePoll(): void {
