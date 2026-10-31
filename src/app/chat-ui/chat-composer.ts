@@ -66,7 +66,7 @@ export class ChatComposer {
     this.draft.set(value);
     this.fit(element);
 
-    if (value.startsWith('/')) {
+    if (value.startsWith('/') && !value.includes(' ')) {
       this.slashMenuVisible.set(true);
       this.slashQuery.set(value.slice(1));
     } else {
@@ -116,18 +116,12 @@ export class ChatComposer {
   onToolSelected(tool: Tool): void {
     this.slashMenuVisible.set(false);
     this.slashQuery.set('');
-    this.draft.set('');
+    const text = `/${tool.name} `;
+    this.draft.set(text);
     const textarea = this.input().nativeElement;
-    textarea.value = '';
+    textarea.value = text;
+    textarea.focus();
     this.fit(textarea);
-
-    const request = {
-      tool: tool.name,
-      params: {},
-      conversation_id: this.sessions.activeId() || undefined,
-      confirmed: true,
-    };
-    this.service.executeTool(request);
   }
 
   closeSlashMenu(): void {
@@ -140,9 +134,43 @@ export class ChatComposer {
     if (!text || this.service.isTyping()) {
       return;
     }
+    if (text.startsWith('/')) {
+      this.executeToolFromText(text);
+      return;
+    }
     this.service.send(text, this.options());
     this.draft.set('');
     this.fit(this.input().nativeElement);
+  }
+
+  private executeToolFromText(text: string): void {
+    const spaceIndex = text.indexOf(' ');
+    const toolName = spaceIndex > 0 ? text.slice(1, spaceIndex) : text.slice(1);
+    const paramText = spaceIndex > 0 ? text.slice(spaceIndex + 1).trim() : '';
+
+    const tool = this.availableTools().find((t) => t.name === toolName);
+    if (!tool) {
+      this.ui.error(`Unknown tool: ${toolName}`);
+      return;
+    }
+
+    const params: Record<string, unknown> = {};
+    const requiredParams = tool.parameters.required || [];
+    if (requiredParams.length > 0 && paramText) {
+      params[requiredParams[0]] = paramText;
+    }
+
+    const request = {
+      tool: toolName,
+      params,
+      conversation_id: this.sessions.activeId() || undefined,
+      confirmed: true,
+    };
+    this.service.executeTool(request);
+    this.draft.set('');
+    const textarea = this.input().nativeElement;
+    textarea.value = '';
+    this.fit(textarea);
   }
 
   stop(): void {
