@@ -7,6 +7,7 @@ import { ChatApiService, type QueryOptions } from '../core/api/chat-api.service'
 import { BrowserService } from '../core/browser.service';
 import { IntegrationsService } from '../core/integrations.service';
 import { ToolsService, type ToolExecuteRequest } from '../core/tools.service';
+import { VoiceService } from '../core/voice.service';
 import {
   type AnswerTrace,
   type PipelinePhase,
@@ -30,6 +31,7 @@ export class ChatService {
   private readonly router = inject(Router);
   private readonly integrations = inject(IntegrationsService);
   private readonly tools = inject(ToolsService);
+  private readonly voice = inject(VoiceService);
 
   readonly isTyping = signal(false);
   readonly backendStatus = signal<'unknown' | 'online' | 'offline'>('unknown');
@@ -173,11 +175,16 @@ export class ChatService {
   }
 
   private appendAnswer(question: string, response: QueryResponse): void {
-    this.session.appendMessage(this.answerMessage(response));
+    const message = this.answerMessage(response);
+    this.session.appendMessage(message);
     this.isTyping.set(false);
     this.clearTrace();
     this.backendStatus.set('online');
     this.session.touchTitle(question);
+
+    if (this.voice.enabled()) {
+      void this.voice.speak(message.text);
+    }
   }
 
   private answerMessage(response: QueryResponse): ChatMessage {
