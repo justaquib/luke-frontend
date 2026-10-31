@@ -29,7 +29,7 @@
               aria-label="Add new chat or configure"
               title="Add new chat or configure"
             >
-              <app-icon name="plus" [size]="16" />
+              <app-icon name="grid" [size]="16" />
             </summary>
             <div class="composer-menu-list">
               <button type="button" class="menu-item" (click)="newChat(); menu.open = false">
@@ -110,7 +110,7 @@
             class="model-pill"
             [title]="models.error() || 'The model that answers the next message'"
           >
-            <app-icon name="layers" [size]="13" />
+            <app-icon name="sparkle" [size]="13" />
             <select
               class="model-select"
               [value]="models.selectedId()"

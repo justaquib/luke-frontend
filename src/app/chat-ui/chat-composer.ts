@@ -125,6 +125,7 @@ export class ChatComposer {
       tool: tool.name,
       params: {},
       conversation_id: this.sessions.activeId() || undefined,
+      confirmed: true,
     };
     this.service.executeTool(request);
   }
