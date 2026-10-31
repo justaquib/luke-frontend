@@ -26,14 +26,15 @@
   gap: 8px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--ok);
+  color: var(--text-secondary);
 }
 
 .tool_summary app-icon {
   flex-shrink: 0;
+  color: var(--faint);
 }
 
 .message-row.tool .bubble {
-  background: color-mix(in srgb, var(--ok) 8%, var(--surface-2));
-  border-color: color-mix(in srgb, var(--ok) 30%, var(--border-1));
+  background: var(--surface-2);
+  border-color: var(--border-1);
 }
