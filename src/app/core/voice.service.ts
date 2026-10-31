@@ -24,6 +24,14 @@ export interface VoiceStatus {
   error: string | null;
 }
 
+interface RecordingContext {
+  stream: MediaStream;
+  audioChunks: Blob[];
+  stopped: Promise<void>;
+  accumulatedText: string;
+  transcriptionInterval?: ReturnType<typeof setInterval>;
+}
+
 @Injectable({ providedIn: 'root' })
 export class VoiceService {
   private readonly http = inject(HttpClient);
@@ -205,90 +213,101 @@ export class VoiceService {
     this._isRecording.set(true);
     this._liveTranscript.set('');
     this.lastSoundTime = Date.now();
-    let accumulatedText = '';
+    const context = await this.createRecordingContext();
+    if (!context) {
+      this._isRecording.set(false);
+      return '';
+    }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      this.audioContext = new AudioContext();
-      const source = this.audioContext.createMediaStreamSource(stream);
-      this.analyser = this.audioContext.createAnalyser();
-      this.analyser.fftSize = 256;
-      source.connect(this.analyser);
-
-      this.mediaRecorder = new MediaRecorder(stream);
-      this.mediaRecorder.ondataavailable = async (e) => {
-        if (e.data.size > 0 && this._isRecording()) {
-          try {
-            const text = await firstValueFrom(this.transcribe(e.data));
-            if (text && text !== accumulatedText) {
-              accumulatedText = text;
-              this._liveTranscript.set(text);
-            }
-          } catch {
-            // Transcription failed, continue recording
-          }
-        }
-      };
-
-      const stopped = new Promise<void>((resolve) => {
-        this.mediaRecorder!.onstop = () => resolve();
-      });
-
-      this.mediaRecorder.start(1000);
+      this.startTranscriptionLoop(context);
       this.detectSilence();
-
-      await stopped;
-      stream.getTracks().forEach((t) => t.stop());
-
-      return accumulatedText;
+      await context.stopped;
+      context.stream.getTracks().forEach((t) => t.stop());
+      this.cleanupRecording(context);
+      return await this.finalizeTranscription(context);
     } catch {
+      this.cleanupRecording(context);
       return '';
-    } finally {
-      this._isRecording.set(false);
-      this._liveTranscript.set('');
-      this.mediaRecorder = null;
-      if (this.audioContext) {
-        void this.audioContext.close();
-        this.audioContext = null;
-      }
-      this.analyser = null;
-      if (this.animationFrameId !== null) {
-        cancelAnimationFrame(this.animationFrameId);
-        this.animationFrameId = null;
-      }
-      if (this.silenceTimer) {
-        clearTimeout(this.silenceTimer);
-        this.silenceTimer = null;
-      }
+    }
+  }
+
+  private async createRecordingContext(): Promise<RecordingContext | null> {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    this.audioContext = new AudioContext();
+    const source = this.audioContext.createMediaStreamSource(stream);
+    this.analyser = this.audioContext.createAnalyser();
+    this.analyser.fftSize = 256;
+    source.connect(this.analyser);
+    this.mediaRecorder = new MediaRecorder(stream);
+    const audioChunks: Blob[] = [];
+    this.mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0 && this._isRecording()) audioChunks.push(e.data);
+    };
+    const stopped = new Promise<void>((resolve) => {
+      this.mediaRecorder!.onstop = () => resolve();
+    });
+    this.mediaRecorder.start(1000);
+    return { stream, audioChunks, stopped, accumulatedText: '' };
+  }
+
+  private startTranscriptionLoop(context: RecordingContext): void {
+    context.transcriptionInterval = setInterval(() => {
+      void (async () => {
+        if (context.audioChunks.length === 0 || !this._isRecording()) return;
+        try {
+          const blob = new Blob(context.audioChunks, { type: 'audio/webm' });
+          const text = await firstValueFrom(this.transcribe(blob));
+          if (text) {
+            context.accumulatedText = text;
+            this._liveTranscript.set(text);
+          }
+        } catch {
+          // Transcription failed, continue recording
+        }
+      })();
+    }, 3000);
+  }
+
+  private cleanupRecording(context: RecordingContext): void {
+    this._isRecording.set(false);
+    this._liveTranscript.set('');
+    if (context.transcriptionInterval) clearInterval(context.transcriptionInterval);
+    this.mediaRecorder = null;
+    if (this.audioContext) void this.audioContext.close();
+    this.audioContext = this.analyser = null;
+    if (this.animationFrameId !== null) cancelAnimationFrame(this.animationFrameId);
+    this.animationFrameId = null;
+    if (this.silenceTimer) clearTimeout(this.silenceTimer);
+    this.silenceTimer = null;
+  }
+
+  private async finalizeTranscription(context: RecordingContext): Promise<string> {
+    if (context.audioChunks.length === 0) return context.accumulatedText;
+    try {
+      const blob = new Blob(context.audioChunks, { type: 'audio/webm' });
+      return (await firstValueFrom(this.transcribe(blob))) || context.accumulatedText;
+    } catch {
+      return context.accumulatedText;
     }
   }
 
   private detectSilence(): void {
     if (!this.analyser) return;
-
     const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
     const checkSilence = (): void => {
       if (!this.analyser || !this._isRecording()) return;
-
       this.analyser.getByteFrequencyData(dataArray);
       const average = dataArray.reduce((sum, val) => sum + val, 0) / dataArray.length;
-
       if (average > 20) {
         this.lastSoundTime = Date.now();
-        if (this.silenceTimer) {
-          clearTimeout(this.silenceTimer);
-          this.silenceTimer = null;
-        }
-      } else {
-        const silenceDuration = Date.now() - this.lastSoundTime;
-        if (silenceDuration > 5000 && !this.silenceTimer) {
-          this.stopListening();
-        }
+        if (this.silenceTimer) clearTimeout(this.silenceTimer);
+        this.silenceTimer = null;
+      } else if (Date.now() - this.lastSoundTime > 5000 && !this.silenceTimer) {
+        this.stopListening();
       }
-
       this.animationFrameId = requestAnimationFrame(checkSilence);
     };
-
     checkSilence();
   }
 
