@@ -36,6 +36,7 @@ export class VoiceService {
   private readonly _status = signal<VoiceStatus | null>(null);
   private readonly _isRecording = signal(false);
   private readonly _isSpeaking = signal(false);
+  private readonly _liveTranscript = signal('');
 
   private audioContext: AudioContext | null = null;
   private mediaRecorder: MediaRecorder | null = null;
@@ -43,6 +44,10 @@ export class VoiceService {
   private currentAudioSource: AudioBufferSourceNode | null = null;
   private playbackQueue: string[] = [];
   private isProcessingQueue = false;
+  private silenceTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastSoundTime = 0;
+  private analyser: AnalyserNode | null = null;
+  private animationFrameId: number | null = null;
 
   readonly enabled = this._enabled.asReadonly();
   readonly activeVoice = this._activeVoice.asReadonly();
@@ -50,6 +55,7 @@ export class VoiceService {
   readonly status = this._status.asReadonly();
   readonly isRecording = this._isRecording.asReadonly();
   readonly isSpeaking = this._isSpeaking.asReadonly();
+  readonly liveTranscript = this._liveTranscript.asReadonly();
   readonly available = (): boolean => this._status()?.available ?? false;
   private readonly _currentlyPlayingText = signal<string | null>(null);
   readonly currentlyPlayingText = this._currentlyPlayingText.asReadonly();
@@ -197,35 +203,91 @@ export class VoiceService {
   async listen(): Promise<string> {
     if (this._isRecording()) return '';
     this._isRecording.set(true);
+    this._liveTranscript.set('');
+    this.lastSoundTime = Date.now();
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.audioContext = new AudioContext();
+      const source = this.audioContext.createMediaStreamSource(stream);
+      this.analyser = this.audioContext.createAnalyser();
+      this.analyser.fftSize = 256;
+      source.connect(this.analyser);
+
       this.mediaRecorder = new MediaRecorder(stream);
       const chunks: Blob[] = [];
       this.mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunks.push(e.data);
       };
+
       const stopped = new Promise<void>((resolve) => {
         this.mediaRecorder!.onstop = () => resolve();
       });
-      this.mediaRecorder.start();
-      // Record for up to 10 seconds, or until the user stops.
-      setTimeout(() => {
-        if (this.mediaRecorder?.state === 'recording') {
-          this.mediaRecorder.stop();
-        }
-      }, 10000);
-      // Wait for the user to release the button or the timeout.
+
+      this.mediaRecorder.start(1000);
+      this.detectSilence();
+
       await stopped;
       stream.getTracks().forEach((t) => t.stop());
-      const blob = new Blob(chunks, { type: 'audio/webm' });
-      const text = await firstValueFrom(this.transcribe(blob));
-      return text;
+
+      if (chunks.length > 0) {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const text = await firstValueFrom(this.transcribe(blob));
+        if (text) {
+          this._liveTranscript.set(text);
+          return text;
+        }
+      }
+      return this._liveTranscript();
     } catch {
       return '';
     } finally {
       this._isRecording.set(false);
+      this._liveTranscript.set('');
       this.mediaRecorder = null;
+      if (this.audioContext) {
+        void this.audioContext.close();
+        this.audioContext = null;
+      }
+      this.analyser = null;
+      if (this.animationFrameId !== null) {
+        cancelAnimationFrame(this.animationFrameId);
+        this.animationFrameId = null;
+      }
+      if (this.silenceTimer) {
+        clearTimeout(this.silenceTimer);
+        this.silenceTimer = null;
+      }
     }
+  }
+
+  private detectSilence(): void {
+    if (!this.analyser) return;
+
+    const dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+    const checkSilence = (): void => {
+      if (!this.analyser || !this._isRecording()) return;
+
+      this.analyser.getByteFrequencyData(dataArray);
+      const average = dataArray.reduce((sum, val) => sum + val, 0) / dataArray.length;
+
+      if (average > 20) {
+        this.lastSoundTime = Date.now();
+        if (this.silenceTimer) {
+          clearTimeout(this.silenceTimer);
+          this.silenceTimer = null;
+        }
+      } else {
+        const silenceDuration = Date.now() - this.lastSoundTime;
+        if (silenceDuration > 5000 && !this.silenceTimer) {
+          this.stopListening();
+        }
+      }
+
+      this.animationFrameId = requestAnimationFrame(checkSilence);
+    };
+
+    checkSilence();
   }
 
   stopListening(): void {

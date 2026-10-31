@@ -106,6 +106,8 @@ export class ChatComposer {
       const textarea = this.input().nativeElement;
       textarea.value = text;
       this.fit(textarea);
+      // Auto-send after a short delay to show the transcribed text
+      setTimeout(() => this.send(), 500);
     }
   }
 
