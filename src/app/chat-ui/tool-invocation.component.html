@@ -38,10 +38,12 @@
 
   @if (invocation().result && invocation().status === 'completed') {
     <div class="tool_result">
-      <button type="button" class="result_toggle" (click)="toggleResult()">
-        <app-icon name="chevron-down" [size]="14" [class.expanded]="resultExpanded()" />
-        <span>{{ resultExpanded() ? 'Hide result' : 'Show result' }}</span>
-      </button>
+      <div class="result_summary">
+        <span class="result_text">{{ resultSummary() }}</span>
+        <button type="button" class="result_toggle" (click)="toggleResult()">
+          <app-icon name="chevron-down" [size]="14" [class.expanded]="resultExpanded()" />
+        </button>
+      </div>
       @if (resultExpanded()) {
         <pre class="result_output">{{ invocation().result?.output | json }}</pre>
       }

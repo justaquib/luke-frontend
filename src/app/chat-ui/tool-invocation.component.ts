@@ -50,4 +50,26 @@ export class ToolInvocationComponent {
       value: typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value),
     }));
   }
+
+  resultSummary(): string {
+    const result = this.invocation().result;
+    if (!result?.output) return 'Result';
+
+    const output = result.output;
+    if (typeof output === 'object' && output !== null) {
+      if ('launched' in output && 'app' in output) {
+        const app = String(output.app);
+        return `App Launched - ${app}`;
+      }
+      if ('error' in output) {
+        const error = String(output.error);
+        return `Error - ${error}`;
+      }
+      const keys = Object.keys(output);
+      if (keys.length > 0) {
+        return `${this.invocation().tool} - ${keys[0]}`;
+      }
+    }
+    return 'Result';
+  }
 }
