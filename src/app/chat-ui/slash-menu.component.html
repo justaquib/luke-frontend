@@ -1,6 +1,5 @@
 @if (visible()) {
   <div class="slash_menu" #menu>
-    <div class="slash_menu_header">Tools</div>
     @for (tool of filteredTools(); track tool.name) {
       <button
         type="button"
@@ -9,16 +8,8 @@
         (click)="selectTool(tool)"
         (mouseenter)="selectedIndex.set($index)"
       >
-        <div class="slash_menu_item_icon">
-          <app-icon name="wand" [size]="16" />
-        </div>
-        <div class="slash_menu_item_content">
-          <div class="slash_menu_item_name">/{{ tool.name }}</div>
-          <div class="slash_menu_item_desc">{{ tool.description }}</div>
-        </div>
-        @if (tool.requires_confirmation) {
-          <span class="slash_menu_badge">Confirm</span>
-        }
+        <app-icon name="wand" [size]="14" />
+        <span>/{{ tool.name }}</span>
       </button>
     }
     @if (filteredTools().length === 0) {
