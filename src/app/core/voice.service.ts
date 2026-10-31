@@ -214,13 +214,7 @@ export class VoiceService {
           this.mediaRecorder.stop();
         }
       }, 10000);
-      // Wait for the user to click stop or the timeout.
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      // For now, auto-stop after a short delay. A real implementation would
-      // wire a stop button to the UI.
-      if (this.mediaRecorder?.state === 'recording') {
-        this.mediaRecorder.stop();
-      }
+      // Wait for the user to release the button or the timeout.
       await stopped;
       stream.getTracks().forEach((t) => t.stop());
       const blob = new Blob(chunks, { type: 'audio/webm' });
