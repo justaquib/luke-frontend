@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   type ElementRef,
+  effect,
   inject,
   signal,
   viewChild,
@@ -52,6 +53,18 @@ export class ChatComposer {
     this.models.load();
     void this.voice.loadStatus();
     this.loadTools();
+
+    effect(() => {
+      const transcript = this.voice.liveTranscript();
+      if (transcript && this.voice.isRecording()) {
+        this.draft.set(transcript);
+        const textarea = this.input();
+        if (textarea) {
+          textarea.nativeElement.value = transcript;
+          this.fit(textarea.nativeElement);
+        }
+      }
+    });
   }
 
   private loadTools(): void {

@@ -205,6 +205,7 @@ export class VoiceService {
     this._isRecording.set(true);
     this._liveTranscript.set('');
     this.lastSoundTime = Date.now();
+    let accumulatedText = '';
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -215,9 +216,18 @@ export class VoiceService {
       source.connect(this.analyser);
 
       this.mediaRecorder = new MediaRecorder(stream);
-      const chunks: Blob[] = [];
-      this.mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
+      this.mediaRecorder.ondataavailable = async (e) => {
+        if (e.data.size > 0 && this._isRecording()) {
+          try {
+            const text = await firstValueFrom(this.transcribe(e.data));
+            if (text && text !== accumulatedText) {
+              accumulatedText = text;
+              this._liveTranscript.set(text);
+            }
+          } catch {
+            // Transcription failed, continue recording
+          }
+        }
       };
 
       const stopped = new Promise<void>((resolve) => {
@@ -230,15 +240,7 @@ export class VoiceService {
       await stopped;
       stream.getTracks().forEach((t) => t.stop());
 
-      if (chunks.length > 0) {
-        const blob = new Blob(chunks, { type: 'audio/webm' });
-        const text = await firstValueFrom(this.transcribe(blob));
-        if (text) {
-          this._liveTranscript.set(text);
-          return text;
-        }
-      }
-      return this._liveTranscript();
+      return accumulatedText;
     } catch {
       return '';
     } finally {
