@@ -112,20 +112,19 @@ export class ChatComposer {
     this.voice.toggle();
   }
 
-  async startListening(): Promise<void> {
-    const text = await this.voice.listen();
-    if (text) {
-      this.draft.set(text);
-      const textarea = this.input().nativeElement;
-      textarea.value = text;
-      this.fit(textarea);
-      // Auto-send after a short delay to show the transcribed text
-      setTimeout(() => this.send(), 500);
+  async toggleListening(): Promise<void> {
+    if (this.voice.isRecording()) {
+      this.voice.stopListening();
+    } else {
+      const text = await this.voice.listen();
+      if (text) {
+        this.draft.set(text);
+        const textarea = this.input().nativeElement;
+        textarea.value = text;
+        this.fit(textarea);
+        setTimeout(() => this.send(), 500);
+      }
     }
-  }
-
-  stopListening(): void {
-    this.voice.stopListening();
   }
 
   onToolSelected(tool: Tool): void {

@@ -96,12 +96,10 @@
           <button
             type="button"
             class="tool-btn mic-btn"
-            (mousedown)="startListening()"
-            (mouseup)="stopListening()"
-            (mouseleave)="stopListening()"
+            (click)="toggleListening()"
             [class.recording]="voice.isRecording()"
-            [attr.aria-label]="'Hold to record'"
-            title="Hold to speak"
+            [attr.aria-label]="voice.isRecording() ? 'Stop recording' : 'Start recording'"
+            [title]="voice.isRecording() ? 'Click to stop' : 'Click to speak'"
           >
             <app-icon name="mic" [size]="14" />
           </button>
