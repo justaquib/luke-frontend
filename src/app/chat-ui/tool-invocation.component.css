@@ -141,32 +141,15 @@
   margin-top: 12px;
 }
 
-.result_summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--surface-1);
-  border: 1px solid var(--border-1);
-  border-radius: var(--radius-sm);
-}
-
-.result_text {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
 .result_toggle {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   padding: 0;
-  border: none;
-  background: none;
+  border: 1px solid var(--border-1);
+  background: var(--surface-1);
   color: var(--text-secondary);
   cursor: pointer;
   border-radius: var(--radius-sm);
@@ -176,6 +159,7 @@
 .result_toggle:hover {
   background: var(--surface-3);
   color: var(--text-primary);
+  border-color: var(--border-2);
 }
 
 .result_toggle app-icon {
@@ -189,6 +173,7 @@
 .result_output {
   margin-top: 8px;
   background: var(--surface-1);
+  border: 1px solid var(--border-1);
   border-radius: var(--radius-sm);
   padding: 12px;
   font-family: var(--font-mono);
