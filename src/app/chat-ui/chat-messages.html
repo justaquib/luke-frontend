@@ -10,13 +10,11 @@
     </div>
   } @else {
     @for (message of session.active().messages; track message.id) {
-      @if (message.role !== 'tool') {
-        <app-chat-message
-          [message]="message"
-          (openDetails)="openDetails.emit($event)"
-          (revealAdvanced)="followReveal()"
-        />
-      }
+      <app-chat-message
+        [message]="message"
+        (openDetails)="openDetails.emit($event)"
+        (revealAdvanced)="followReveal()"
+      />
     }
   }
 

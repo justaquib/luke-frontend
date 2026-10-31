@@ -3,6 +3,7 @@
   [class.user]="message().role === 'user'"
   [class.assistant]="message().role === 'assistant'"
   [class.system]="message().role === 'system'"
+  [class.tool]="message().role === 'tool'"
 >
   <div class="bubble">
     @if (message().role === 'assistant') {
@@ -11,6 +12,11 @@
         [animate]="message().reveal === true"
         (advanced)="revealAdvanced.emit()"
       />
+    } @else if (message().role === 'tool') {
+      <div class="tool_summary">
+        <app-icon name="check" [size]="14" />
+        <span>{{ toolSummary() }}</span>
+      </div>
     } @else {
       <p class="msg-text">{{ message().text }}</p>
     }

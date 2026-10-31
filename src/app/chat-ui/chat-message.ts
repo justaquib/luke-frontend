@@ -55,4 +55,25 @@ export class ChatMessage {
   protected isMessagePaused(): boolean {
     return this.voice.currentlyPlayingText() === this.message().text && !this.voice.isSpeaking();
   }
+
+  protected toolSummary(): string {
+    const message = this.message();
+    if (message.role !== 'tool' || !message.text) return 'Tool executed';
+
+    try {
+      const output: unknown = JSON.parse(message.text);
+      if (typeof output === 'object' && output !== null) {
+        const obj = output as Record<string, unknown>;
+        if ('launched' in obj && 'app' in obj) {
+          return `App launched - ${String(obj['app'])}`;
+        }
+        if ('error' in obj) {
+          return `Error - ${String(obj['error'])}`;
+        }
+      }
+    } catch {
+      // Not JSON, return as-is
+    }
+    return 'Tool executed';
+  }
 }
