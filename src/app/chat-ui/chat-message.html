@@ -84,5 +84,17 @@
         </button>
       }
     </div>
+  } @else if (message().role === 'user') {
+    <div class="message-actions">
+      <button
+        type="button"
+        class="ghost icon-only small"
+        (click)="service.copyMessage(message())"
+        title="Copy message"
+        aria-label="Copy message"
+      >
+        <app-icon name="copy" [size]="14" />
+      </button>
+    </div>
   }
 </div>
