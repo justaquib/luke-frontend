@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ToolsService, type InstalledApp } from '../core/tools.service';
+import { ToolsService, type AppAllowlistEntry, type InstalledApp } from '../core/tools.service';
 import { AppIcon } from '../shared/app-icon';
 import { UiService } from '../shared/ui.service';
 
@@ -31,8 +31,9 @@ export class AppsCardComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
   apps = signal<InstalledApp[]>([]);
-  allowlist = signal<string[]>([]);
+  allowlist = signal<AppAllowlistEntry[]>([]);
   searchQuery = signal('');
+  editingEntry = signal<string | null>(null);
 
   filteredApps = computed(() => {
     const query = this.searchQuery().toLowerCase();
@@ -77,14 +78,19 @@ export class AppsCardComponent implements OnInit {
     });
   }
 
+  findEntry(appName: string): AppAllowlistEntry | undefined {
+    return this.allowlist().find((e) => e.name === appName);
+  }
+
   isAllowlisted(appName: string): boolean {
-    return this.allowlist().includes(appName);
+    return this.allowlist().some((e) => e.name === appName);
   }
 
   addToAllowlist(appName: string): void {
     if (this.isAllowlisted(appName)) return;
 
-    const newAllowlist = [...this.allowlist(), appName];
+    const entry: AppAllowlistEntry = { name: appName, short_name: '', aliases: [] };
+    const newAllowlist = [...this.allowlist(), entry];
     this.toolsService.setAppAllowlist(newAllowlist).subscribe({
       next: (allowlist) => {
         this.allowlist.set(allowlist);
@@ -97,15 +103,47 @@ export class AppsCardComponent implements OnInit {
   }
 
   removeFromAllowlist(appName: string): void {
-    const newAllowlist = this.allowlist().filter((app) => app !== appName);
+    const newAllowlist = this.allowlist().filter((e) => e.name !== appName);
     this.toolsService.setAppAllowlist(newAllowlist).subscribe({
       next: (allowlist) => {
         this.allowlist.set(allowlist);
+        this.editingEntry.set(null);
         this.ui.success(`Removed ${appName} from allowlist`);
       },
       error: (err: HttpError) => {
         this.ui.error(err.error?.detail || 'Failed to update allowlist');
       },
     });
+  }
+
+  toggleEdit(appName: string): void {
+    this.editingEntry.set(this.editingEntry() === appName ? null : appName);
+  }
+
+  updateShortName(appName: string, shortName: string): void {
+    const updated = this.allowlist().map((e) =>
+      e.name === appName ? { ...e, short_name: shortName } : e,
+    );
+    this.toolsService.setAppAllowlist(updated).subscribe({
+      next: (allowlist) => this.allowlist.set(allowlist),
+      error: (err: HttpError) => this.ui.error(err.error?.detail || 'Failed to update'),
+    });
+  }
+
+  updateAliases(appName: string, aliasesText: string): void {
+    const aliases = aliasesText
+      .split(',')
+      .map((a) => a.trim())
+      .filter((a) => a.length > 0);
+    const updated = this.allowlist().map((e) => (e.name === appName ? { ...e, aliases } : e));
+    this.toolsService.setAppAllowlist(updated).subscribe({
+      next: (allowlist) => this.allowlist.set(allowlist),
+      error: (err: HttpError) => this.ui.error(err.error?.detail || 'Failed to update'),
+    });
+  }
+
+  chipLabel(entry: AppAllowlistEntry): string {
+    if (entry.short_name) return `${entry.name} (${entry.short_name})`;
+    return entry.name;
   }
 }

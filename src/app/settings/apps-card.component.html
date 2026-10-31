@@ -1,12 +1,10 @@
 <section class="settings-card">
-  <div class="card-header">
-    <div class="card-title_group">
-      <h3 class="card_title">Applications</h3>
-      <p class="card_description">
-        Control which applications Luke can launch on your system. Only allowlisted apps can be
-        opened.
-      </p>
-    </div>
+  <div class="card-title_group">
+    <h3 class="card_title">Applications</h3>
+    <p class="card_description">
+      Control which applications Luke can launch on your system. Add a short name or aliases so you
+      can type less when launching.
+    </p>
   </div>
 
   @if (loading()) {
@@ -40,17 +38,60 @@
           </div>
         } @else {
           <div class="allowlist_chips">
-            @for (app of allowlist(); track app) {
-              <div class="allowlist_chip">
-                <span class="chip_name">{{ app }}</span>
-                <button
-                  type="button"
-                  class="chip_remove"
-                  (click)="removeFromAllowlist(app)"
-                  aria-label="Remove from allowlist"
-                >
-                  <app-icon name="x" [size]="14" />
-                </button>
+            @for (entry of allowlist(); track entry.name) {
+              <div class="allowlist_chip" [class.editing]="editingEntry() === entry.name">
+                <div class="chip_main">
+                  <button
+                    type="button"
+                    class="chip_name_btn"
+                    (click)="toggleEdit(entry.name)"
+                    [title]="
+                      editingEntry() === entry.name ? 'Close editor' : 'Edit short name and aliases'
+                    "
+                  >
+                    <span class="chip_name">{{ entry.name }}</span>
+                    @if (entry.short_name) {
+                      <span class="chip_short">{{ entry.short_name }}</span>
+                    }
+                    @for (alias of entry.aliases; track alias) {
+                      <span class="chip_alias">{{ alias }}</span>
+                    }
+                    <app-icon name="pencil" [size]="12" class="chip_edit_icon" />
+                  </button>
+                  <button
+                    type="button"
+                    class="chip_remove"
+                    (click)="removeFromAllowlist(entry.name)"
+                    aria-label="Remove from allowlist"
+                    title="Remove from allowlist"
+                  >
+                    <app-icon name="x" [size]="14" />
+                  </button>
+                </div>
+                @if (editingEntry() === entry.name) {
+                  <div class="chip_editor">
+                    <label class="editor_field">
+                      <span class="editor_label">Short name</span>
+                      <input
+                        type="text"
+                        class="editor_input"
+                        placeholder="e.g. code"
+                        [ngModel]="entry.short_name"
+                        (ngModelChange)="updateShortName(entry.name, $event)"
+                      />
+                    </label>
+                    <label class="editor_field">
+                      <span class="editor_label">Aliases (comma-separated)</span>
+                      <input
+                        type="text"
+                        class="editor_input"
+                        placeholder="e.g. vscode, vs code"
+                        [ngModel]="entry.aliases.join(', ')"
+                        (ngModelChange)="updateAliases(entry.name, $event)"
+                      />
+                    </label>
+                  </div>
+                }
               </div>
             }
           </div>

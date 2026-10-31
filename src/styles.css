@@ -231,3 +231,9 @@ body {
   justify-content: flex-end;
   gap: 8px;
 }
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

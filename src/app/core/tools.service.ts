@@ -40,6 +40,12 @@ export interface InstalledApp {
   path: string;
 }
 
+export interface AppAllowlistEntry {
+  name: string;
+  short_name: string;
+  aliases: string[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class ToolsService {
   private http = inject(HttpClient);
@@ -84,14 +90,14 @@ export class ToolsService {
     });
   }
 
-  getAppAllowlist(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}/apps/allowlist`, {
+  getAppAllowlist(): Observable<AppAllowlistEntry[]> {
+    return this.http.get<AppAllowlistEntry[]>(`${this.apiUrl}/apps/allowlist`, {
       headers: this.authHeaders(),
     });
   }
 
-  setAppAllowlist(apps: string[]): Observable<string[]> {
-    return this.http.put<string[]>(
+  setAppAllowlist(apps: AppAllowlistEntry[]): Observable<AppAllowlistEntry[]> {
+    return this.http.put<AppAllowlistEntry[]>(
       `${this.apiUrl}/apps/allowlist`,
       { apps },
       { headers: this.authHeaders() },
